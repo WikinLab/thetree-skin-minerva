@@ -1,0 +1,10 @@
+/*
+ * thetree-skin-vector desktop stylesheet entry.
+ * The upstream ResourceLoader cascade is generated from the locked page module queue.
+ * Host-only adapters remain separate and load after the origin page-style bundle.
+ */
+@import "./vendor/resource-loader/page-styles.css";
+@import "./popups-adapter.css";
+@import "./vector-adapter.css";
+@import "./content.css";
+@import "./thetree-content.css";

@@ -1,0 +1,1126 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { assertResourceLoaderOriginContractSchema } from './resource-loader-origin-schema.mjs';
+import { compileResourceLoaderStyleModuleCss, probeResourceLoaderLessVariables } from './resource-loader-less.mjs';
+import { parseFirstPhpArrayAfter, parsePhpFeatureCompatibilityAfter, parsePhpFeatureLessMessageBindingsAfter } from './php-array-literal.mjs';
+import {
+  adaptResourceLoaderOutputCss,
+  makeCssAssetUrlRewrites,
+  isolateResourceLoaderOutputCssFromHostContent,
+  scopeResourceLoaderOutputCss,
+  withGeneratedCssBanner,
+  rewriteResourceLoaderSelectorRoots,
+  findUnresolvedCssCustomPropertyReferences
+} from './resource-loader-output-adapter.mjs';
+
+const asArray = (value) => value == null ? [] : Array.isArray(value) ? value : [value];
+const posix = (value) => String(value).replaceAll('\\', '/');
+const skinDefinitionCache = new Map();
+const skinRuntimeCache = new Map();
+
+function readJson(root, rel) {
+  return JSON.parse(fs.readFileSync(path.join(root, rel), 'utf8'));
+}
+
+function moduleMap(document, rootKey) {
+  return rootKey ? document[rootKey] || {} : document;
+}
+
+function normalizeStyles(styles) {
+  if (typeof styles === 'string') return [{ path: styles }];
+  if (Array.isArray(styles)) return styles.map((item) => typeof item === 'string' ? { path: item } : item);
+  if (styles && typeof styles === 'object') {
+    return Object.entries(styles).map(([file, options]) => ({ path: file, ...(options || {}) }));
+  }
+  return [];
+}
+
+function sourcePath(sourceBase, module, stylePath) {
+  const base = module.localBasePath ? path.posix.join(sourceBase, module.localBasePath) : sourceBase;
+  return posix(path.posix.join(base, stylePath));
+}
+
+function adaptOwnership(css, ownership, shared) {
+  const surfaces = shared.hostSurfaces;
+  const policy = shared.ownershipPolicies?.[ownership];
+  if (!policy) throw new Error(`Unknown ResourceLoader ownership policy: ${ownership}`);
+  let output = css;
+  if (policy.scopeSurface) {
+    const scopeSelector = surfaces[policy.scopeSurface];
+    if (!scopeSelector) throw new Error(`Unknown ResourceLoader host surface: ${policy.scopeSurface}`);
+    output = scopeResourceLoaderOutputCss(output, {
+      scopeSelector,
+      rootClassNames: policy.rootClassNames || [],
+      rootIdNames: policy.rootIdNames || [],
+      rootTagNames: policy.rootTagNames || [],
+      ancestorContextClassNames: policy.ancestorContextClassNames || [],
+      ancestorContextTagNames: policy.ancestorContextTagNames || []
+    });
+  }
+  for (const [selector, surfaceName] of Object.entries(policy.documentRootRewrites || {})) {
+    const replacement = surfaces[surfaceName];
+    if (!replacement) throw new Error(`Unknown ResourceLoader rewrite surface: ${surfaceName}`);
+    output = rewriteResourceLoaderSelectorRoots(output, { [selector]: replacement });
+  }
+  if (policy.isolateHostContent) {
+    const projectedSurfaceName = policy.projectedSurface || 'parserOutput';
+    const projectedSurface = surfaces[projectedSurfaceName];
+    if (!projectedSurface) throw new Error(`Unknown ResourceLoader projected surface: ${projectedSurfaceName}`);
+    output = isolateResourceLoaderOutputCssFromHostContent(output, {
+      hostContentSelector: surfaces.hostContent,
+      projectedSurfaceSelector: projectedSurface,
+      preserveAncestorClassNames: policy.preserveAncestorClassNames || [],
+      preserveAncestorIdNames: policy.preserveAncestorIdNames || []
+    });
+  }
+  return output;
+}
+
+function uniqueEntries(entries) {
+  const seen = new Set();
+  return entries.filter((entry) => {
+    const key = `${entry.path}\0${entry.ownership}\0${entry.media || ''}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function featureOwnership(feature, contract) {
+  for (const rule of contract.skinModule.ownershipRules || []) {
+    if (new RegExp(rule.pattern).test(feature)) return rule.ownership;
+  }
+  throw new Error(`No ownership rule for SkinModule feature: ${feature}`);
+}
+
+function featureIsset(features, key) {
+  return Object.prototype.hasOwnProperty.call(features, key) && features[key] != null;
+}
+
+function applySkinFeatureCompatibility(features, aliases, operations, addUnspecifiedFeatures) {
+  const output = { ...features };
+  for (const [from, to] of Object.entries(aliases || {})) {
+    if (featureIsset(output, from) && to != null && !featureIsset(output, to)) {
+      output[to] = output[from];
+    }
+    delete output[from];
+  }
+  for (const operation of operations || []) {
+    if (operation.type === 'propagate') {
+      if (operation.requiresAddUnspecifiedFeatures && !addUnspecifiedFeatures) continue;
+      if (featureIsset(output, operation.from) && !featureIsset(output, operation.to)) {
+        output[operation.to] = output[operation.from];
+      }
+      continue;
+    }
+    if (operation.type === 'shorthand') {
+      if (featureIsset(output, operation.from) && output[operation.from]) {
+        for (const feature of operation.enables || []) output[feature] = true;
+      }
+      delete output[operation.from];
+      continue;
+    }
+    throw new Error(`Unknown SkinModule compatibility operation: ${operation.type}`);
+  }
+  return output;
+}
+
+function readSkinModuleDefinition(root, contract) {
+  const cacheKey = `${root}\0${contract.skinModule.source}`;
+  if (skinDefinitionCache.has(cacheKey)) return skinDefinitionCache.get(cacheKey);
+  const source = fs.readFileSync(path.join(root, contract.skinModule.source), 'utf8');
+  if (!contract.skinModule.compatibilityMethod) throw new Error('SkinModule compatibility method marker is not declared');
+  if (!contract.skinModule.constructorMethod) throw new Error('SkinModule constructor method marker is not declared');
+  const messageBindings = parsePhpFeatureLessMessageBindingsAfter(source, contract.skinModule.constructorMethod);
+  const messageConstants = Object.fromEntries(messageBindings.map(({ constant }) => [
+    constant,
+    parseFirstPhpArrayAfter(source, `private const ${constant} =`)
+  ]));
+  const definition = {
+    files: parseFirstPhpArrayAfter(source, 'private const FEATURE_FILES ='),
+    aliases: parseFirstPhpArrayAfter(source, 'private const COMPAT_ALIASES ='),
+    defaultsSpecified: parseFirstPhpArrayAfter(source, 'private const DEFAULT_FEATURES_SPECIFIED ='),
+    defaultsAbsent: parseFirstPhpArrayAfter(source, 'private const DEFAULT_FEATURES_ABSENT ='),
+    compatibility: parsePhpFeatureCompatibilityAfter(source, contract.skinModule.compatibilityMethod),
+    messageBindings: messageBindings.map(({ feature, constant }) => ({
+      feature,
+      messages: messageConstants[constant]
+    }))
+  };
+  const assertKnownFeature = (feature, owner) => {
+    if (!Object.prototype.hasOwnProperty.call(definition.files, feature)) {
+      throw new Error(`${owner} references an unknown SkinModule feature: ${feature}`);
+    }
+  };
+  for (const target of Object.values(definition.aliases || {})) if (target != null) assertKnownFeature(target, 'SkinModule compatibility alias');
+  for (const feature of Object.keys(definition.defaultsSpecified || {})) assertKnownFeature(feature, 'SkinModule specified default');
+  for (const feature of definition.defaultsAbsent || []) assertKnownFeature(feature, 'SkinModule absent default');
+  for (const operation of definition.compatibility) {
+    const referenced = operation.type === 'propagate' ? [operation.from, operation.to] : operation.enables || [];
+    for (const feature of referenced) assertKnownFeature(feature, 'SkinModule compatibility operation');
+  }
+  for (const binding of definition.messageBindings) {
+    assertKnownFeature(binding.feature, 'SkinModule LESS message binding');
+    if (!Array.isArray(binding.messages) || binding.messages.some((key) => typeof key !== 'string')) {
+      throw new Error(`SkinModule LESS message binding is not a string list: ${binding.feature}`);
+    }
+  }
+  skinDefinitionCache.set(cacheKey, definition);
+  return definition;
+}
+
+function resolveSkinModule(root, module, contract) {
+  const definition = readSkinModuleDefinition(root, contract);
+  const featureDeclaration = module.features == null ? definition.defaultsAbsent : module.features;
+  const listMode = Array.isArray(featureDeclaration);
+  let features = listMode
+    ? Object.fromEntries((featureDeclaration || []).map((feature) => [feature, true]))
+    : { ...(featureDeclaration || {}) };
+  features = applySkinFeatureCompatibility(features, definition.aliases, definition.compatibility, !listMode);
+  for (const feature of Object.keys(features)) {
+    if (!Object.prototype.hasOwnProperty.call(definition.files, feature)) {
+      throw new Error(`SkinModule feature is not recognised by ${contract.skinModule.source}: ${feature}`);
+    }
+  }
+  if (!listMode && module.features != null) features = { ...definition.defaultsSpecified, ...features };
+  const disabled = new Set(contract.skinModule.disabledFeatures || []);
+  const allowedMedia = new Set(contract.shared.activeMedia || ['all', 'screen']);
+  const entries = [];
+  let order = 0;
+  for (const [feature, mediaFiles] of Object.entries(definition.files || {})) {
+    if (!features[feature] || disabled.has(feature)) continue;
+    for (const [media, files] of Object.entries(mediaFiles || {})) {
+      if (!allowedMedia.has(media)) continue;
+      for (const file of asArray(files)) {
+        entries.push({
+          path: posix(path.posix.join(contract.skinModule.coreSourceBase, file)),
+          ownership: featureOwnership(feature, contract),
+          order: order++,
+          skinFeature: feature,
+          media
+        });
+      }
+    }
+  }
+  const lessMessages = definition.messageBindings
+    .filter(({ feature }) => features[feature] && !disabled.has(feature))
+    .flatMap(({ messages }) => messages);
+  return { entries, lessMessages: [...new Set(lessMessages)].sort() };
+}
+
+function readSkinRuntimeContract(root, contract) {
+  const cacheKey = `${root}\0${contract.skinModule.configSchema}`;
+  if (skinRuntimeCache.has(cacheKey)) return skinRuntimeCache.get(cacheKey);
+  const schema = fs.readFileSync(path.join(root, contract.skinModule.configSchema), 'utf8');
+  const config = parseFirstPhpArrayAfter(schema, 'return');
+  const defaults = config?.['config-schema-inverse']?.default;
+  const limits = defaults?.ThumbLimits;
+  const defaultIndex = defaults?.DefaultUserOptions?.thumbsize;
+  if (!Array.isArray(limits) || !Number.isInteger(defaultIndex) || !limits[defaultIndex]) {
+    throw new Error('Unable to derive MediaWiki SkinModule thumbnail contract');
+  }
+  const runtime = { small: Math.max(180, Math.min(...limits)), standard: limits[defaultIndex], large: Math.max(...limits) };
+  skinRuntimeCache.set(cacheKey, runtime);
+  return runtime;
+}
+
+function normaliseCodexManifest(manifest) {
+  const files = new Map();
+  const components = new Map();
+  for (const [key, value] of Object.entries(manifest)) {
+    files.set(value.file, {
+      imports: (value.imports || []).map((item) => manifest[item]?.file).filter(Boolean),
+      css: value.css || []
+    });
+    if (value.isEntry) components.set(path.basename(value.file, path.extname(value.file)), value.file);
+  }
+  return { files, components };
+}
+
+function resolveCodexCss(root, module, contract) {
+  if (!module.codexComponents?.length) return '';
+  const manifestRel = contract.shared.codexManifest;
+  const moduleRoot = contract.shared.codexModuleRoot;
+  const manifest = normaliseCodexManifest(readJson(root, manifestRel));
+  const ordered = [];
+  const visited = new Set();
+  const visiting = new Set();
+  const visit = (file) => {
+    if (visited.has(file)) return;
+    if (visiting.has(file)) throw new Error(`Circular Codex manifest dependency: ${file}`);
+    visiting.add(file);
+    const data = manifest.files.get(file);
+    if (!data) throw new Error(`Codex component file is missing from ${manifestRel}: ${file}`);
+    for (const dependency of data.imports) visit(dependency);
+    for (const css of data.css) if (!ordered.includes(css)) ordered.push(css);
+    visiting.delete(file);
+    visited.add(file);
+  };
+  for (const component of module.codexComponents) {
+    const file = manifest.components.get(component);
+    if (!file) throw new Error(`Codex component is missing from ${manifestRel}: ${component}`);
+    visit(file);
+  }
+  return ordered.map((file) => fs.readFileSync(path.join(root, moduleRoot, file), 'utf8').trim()).join('\n');
+}
+
+function relativeRuntimeAssetDirectory(root, output, runtimeAssetDirectory) {
+  let rel = path.relative(path.dirname(path.join(root, output)), path.join(root, runtimeAssetDirectory)).replaceAll('\\', '/');
+  if (!rel.startsWith('.')) rel = `./${rel}`;
+  return `${rel.replace(/\/$/, '')}/`;
+}
+
+function lessMessagePrelude(keys) {
+  return [...new Set(keys || [])].sort().map((key) => `@msg-${key}: var(--mw-msg-${key});`).join('\n');
+}
+
+function entryCompileOptions(root, contract, moduleName, entry, lessMessages) {
+  const shared = contract.shared;
+  return {
+    root,
+    moduleName,
+    entrypoint: entry.path,
+    prelude: [
+      lessMessagePrelude(lessMessages),
+      entry.skinFeature === 'accessibility' ? `@image-size-standard: ${readSkinRuntimeContract(root, contract).standard};` : ''
+    ].filter(Boolean).join('\n'),
+    preludeEntries: shared.lessPreludeEntries,
+    importPaths: [path.posix.dirname(entry.path), ...shared.importPaths],
+    importAliases: shared.importAliases
+  };
+}
+
+async function compileEntry(root, contract, moduleName, output, entry, lessMessages) {
+  const shared = contract.shared;
+  const compileOptions = entryCompileOptions(root, contract, moduleName, entry, lessMessages);
+  const raw = await compileResourceLoaderStyleModuleCss(compileOptions);
+  const assetDirectory = relativeRuntimeAssetDirectory(root, output, shared.runtimeAssetDirectory || 'images');
+  let css = adaptResourceLoaderOutputCss(raw, {
+    assetUrlRewrites: makeCssAssetUrlRewrites(assetDirectory, { includeLegacyThreeLevelParent: true })
+  });
+  css = adaptOwnership(css, entry.ownership, shared);
+  if (entry.skinFeature === 'accessibility') {
+    const sizes = readSkinRuntimeContract(root, contract);
+    css += `\n\n:root {\n  --image-size-small: ${sizes.small}px;\n  --image-size-standard: ${sizes.standard}px;\n  --image-size-large: ${sizes.large}px;\n}`;
+  }
+  if (entry.media && entry.media !== 'all' && entry.media !== 'screen') css = `@media ${entry.media} {\n${css}\n}`;
+  return { css };
+}
+
+async function compileModule(root, contract, record) {
+  const metadata = readJson(root, record.metadata);
+  const modules = moduleMap(metadata, record.metadataRoot);
+  const module = modules[record.name] || (metadata.module === record.name ? metadata : null);
+  if (!module) throw new Error(`ResourceLoader module ${record.name} is absent from ${record.metadata}`);
+
+  const entries = [];
+  let skinLessMessages = [];
+  if (String(module.class || '').endsWith('SkinModule')) {
+    const resolved = resolveSkinModule(root, module, contract);
+    entries.push(...resolved.entries);
+    skinLessMessages = resolved.lessMessages;
+  }
+  const activeMedia = new Set(contract.shared.activeMedia || ['all', 'screen']);
+  for (const style of normalizeStyles(module.styles)) {
+    const media = style.media || 'all';
+    if (!activeMedia.has(media)) continue;
+    entries.push({
+      path: sourcePath(record.sourceBase, module, style.path || style.name),
+      media,
+      ownership: record.ownership,
+      order: 1000
+    });
+  }
+
+  const lessMessages = [...new Set([...asArray(module.lessMessages), ...skinLessMessages])]
+    .filter((key) => typeof key === 'string')
+    .sort();
+  const parts = [];
+  const codexCss = resolveCodexCss(root, module, contract);
+  if (codexCss) parts.push(codexCss);
+  for (const entry of uniqueEntries(entries)) {
+    const compiled = await compileEntry(root, contract, record.name, record.output, entry, lessMessages);
+    parts.push(compiled.css);
+  }
+  return {
+    css: withGeneratedCssBanner(parts.filter(Boolean).join('\n\n'), {
+      banner: `/* Generated mechanically from ResourceLoader module ${record.name}. Metadata: ${record.metadata}. */`,
+      moduleName: record.name
+    }),
+    lessMessages
+  };
+}
+
+
+function lexicalStringLiterals(source) {
+  const values = [];
+  let index = 0;
+  while (index < source.length) {
+    const char = source[index];
+    const next = source[index + 1];
+    if (char === '/' && next === '/') {
+      index += 2;
+      while (index < source.length && source[index] !== '\n') index += 1;
+      continue;
+    }
+    if (char === '/' && next === '*') {
+      index += 2;
+      while (index < source.length && !(source[index] === '*' && source[index + 1] === '/')) index += 1;
+      index = Math.min(source.length, index + 2);
+      continue;
+    }
+    if (char === '#') {
+      index += 1;
+      while (index < source.length && source[index] !== '\n') index += 1;
+      continue;
+    }
+    if (char === '`') {
+      index += 1;
+      while (index < source.length) {
+        if (source[index] === '\\') index += 2;
+        else if (source[index] === '`') { index += 1; break; }
+        else index += 1;
+      }
+      continue;
+    }
+    if (char !== "'" && char !== '"') {
+      index += 1;
+      continue;
+    }
+    const quote = char;
+    const start = index;
+    index += 1;
+    let value = '';
+    while (index < source.length) {
+      const current = source[index];
+      if (current === '\\') {
+        const escaped = source[index + 1];
+        if (escaped == null) { index += 1; break; }
+        const decoded = { n: '\n', r: '\r', t: '\t' }[escaped] ?? escaped;
+        value += decoded;
+        index += 2;
+      } else if (current === quote) {
+        index += 1;
+        values.push({ value, start, end: index });
+        break;
+      } else {
+        value += current;
+        index += 1;
+      }
+    }
+  }
+  return values;
+}
+
+function matchingDelimiter(source, openIndex, openChar, closeChar) {
+  let depth = 0;
+  let index = openIndex;
+  while (index < source.length) {
+    const char = source[index];
+    const next = source[index + 1];
+    if (char === '/' && next === '/') {
+      index += 2;
+      while (index < source.length && source[index] !== '\n') index += 1;
+      continue;
+    }
+    if (char === '/' && next === '*') {
+      index += 2;
+      while (index < source.length && !(source[index] === '*' && source[index + 1] === '/')) index += 1;
+      index = Math.min(source.length, index + 2);
+      continue;
+    }
+    if (char === '#') {
+      index += 1;
+      while (index < source.length && source[index] !== '\n') index += 1;
+      continue;
+    }
+    if (char === "'" || char === '"' || char === '`') {
+      const quote = char;
+      index += 1;
+      while (index < source.length) {
+        if (source[index] === '\\') index += 2;
+        else if (source[index] === quote) { index += 1; break; }
+        else index += 1;
+      }
+      continue;
+    }
+    if (char === openChar) depth += 1;
+    if (char === closeChar) {
+      depth -= 1;
+      if (depth === 0) return index;
+    }
+    index += 1;
+  }
+  return -1;
+}
+
+function phpMethodBody(source, methodName, file) {
+  const pattern = new RegExp(`\\bfunction\\s+${String(methodName).replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\s*\\(`);
+  const match = pattern.exec(source);
+  if (!match) throw new Error(`Unable to locate PHP method ${methodName} in ${file}`);
+  const open = source.indexOf('{', match.index + match[0].length);
+  if (open === -1) throw new Error(`Unable to locate PHP method body ${methodName} in ${file}`);
+  const close = matchingDelimiter(source, open, '{', '}');
+  if (close === -1) throw new Error(`Unterminated PHP method body ${methodName} in ${file}`);
+  return source.slice(open + 1, close);
+}
+
+function callStringArguments(source, callee, file) {
+  const output = [];
+  let offset = 0;
+  while (offset < source.length) {
+    const call = source.indexOf(callee, offset);
+    if (call === -1) break;
+    const open = source.indexOf('(', call + callee.length);
+    if (open === -1) break;
+    const close = matchingDelimiter(source, open, '(', ')');
+    if (close === -1) throw new Error(`Unterminated ${callee} call in ${file}`);
+    output.push(...lexicalStringLiterals(source.slice(open + 1, close)).map((entry) => entry.value));
+    offset = close + 1;
+  }
+  return output;
+}
+
+function valueAtSegments(value, segments, description) {
+  let current = value;
+  for (const segment of segments || []) current = current?.[segment];
+  if (!Array.isArray(current)) throw new Error(`Expected module list at ${description}`);
+  return current.filter((item) => typeof item === 'string');
+}
+
+function moduleDefinition(root, record) {
+  if (!record?.metadata || !record?.name) return null;
+  const metadata = readJson(root, record.metadata);
+  const modules = moduleMap(metadata, record.metadataRoot);
+  return modules[record.name] || (metadata.module === record.name ? metadata : null);
+}
+
+function resourceOutputRecords(contract) {
+  const records = new Map();
+  for (const record of contract.modules || []) records.set(record.name, { ...record, kind: 'module' });
+  for (const record of contract.bundles || []) records.set(record.name, { ...record, kind: 'bundle' });
+  if (contract.customPropertyClosure) records.set(contract.customPropertyClosure.name, { ...contract.customPropertyClosure, kind: 'custom-property-closure' });
+  return records;
+}
+
+function modulesFromQueueSource(root, source) {
+  if (source.kind === 'generated-output') return [source.name];
+  if (source.kind === 'skin-option-styles') {
+    const metadata = readJson(root, source.metadata);
+    const args = metadata.ValidSkinNames?.[source.skin]?.args;
+    const options = Array.isArray(args) ? args.find((item) => item && typeof item === 'object' && item.name === source.skin) || args[0] : null;
+    if (!options || !Array.isArray(options.styles)) {
+      throw new Error(`Unable to derive skin style queue for ${source.skin} from ${source.metadata}`);
+    }
+    return options.styles.filter((item) => typeof item === 'string');
+  }
+  if (source.kind === 'php-add-module-styles') {
+    const file = source.file;
+    const text = fs.readFileSync(path.join(root, file), 'utf8');
+    const method = phpMethodBody(text, source.method, file);
+    const modules = callStringArguments(method, 'addModuleStyles', file);
+    if (modules.length === 0) throw new Error(`No addModuleStyles modules found in ${file}::${source.method}`);
+    return modules;
+  }
+  if (source.kind === 'extension-attribute-modules') {
+    return valueAtSegments(readJson(root, source.metadata), source.path, `${source.metadata}:${(source.path || []).join('.')}`);
+  }
+  if (source.kind === 'javascript-loader-using') {
+    const file = source.file;
+    const text = fs.readFileSync(path.join(root, file), 'utf8');
+    const modules = callStringArguments(text, 'mw.loader.using', file);
+    if (modules.length === 0) throw new Error(`No mw.loader.using modules found in ${file}`);
+    return modules;
+  }
+  if (source.kind === 'php-module-definition') {
+    const text = fs.readFileSync(path.join(root, source.file), 'utf8');
+    const defined = lexicalStringLiterals(text).some((entry) => {
+      if (entry.value !== source.module) return false;
+      return /^\s*=>/.test(text.slice(entry.end));
+    });
+    if (!defined) throw new Error(`ResourceLoader module ${source.module} is absent from ${source.file}`);
+    return [source.module];
+  }
+  throw new Error(`Unknown page style queue source kind: ${source.kind}`);
+}
+
+function moduleDependencies(root, record) {
+  if (record.kind !== 'module') return [];
+  const definition = moduleDefinition(root, record);
+  if (!definition) throw new Error(`ResourceLoader module ${record.name} is absent from ${record.metadata}`);
+  return asArray(definition.dependencies).filter((item) => typeof item === 'string');
+}
+
+function uniqueNames(names) {
+  const seen = new Set();
+  return names.filter((name) => {
+    if (seen.has(name)) return false;
+    seen.add(name);
+    return true;
+  });
+}
+
+function resolvePageStyleDependencies(root, roots, records, emitted) {
+  const ordered = [];
+  const visiting = new Set();
+  const visit = (name) => {
+    if (emitted.has(name)) return;
+    const record = records.get(name);
+    if (!record) return;
+    if (visiting.has(name)) throw new Error(`Circular ResourceLoader page-style dependency: ${[...visiting, name].join(' -> ')}`);
+    visiting.add(name);
+    for (const dependency of moduleDependencies(root, record)) visit(dependency);
+    visiting.delete(name);
+    if (!emitted.has(name)) {
+      emitted.add(name);
+      ordered.push(name);
+    }
+  };
+  for (const name of roots) visit(name);
+  return ordered;
+}
+
+function resourceLoaderTransport(record, definition, queue) {
+  return {
+    source: record.resourceLoaderSource ?? definition?.source ?? queue.clientHtml?.defaultSource ?? 'local',
+    group: record.resourceLoaderGroup ?? definition?.group ?? queue.clientHtml?.defaultGroup ?? ''
+  };
+}
+
+function orderLikeClientHtmlMakeLoad(root, names, records, queue, emitted) {
+  // MediaWiki ClientHtml::makeLoad() calls PHP sort() before partitioning modules by source/group.
+  const sorted = uniqueNames(names).sort();
+  const bySource = new Map();
+  for (const name of sorted) {
+    if (emitted.has(name)) continue;
+    const record = records.get(name);
+    if (!record) continue;
+    const definition = moduleDefinition(root, record);
+    const transport = resourceLoaderTransport(record, definition, queue);
+    if (!bySource.has(transport.source)) bySource.set(transport.source, new Map());
+    const byGroup = bySource.get(transport.source);
+    if (!byGroup.has(transport.group)) byGroup.set(transport.group, []);
+    byGroup.get(transport.group).push(name);
+  }
+  const ordered = [];
+  for (const byGroup of bySource.values()) {
+    for (const groupNames of byGroup.values()) {
+      for (const name of groupNames) {
+        if (emitted.has(name)) continue;
+        emitted.add(name);
+        ordered.push(name);
+      }
+    }
+  }
+  return ordered;
+}
+
+function pageStyleBatchRoots(root, batch, phasesById) {
+  const roots = [];
+  for (const phaseId of batch.phases || []) {
+    const phase = phasesById.get(phaseId);
+    if (!phase) throw new Error(`Page style batch ${batch.id} references missing phase: ${phaseId}`);
+    for (const source of phase.sources || []) roots.push(...modulesFromQueueSource(root, source));
+  }
+  return roots;
+}
+
+function resolvePageStyleBatch(root, batch, phasesById, records, queue, emitted) {
+  const roots = pageStyleBatchRoots(root, batch, phasesById);
+  if (batch.ordering === 'preserve') {
+    const ordered = [];
+    for (const name of uniqueNames(roots)) {
+      if (emitted.has(name) || !records.has(name)) continue;
+      emitted.add(name);
+      ordered.push(name);
+    }
+    return ordered;
+  }
+  if (batch.ordering === 'mediawiki-clienthtml-make-load') {
+    return orderLikeClientHtmlMakeLoad(root, roots, records, queue, emitted);
+  }
+  if (batch.ordering === 'dependency-topological') {
+    return resolvePageStyleDependencies(root, uniqueNames(roots), records, emitted);
+  }
+  throw new Error(`Unknown page style batch ordering: ${batch.ordering}`);
+}
+
+function relativeCssImport(fromOutput, toOutput) {
+  let relative = path.posix.relative(path.posix.dirname(posix(fromOutput)), posix(toOutput));
+  if (!relative.startsWith('.')) relative = `./${relative}`;
+  return relative;
+}
+
+
+function validatePageStyleLifecycle(root, queue) {
+  const phaseIndexes = new Map((queue.phases || []).map((phase, index) => [phase.id, index]));
+  for (const assertion of queue.lifecycleAssertions || []) {
+    if (assertion.kind !== 'php-method-call-order') {
+      throw new Error(`Unknown page style lifecycle assertion kind: ${assertion.kind}`);
+    }
+    const text = fs.readFileSync(path.join(root, assertion.file), 'utf8');
+    const method = phpMethodBody(text, assertion.method, assertion.file);
+    let previousCallIndex = -1;
+    let previousPhaseIndex = -1;
+    for (const item of assertion.calls || []) {
+      const callIndex = method.indexOf(item.call, previousCallIndex + 1);
+      if (callIndex === -1) {
+        const firstIndex = method.indexOf(item.call);
+        if (firstIndex === -1) {
+          throw new Error(`Lifecycle call ${item.call} is absent from ${assertion.file}::${assertion.method}`);
+        }
+        throw new Error(`Lifecycle call order changed in ${assertion.file}::${assertion.method}: ${item.call}`);
+      }
+      previousCallIndex = callIndex;
+      if (item.phase) {
+        const phaseIndex = phaseIndexes.get(item.phase);
+        if (phaseIndex == null) throw new Error(`Lifecycle assertion references missing page style phase: ${item.phase}`);
+        if (phaseIndex <= previousPhaseIndex) {
+          throw new Error(`Page style phases do not follow ${assertion.file}::${assertion.method}: ${item.phase}`);
+        }
+        previousPhaseIndex = phaseIndex;
+      }
+    }
+  }
+}
+
+export function compilePageStyleQueue(root, contract) {
+  const queue = contract.pageStyleQueue;
+  if (!queue) return null;
+  if (queue.schema !== 2 || !queue.output || !Array.isArray(queue.phases) || !Array.isArray(queue.batches)) {
+    throw new Error(`Unsupported or incomplete page style queue schema: ${queue.schema ?? 'none'}`);
+  }
+  validatePageStyleLifecycle(root, queue);
+  const phasesById = new Map();
+  for (const phase of queue.phases) {
+    if (!phase?.id) throw new Error('Page style queue phase is missing id.');
+    if (phasesById.has(phase.id)) throw new Error(`Duplicate page style queue phase: ${phase.id}`);
+    phasesById.set(phase.id, phase);
+  }
+  const coveredPhases = new Set();
+  const records = resourceOutputRecords(contract);
+  const emitted = new Set();
+  const lines = [
+    `/* Generated mechanically from the MediaWiki page style queue profile ${queue.profile || 'default'}. */`,
+    '/* Final ordering includes ClientHtml::makeLoad module sorting and source/group partitioning. */',
+    '/* Do not hand-order upstream ResourceLoader modules in css/screen.css. */'
+  ];
+  for (const batch of queue.batches) {
+    if (!batch?.id || !batch?.ordering || !Array.isArray(batch.phases)) {
+      throw new Error('Page style queue batch is incomplete.');
+    }
+    for (const phaseId of batch.phases) {
+      if (coveredPhases.has(phaseId)) throw new Error(`Page style phase belongs to more than one batch: ${phaseId}`);
+      coveredPhases.add(phaseId);
+    }
+    const names = resolvePageStyleBatch(root, batch, phasesById, records, queue, emitted);
+    if (names.length === 0) continue;
+    lines.push('', `/* ResourceLoader load batch: ${batch.id} (${batch.ordering}) */`);
+    for (const name of names) {
+      const record = records.get(name);
+      lines.push(`@import "${relativeCssImport(queue.output, record.output)}";`);
+    }
+  }
+  const uncovered = [...phasesById.keys()].filter((phaseId) => !coveredPhases.has(phaseId));
+  if (uncovered.length) throw new Error(`Page style phases are not assigned to a load batch: ${uncovered.join(', ')}`);
+  return `${lines.join('\n')}\n`;
+}
+
+function compileBundle(root, bundle) {
+  const content = bundle.sources.map((source) => fs.readFileSync(path.join(root, source), 'utf8').trim()).join('\n\n');
+  return withGeneratedCssBanner(content, {
+    banner: `/* Generated mechanically from CSS bundle ${bundle.name}. */`,
+    moduleName: bundle.name
+  });
+}
+
+function localCssConsumers(root, contract) {
+  const generatedRoot = path.resolve(root, contract.generatedRoot);
+  const files = [];
+  for (const relRoot of contract.customPropertyClosure?.localConsumerRoots || []) {
+    for (const file of walkFiles(path.join(root, relRoot))) {
+      const absolute = path.resolve(file);
+      if (absolute === generatedRoot || absolute.startsWith(`${generatedRoot}${path.sep}`)) continue;
+      if (file.endsWith('.css')) files.push(file);
+    }
+  }
+  return files;
+}
+
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function extractStaticTemplateLiteral(source, constantName, sourcePath) {
+  const pattern = new RegExp(
+    '(?:const|let|var)\\s+' + escapeRegExp(constantName) + '\\s*=\\s*`([\\s\\S]*?)`\\s*;',
+    'g'
+  );
+  const matches = [...source.matchAll(pattern)];
+  if (matches.length !== 1) {
+    throw new Error(
+      `Static DOM origin must contain exactly one ${constantName} template literal: ${sourcePath}`
+    );
+  }
+  const html = matches[0][1];
+  if (html.includes('${')) {
+    throw new Error(`Static DOM origin template interpolation is unsupported: ${sourcePath}`);
+  }
+  return html;
+}
+
+function extractStaticClassAssignment(source, assignment, sourcePath) {
+  const target = escapeRegExp(assignment.target);
+  const property = escapeRegExp(assignment.property || 'className');
+  const pattern = new RegExp(
+    `${target}\\.${property}\\s*=\\s*(['"])([^'"]*)\\1\\s*;`,
+    'g'
+  );
+  const matches = [...source.matchAll(pattern)];
+  if (matches.length !== 1) {
+    throw new Error(
+      `Static DOM origin must contain exactly one ${assignment.target}.${assignment.property || 'className'} assignment: ${sourcePath}`
+    );
+  }
+  return matches[0][2].trim().split(/\s+/).filter(Boolean);
+}
+
+function parseStaticHtmlClassTree(html, sourcePath) {
+  const documentNode = { classes: new Set(), children: [] };
+  const stack = [documentNode];
+  const voidTags = new Set([
+    'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input',
+    'link', 'meta', 'param', 'source', 'track', 'wbr'
+  ]);
+  const tokenPattern = /<!--[\s\S]*?-->|<![^>]*>|<\/?[A-Za-z][^>]*>/g;
+  for (const match of html.matchAll(tokenPattern)) {
+    const token = match[0];
+    if (token.startsWith('<!--') || token.startsWith('<!')) continue;
+    const closing = /^<\//.test(token);
+    const tagMatch = token.match(/^<\/?\s*([A-Za-z][\w:-]*)/);
+    if (!tagMatch) continue;
+    const tag = tagMatch[1].toLowerCase();
+    if (closing) {
+      if (stack.length === 1 || stack[stack.length - 1].tag !== tag) {
+        throw new Error(`Static DOM origin has unbalanced closing tag </${tag}>: ${sourcePath}`);
+      }
+      stack.pop();
+      continue;
+    }
+    const classes = new Set();
+    const classMatch = token.match(/\bclass\s*=\s*(['"])([\s\S]*?)\1/i);
+    if (classMatch) {
+      for (const name of classMatch[2].trim().split(/\s+/)) {
+        if (name) classes.add(name);
+      }
+    }
+    const node = { tag, classes, children: [] };
+    stack[stack.length - 1].children.push(node);
+    if (!/\/>\s*$/.test(token) && !voidTags.has(tag)) stack.push(node);
+  }
+  if (stack.length !== 1) {
+    throw new Error(`Static DOM origin has unclosed HTML elements: ${sourcePath}`);
+  }
+  if (documentNode.children.length !== 1) {
+    throw new Error(`Static DOM origin must contain exactly one root element: ${sourcePath}`);
+  }
+  return documentNode.children[0];
+}
+
+function addDomClassContainment(graph, node, ancestorClasses = []) {
+  const currentClasses = [...node.classes];
+  for (const ancestor of ancestorClasses) {
+    const descendants = graph.get(ancestor) || new Set();
+    for (const descendant of currentClasses) {
+      if (ancestor !== descendant) descendants.add(descendant);
+    }
+    graph.set(ancestor, descendants);
+  }
+  const nextAncestors = [...new Set([...ancestorClasses, ...currentClasses])];
+  for (const child of node.children) addDomClassContainment(graph, child, nextAncestors);
+}
+
+function deriveStaticDomClassContainment(root, compositions = []) {
+  const graph = new Map();
+  for (const composition of compositions) {
+    const wrapperPath = path.join(root, composition.wrapperSource);
+    const wrapperSource = fs.readFileSync(wrapperPath, 'utf8');
+    const wrapperRoot = parseStaticHtmlClassTree(
+      extractStaticTemplateLiteral(
+        wrapperSource,
+        composition.wrapperTemplateConstant,
+        composition.wrapperSource
+      ),
+      composition.wrapperSource
+    );
+    const contentRootClasses = extractStaticClassAssignment(
+      wrapperSource,
+      composition.contentRootClassAssignment,
+      composition.wrapperSource
+    );
+    for (const template of composition.contentTemplates || []) {
+      const templateSource = fs.readFileSync(path.join(root, template.source), 'utf8');
+      const contentRoot = parseStaticHtmlClassTree(
+        extractStaticTemplateLiteral(templateSource, template.templateConstant, template.source),
+        template.source
+      );
+      for (const className of contentRootClasses) contentRoot.classes.add(className);
+      wrapperRoot.children.push(contentRoot);
+    }
+    addDomClassContainment(graph, wrapperRoot);
+  }
+  return graph;
+}
+
+function unresolvedCustomPropertyNames(root, contract, cssSources) {
+  const hostPrefixes = contract.customPropertyClosure?.hostProvidedPrefixes || [];
+  const domClassDescendants = deriveStaticDomClassContainment(
+    root,
+    contract.customPropertyClosure?.domCompositions || []
+  );
+  return findUnresolvedCssCustomPropertyReferences(cssSources, { domClassDescendants })
+    .filter((name) => !hostPrefixes.some((prefix) => name.startsWith(prefix)));
+}
+
+function generatedCustomPropertyClosureRequirements(root, contract, generatedCss) {
+  return unresolvedCustomPropertyNames(root, contract, generatedCss);
+}
+
+function combinedCustomPropertyClosureRequirements(root, contract, generatedCss) {
+  const localCss = localCssConsumers(root, contract).map((file) => fs.readFileSync(file, 'utf8'));
+  return unresolvedCustomPropertyNames(root, contract, [...generatedCss, ...localCss]);
+}
+
+async function publishedLocalCustomPropertyNames(root, contract, candidates) {
+  if (!candidates.length) return new Set();
+  const entrypoints = contract.customPropertyClosure?.localPublishedLessTokenEntrypoints || [];
+  if (!Array.isArray(entrypoints) || entrypoints.length === 0) {
+    throw new Error(
+      'ResourceLoader custom property closure requires localPublishedLessTokenEntrypoints ' +
+      'when local CSS consumes upstream LESS tokens.'
+    );
+  }
+  const names = new Set();
+  const probes = entrypoints.map((entrypoint, index) => ({
+    root,
+    moduleName: `${contract.customPropertyClosure.name}-published-local-${index}`,
+    entrypoint,
+    preludeEntries: [],
+    importPaths: [path.posix.dirname(entrypoint), ...contract.shared.importPaths],
+    importAliases: contract.shared.importAliases
+  }));
+  for (const probe of uniqueProbeOptions(probes)) {
+    const resolved = await probeResourceLoaderLessVariables(probe, candidates);
+    for (const name of resolved.keys()) names.add(name);
+  }
+  return names;
+}
+
+function validateLocalCssCustomPropertyClosure(root, contract, generatedCss, shimCss) {
+  const cssSources = [
+    ...generatedCss,
+    shimCss,
+    ...localCssConsumers(root, contract).map((file) => fs.readFileSync(file, 'utf8'))
+  ];
+  const unresolved = unresolvedCustomPropertyNames(root, contract, cssSources);
+  if (unresolved.length) {
+    throw new Error(
+      'Local adapter CSS references custom properties that are not supplied by generated upstream CSS, ' +
+      `the authoritative skin shim, or the host contract: ${unresolved.join(', ')}`
+    );
+  }
+}
+
+function uniqueProbeOptions(options) {
+  const seen = new Set();
+  return options.filter((item) => {
+    const key = JSON.stringify(item);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+async function compileCustomPropertyClosure(root, contract, generatedCss) {
+  const closure = contract.customPropertyClosure;
+  if (!closure) return null;
+  const generatedRequired = generatedCustomPropertyClosureRequirements(root, contract, generatedCss);
+  const combinedRequired = combinedCustomPropertyClosureRequirements(root, contract, generatedCss);
+  const generatedRequiredSet = new Set(generatedRequired);
+  const localOnlyRequired = combinedRequired.filter((name) => !generatedRequiredSet.has(name));
+  const publishedLocalNames = await publishedLocalCustomPropertyNames(
+    root,
+    contract,
+    localOnlyRequired
+  );
+  const unsupportedLocal = localOnlyRequired.filter((name) => !publishedLocalNames.has(name));
+  if (unsupportedLocal.length) {
+    throw new Error(
+      'Local adapter CSS references custom properties that are neither supplied by generated upstream CSS ' +
+      'nor declared by the published upstream LESS token contract: ' + unsupportedLocal.join(', ')
+    );
+  }
+  const required = combinedRequired;
+  const authoritativeEntrypoints = closure.authoritativeLessEntrypoints || [];
+  if (!Array.isArray(authoritativeEntrypoints) || authoritativeEntrypoints.length === 0) {
+    throw new Error('ResourceLoader custom property closure requires authoritativeLessEntrypoints.');
+  }
+  const authoritativeProbes = authoritativeEntrypoints.map((entrypoint, index) => ({
+    root,
+    moduleName: `${closure.name}-authoritative-${index}`,
+    entrypoint,
+    preludeEntries: contract.shared.lessPreludeEntries,
+    importPaths: [path.posix.dirname(entrypoint), ...contract.shared.importPaths],
+    importAliases: contract.shared.importAliases
+  }));
+  const values = new Map();
+  for (const probe of uniqueProbeOptions(authoritativeProbes)) {
+    const resolved = await probeResourceLoaderLessVariables(probe, required);
+    for (const [name, value] of resolved) {
+      const existing = values.get(name);
+      if (existing != null && existing !== value) {
+        throw new Error(
+          `Authoritative skin LESS environments disagree for ResourceLoader custom property ${name}: ${existing} != ${value}`
+        );
+      }
+      values.set(name, value);
+    }
+  }
+  const unresolved = required.filter((name) => !values.has(name));
+  if (unresolved.length) {
+    throw new Error(
+      `Unable to derive ResourceLoader custom properties from authoritative skin LESS environments: ${unresolved.join(', ')}`
+    );
+  }
+  const declarations = required.map((name) => `  ${name}: ${values.get(name)};`);
+  const shimCss = `/* Generated from the authoritative skin LESS variable closure. */\n:root {\n${declarations.join('\n')}\n}\n`;
+  validateLocalCssCustomPropertyClosure(root, contract, generatedCss, shimCss);
+  return shimCss;
+}
+
+function compileMessageCatalog(root, contract, keys) {
+  const catalog = contract.messageCatalog;
+  if (!catalog) return null;
+  const languages = {};
+  for (const [language, definition] of Object.entries(catalog.languages || {})) {
+    const source = readJson(root, definition.source);
+    const messages = {};
+    for (const key of keys) {
+      if (typeof source[key] === 'string') messages[key] = source[key];
+      else if (!definition.fallback) messages[key] = `⧼${key}⧽`;
+    }
+    languages[language] = {
+      ...(definition.fallback ? { fallback: definition.fallback } : {}),
+      messages
+    };
+  }
+  return `${JSON.stringify({ schema: 1, languages }, null, 2)}\n`;
+}
+
+
+function walkFiles(directory) {
+  if (!fs.existsSync(directory)) return [];
+  const files = [];
+  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+    const target = path.join(directory, entry.name);
+    if (entry.isDirectory()) files.push(...walkFiles(target));
+    else if (entry.isFile()) files.push(target);
+  }
+  return files.sort();
+}
+
+function assetOutputs(root, assets) {
+  const outputs = [];
+  for (const mapping of assets || []) {
+    const sourceRoot = path.join(root, mapping.source);
+    for (const source of walkFiles(sourceRoot)) {
+      outputs.push({
+        source,
+        output: path.join(root, mapping.output, path.relative(sourceRoot, source))
+      });
+    }
+  }
+  return outputs;
+}
+
+function materializeAssets(root, assets, check) {
+  for (const entry of assetOutputs(root, assets)) {
+    if (check) {
+      if (!fs.existsSync(entry.output) || !fs.readFileSync(entry.output).equals(fs.readFileSync(entry.source))) {
+        throw new Error(`Generated ResourceLoader asset is stale: ${path.relative(root, entry.output)}`);
+      }
+    } else {
+      fs.mkdirSync(path.dirname(entry.output), { recursive: true });
+      fs.copyFileSync(entry.source, entry.output);
+    }
+  }
+}
+
+function writeOrCheck(root, output, content, check) {
+  const absolute = path.join(root, output);
+  if (check) {
+    const current = fs.existsSync(absolute) ? fs.readFileSync(absolute, 'utf8') : '';
+    if (current !== content) throw new Error(`Generated ResourceLoader output is stale: ${output}`);
+  } else {
+    fs.mkdirSync(path.dirname(absolute), { recursive: true });
+    fs.writeFileSync(absolute, content, 'utf8');
+    console.log(`generated ${output}`);
+  }
+}
+
+export async function generateResourceLoaderOrigins({ root, contractPath, check = false }) {
+  const contract = readJson(root, contractPath);
+  assertResourceLoaderOriginContractSchema(contract.schema);
+  const generatedRoot = path.join(root, contract.generatedRoot);
+  if (!check) fs.rmSync(generatedRoot, { recursive: true, force: true });
+  const expected = new Set();
+  const generatedCss = [];
+  const lessMessages = new Set();
+  const pending = [];
+
+  for (const module of contract.modules || []) {
+    expected.add(posix(module.output));
+    for (const asset of assetOutputs(root, module.assets)) expected.add(posix(path.relative(root, asset.output)));
+    const compiled = await compileModule(root, contract, module);
+    generatedCss.push(compiled.css);
+    for (const key of compiled.lessMessages) lessMessages.add(key);
+    pending.push({ output: module.output, content: compiled.css });
+    materializeAssets(root, module.assets, check);
+  }
+  for (const bundle of contract.bundles || []) {
+    expected.add(posix(bundle.output));
+    const css = compileBundle(root, bundle);
+    generatedCss.push(css);
+    pending.push({ output: bundle.output, content: css });
+  }
+  if (contract.customPropertyClosure) {
+    expected.add(posix(contract.customPropertyClosure.output));
+    const css = await compileCustomPropertyClosure(root, contract, generatedCss);
+    generatedCss.push(css);
+    pending.push({ output: contract.customPropertyClosure.output, content: css });
+  }
+  if (contract.messageCatalog) {
+    expected.add(posix(contract.messageCatalog.output));
+    pending.push({
+      output: contract.messageCatalog.output,
+      content: compileMessageCatalog(root, contract, [...lessMessages].sort())
+    });
+  }
+  const pageStyleQueue = compilePageStyleQueue(root, contract);
+  if (pageStyleQueue !== null) {
+    expected.add(posix(contract.pageStyleQueue.output));
+    pending.push({ output: contract.pageStyleQueue.output, content: pageStyleQueue });
+  }
+  for (const item of pending) writeOrCheck(root, item.output, item.content, check);
+  if (check) {
+    const actual = new Set(walkFiles(generatedRoot).map((file) => posix(path.relative(root, file))));
+    for (const output of expected) {
+      if (!output.startsWith(`${posix(contract.generatedRoot).replace(/\/$/, '')}/`)) continue;
+      if (!actual.has(output)) throw new Error(`ResourceLoader output inventory mismatch; missing=${output}`);
+    }
+    const expectedUnderRoot = new Set([...expected].filter((file) => file.startsWith(`${posix(contract.generatedRoot).replace(/\/$/, '')}/`)));
+    const extra = [...actual].filter((file) => !expectedUnderRoot.has(file));
+    if (extra.length) throw new Error(`ResourceLoader output inventory mismatch; extra=${extra.join(',')}`);
+  }
+  return { outputs: [...expected].sort() };
+}

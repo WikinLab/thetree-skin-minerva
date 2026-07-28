@@ -1,0 +1,216 @@
+import fs from 'node:fs';
+import path from 'node:path';
+
+import { collectMustachePartials, parseMustache } from '../lib/mustacheTemplateEngine.js';
+
+function toPosix(value) {
+  return value.split(path.sep).join('/');
+}
+
+function walkFiles(directory) {
+  const result = [];
+  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+    const absolute = path.join(directory, entry.name);
+    if (entry.isDirectory()) result.push(...walkFiles(absolute));
+    else if (entry.isFile()) result.push(absolute);
+  }
+  return result;
+}
+
+function componentName(relativeTemplatePath, inputExtension) {
+  return relativeTemplatePath
+    .slice(0, -inputExtension.length)
+    .split(/[\\/_.-]+/)
+    .filter(Boolean)
+    .map((part) => part[0].toUpperCase() + part.slice(1))
+    .join('') || 'MustacheComponent';
+}
+
+function outputPathFor(outputRoot, relativeTemplatePath, inputExtension, outputExtension) {
+  return path.join(outputRoot, `${relativeTemplatePath.slice(0, -inputExtension.length)}${outputExtension}`);
+}
+
+function templateNameFor(relativeTemplatePath, inputExtension) {
+  return toPosix(relativeTemplatePath).slice(0, -inputExtension.length);
+}
+
+function makeTemplateIndex(templateRoot, templateFiles, inputExtension) {
+  const byName = new Map();
+  for (const absolutePath of templateFiles) {
+    const relativePath = path.relative(templateRoot, absolutePath);
+    const name = templateNameFor(relativePath, inputExtension);
+    if (byName.has(name)) throw new Error(`Duplicate Mustache template logical name: ${name}`);
+    byName.set(name, absolutePath);
+  }
+  return { byName };
+}
+
+function normalizePartialName(partialName, inputExtension) {
+  const rawName = String(partialName || '');
+  if (rawName.includes('\\')) throw new Error(`Invalid Mustache partial logical name: ${partialName}`);
+  const sourceName = toPosix(rawName);
+  const withoutExtension = sourceName.endsWith(inputExtension)
+    ? sourceName.slice(0, -inputExtension.length)
+    : sourceName;
+  const normalized = path.posix.normalize(withoutExtension);
+  if (!normalized || normalized === '.' || normalized.startsWith('/') || normalized === '..' ||
+    normalized.startsWith('../') || normalized !== withoutExtension) {
+    throw new Error(`Invalid Mustache partial logical name: ${partialName}`);
+  }
+  return normalized;
+}
+
+function resolvePartial(partialName, ownerPath, templateRoot, inputExtension, index) {
+  const normalized = normalizePartialName(partialName, inputExtension);
+  const ownerRelative = toPosix(path.relative(templateRoot, ownerPath));
+  const resolved = index.byName.get(normalized);
+  if (!resolved) throw new Error(`${ownerRelative}: missing Mustache partial ${partialName} (logical name ${normalized})`);
+  return resolved;
+}
+
+function serialize(value) {
+  return JSON.stringify(value, null, 2);
+}
+
+function collectPartialGraph(ownerPath, parsedByPath, templateRoot, inputExtension, index) {
+  const partials = new Map();
+  const visitedPaths = new Set();
+  const visitingPaths = new Set();
+
+  function directPartialPaths(pathname) {
+    const ast = parsedByPath.get(pathname);
+    return [...collectMustachePartials(ast)].map((partialName) => ({
+      partialName,
+      partialPath: resolvePartial(partialName, pathname, templateRoot, inputExtension, index)
+    }));
+  }
+
+  function visit(pathname) {
+    if (visitedPaths.has(pathname)) return;
+    if (visitingPaths.has(pathname)) return;
+    visitingPaths.add(pathname);
+    for (const { partialName, partialPath } of directPartialPaths(pathname)) {
+      if (!partials.has(partialName)) partials.set(partialName, parsedByPath.get(partialPath));
+      visit(partialPath);
+    }
+    visitingPaths.delete(pathname);
+    visitedPaths.add(pathname);
+  }
+
+  const directDependencies = [...new Set(directPartialPaths(ownerPath).map(({ partialPath }) => partialPath))]
+    .sort((a, b) => toPosix(a).localeCompare(toPosix(b)));
+  visit(ownerPath);
+  return {
+    partials: Object.fromEntries([...partials.entries()].sort(([a], [b]) => a.localeCompare(b))),
+    directDependencies
+  };
+}
+
+function generateComponent({ root, nodeId, templateRoot, inputExtension, absolutePath, outputPath, ast, partials }) {
+  const relativeTemplatePath = toPosix(path.relative(root, absolutePath));
+  const relativeUnderTemplateRoot = path.relative(templateRoot, absolutePath);
+  const name = componentName(relativeUnderTemplateRoot, inputExtension);
+  let runtimeImport = toPosix(path.relative(path.dirname(outputPath), path.join(root, 'lib/mustacheVueRuntime')));
+  if (!runtimeImport.startsWith('.')) runtimeImport = `./${runtimeImport}`;
+  return `<!-- @generated origin-node:${nodeId} from ${relativeTemplatePath}; do not hand-edit. -->\n<script>\nimport { createMustacheVueComponent } from ${JSON.stringify(runtimeImport)};\n\nconst ast = ${serialize(ast)};\nconst partials = ${serialize(partials)};\n\nexport default createMustacheVueComponent({\n  name: ${JSON.stringify(name)},\n  ast,\n  partials\n});\n</script>\n`;
+}
+
+function isGeneratedMustacheComponent(absolutePath) {
+  if (!absolutePath.endsWith('.vue')) return false;
+  const prefix = fs.readFileSync(absolutePath, 'utf8').slice(0, 96);
+  return prefix.startsWith('<!-- @generated origin-node:') ||
+    prefix.startsWith('<!-- @generated by tools/generate-mustache-vue-components.mjs');
+}
+
+export function generateMustacheVueComponents({
+  root,
+  nodeId,
+  inputRoot,
+  outputRoot,
+  inputExtension = '.mustache',
+  outputExtension = '.vue',
+  partialResolution = 'template-root-name',
+  check = false
+}) {
+  if (partialResolution !== 'template-root-name') {
+    throw new Error(`Unsupported Mustache partial resolution policy: ${partialResolution}`);
+  }
+
+  const templateRoot = path.join(root, inputRoot);
+  const componentRoot = path.join(root, outputRoot);
+  if (!fs.existsSync(templateRoot)) {
+    throw new Error(`Missing materialized Mustache template directory: ${toPosix(inputRoot)}`);
+  }
+
+  const templateFiles = walkFiles(templateRoot)
+    .filter((absolutePath) => absolutePath.endsWith(inputExtension))
+    .sort((a, b) => toPosix(a).localeCompare(toPosix(b)));
+  if (templateFiles.length === 0) throw new Error('No materialized Mustache templates were found.');
+
+  const index = makeTemplateIndex(templateRoot, templateFiles, inputExtension);
+  const parsedByPath = new Map();
+  for (const absolutePath of templateFiles) {
+    const relativePath = toPosix(path.relative(root, absolutePath));
+    parsedByPath.set(absolutePath, parseMustache(fs.readFileSync(absolutePath, 'utf8'), { sourceName: relativePath }));
+  }
+
+  const expectedOutputs = new Map();
+  const outputRelations = [];
+  for (const absolutePath of templateFiles) {
+    const relativeTemplatePath = path.relative(templateRoot, absolutePath);
+    const outputPath = outputPathFor(componentRoot, relativeTemplatePath, inputExtension, outputExtension);
+    const partialGraph = collectPartialGraph(absolutePath, parsedByPath, templateRoot, inputExtension, index);
+    expectedOutputs.set(outputPath, generateComponent({
+      root,
+      nodeId,
+      templateRoot,
+      inputExtension,
+      absolutePath,
+      outputPath,
+      ast: parsedByPath.get(absolutePath),
+      partials: partialGraph.partials
+    }));
+    outputRelations.push({
+      path: toPosix(path.relative(root, outputPath)),
+      input: toPosix(path.relative(root, absolutePath)),
+      dependencies: partialGraph.directDependencies.map((dependencyPath) => toPosix(path.relative(root, dependencyPath)))
+    });
+  }
+
+  const previousGeneratedFiles = fs.existsSync(componentRoot)
+    ? walkFiles(componentRoot).filter(isGeneratedMustacheComponent)
+    : [];
+  const staleFiles = previousGeneratedFiles.filter((absolutePath) => !expectedOutputs.has(absolutePath));
+  let failed = false;
+  for (const staleFile of staleFiles) {
+    const relative = toPosix(path.relative(root, staleFile));
+    if (check) {
+      console.error(`Stale generated Mustache component: ${relative}`);
+      failed = true;
+    } else {
+      fs.rmSync(staleFile);
+      console.log(`Removed stale generated Mustache component: ${relative}`);
+    }
+  }
+
+  for (const [outputPath, expected] of expectedOutputs) {
+    const relative = toPosix(path.relative(root, outputPath));
+    if (check) {
+      if (!fs.existsSync(outputPath) || fs.readFileSync(outputPath, 'utf8') !== expected) {
+        console.error(`Generated Mustache component is stale: ${relative}`);
+        failed = true;
+      }
+    } else {
+      fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+      fs.writeFileSync(outputPath, expected);
+      console.log(`Generated Mustache component: ${relative}`);
+    }
+  }
+
+  if (failed) throw new Error('Mustache generated-output check failed.');
+  return {
+    inputs: templateFiles.map((absolutePath) => toPosix(path.relative(root, absolutePath))),
+    outputs: [...expectedOutputs.keys()].map((absolutePath) => toPosix(path.relative(root, absolutePath))),
+    relations: outputRelations
+  };
+}

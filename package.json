@@ -1,0 +1,21 @@
+{
+  "private": true,
+  "name": "thetree-skin-vector",
+  "version": "0.0.355",
+  "description": "MediaWiki Vector legacy, DarkMode, and ClientHtml-serialized ResourceLoader page-style source port with locked REL1_46 bootstrap",
+  "type": "module",
+  "scripts": {
+    "preflight": "node tools/generate-origin.mjs --preflight",
+    "bootstrap": "node tools/bootstrap-upstream.mjs",
+    "generate": "node tools/generate-origin.mjs",
+    "generate:check": "node tools/generate-origin.mjs --check",
+    "check": "npm run generate:check"
+  },
+  "devDependencies": {
+    "less": "4.6.7",
+    "postcss": "8.5.19",
+    "postcss-selector-parser": "7.1.4",
+    "postcss-value-parser": "4.2.0"
+  },
+  "license": "GPL-2.0-or-later"
+}

@@ -1,0 +1,197 @@
+{
+  "schema": 6,
+  "snapshotDate": "2026-07-14",
+  "mediaWikiRelease": "1.46",
+  "releaseLine": "REL1_46",
+  "policy": "The default bootstrap reproduces the exact 2026-07-14 MediaWiki 1.46 distribution-line snapshot. Every upstream input is obtained from an exact Git commit. MediaWiki core, Vector, DarkMode, Popups, Cite, and TextExtracts use exact REL1_46 commits; Codex styles, design tokens, mixins, and icon-path variables are built from the exact matching design-codex Git tag. Upstream movement occurs only through an explicit bootstrap refresh or release option. The final stylesheet cascade is generated from source-derived MediaWiki queue events and the locked ClientHtml::makeLoad module sorting/source-group partition algorithm rather than a hand-authored CSS import list.",
+  "repositories": [
+    {
+      "name": "mediawiki-skins-Vector",
+      "repository": "wikimedia/mediawiki-skins-Vector",
+      "ref": "REL1_46",
+      "commit": "ccdb96450f920bd927e958c43f4f3be0458ce9f7",
+      "license": "GPL-2.0-or-later",
+      "licenseFile": "COPYING",
+      "scope": "Vector legacy templates, PHP data contracts, LESS, and JavaScript behavior sources",
+      "bootstrapPaths": [
+        "package.json",
+        "package-lock.json"
+      ]
+    },
+    {
+      "name": "mediawiki",
+      "repository": "wikimedia/mediawiki",
+      "ref": "REL1_46",
+      "commit": "94b1bc0df0d57a470404266bed914f8584ead52f",
+      "license": "GPL-2.0-or-later",
+      "licenseFile": "COPYING",
+      "scope": "MediaWiki core skinning LESS, ResourceLoader SkinModule and core module registry sources, default variables, and core Codex module CSS sources"
+    },
+    {
+      "name": "mediawiki-extensions-DarkMode",
+      "repository": "wikimedia/mediawiki-extensions-DarkMode",
+      "ref": "REL1_46",
+      "commit": "ccccb2f21445c31ceb4c4f8226da765d5de709fb",
+      "license": "MIT",
+      "licenseFile": "extension.json:license-name",
+      "scope": "DarkMode extension hook, message, client behavior, and ext.DarkMode.styles ResourceLoader sources",
+      "bootstrapPaths": [
+        "extension.json",
+        "i18n/en.json",
+        "i18n/ko.json"
+      ]
+    },
+    {
+      "name": "mediawiki-extensions-Popups",
+      "repository": "wikimedia/mediawiki-extensions-Popups",
+      "ref": "REL1_46",
+      "commit": "9b31b9c994809279b045e9bbbfe2c9187267e58a",
+      "license": "GPL-2.0-or-later",
+      "licenseFile": "extension.json:license-name",
+      "scope": "Popups page activation, runtime loader queue, selector, title, model, gateway, renderer, templates, thumbnail, timing, messages, icons, and ResourceLoader style references",
+      "bootstrapPaths": [
+        "extension.json"
+      ]
+    },
+    {
+      "name": "mediawiki-extensions-Cite",
+      "repository": "wikimedia/mediawiki-extensions-Cite",
+      "ref": "REL1_46",
+      "commit": "2a40af56b1e377482197bb22aec25c3107747fad",
+      "license": "GPL-2.0-or-later",
+      "licenseFile": "extension.json:license-name",
+      "scope": "Cite parser-output style enqueue source, ext.cite.styles, ReferencePreviews plugin registration, selector, gateway, renderer, messages, and LESS sources",
+      "bootstrapPaths": [
+        "extension.json",
+        "i18n/ko.json"
+      ]
+    },
+    {
+      "name": "mediawiki-extensions-TextExtracts",
+      "repository": "wikimedia/mediawiki-extensions-TextExtracts",
+      "ref": "REL1_46",
+      "commit": "2c87fa96df9214db22646a3394bf42c30d3b3230",
+      "license": "GPL-2.0-or-later",
+      "licenseFile": "extension.json:license-name",
+      "scope": "TextExtracts first-section and formatter behavior contracts used by the page-preview adapter",
+      "bootstrapPaths": [
+        "extension.json"
+      ]
+    },
+    {
+      "name": "design-codex",
+      "repository": "wikimedia/design-codex",
+      "ref": "v2.3.1",
+      "commit": "451588b3ed4e610a50b9b656ef528898e049bb2f",
+      "license": "GPL-2.0-or-later",
+      "licenseFile": "LICENSE",
+      "scope": "Complete locked Codex workspace source used by the upstream build, plus selected generated CSS, token, mixin, icon-path, and SVG vendor outputs",
+      "build": {
+        "steps": [
+          {
+            "command": "npm",
+            "args": [
+              "run",
+              "build:tokens",
+              "-w",
+              "@wikimedia/codex-design-tokens"
+            ]
+          },
+          {
+            "command": "npm",
+            "args": [
+              "run",
+              "build:vite",
+              "-w",
+              "@wikimedia/codex-icons"
+            ]
+          },
+          {
+            "command": "npm",
+            "args": [
+              "run",
+              "build:less",
+              "-w",
+              "@wikimedia/codex-icons"
+            ]
+          },
+          {
+            "command": "npm",
+            "args": [
+              "run",
+              "build:vite",
+              "-w",
+              "@wikimedia/codex"
+            ]
+          }
+        ],
+        "outputs": [
+          "packages/codex-design-tokens/dist/theme-wikimedia-ui-root.css",
+          "packages/codex-design-tokens/dist/theme-wikimedia-ui.less",
+          "packages/codex-icons/dist/codex-icon-paths.less",
+          "packages/codex/dist/codex.style.css"
+        ],
+        "toolchain": {
+          "id": "design-codex-2.3.1",
+          "source": "contracts/upstream-build-toolchains/design-codex-2.3.1",
+          "packageFile": "package.json",
+          "lockFile": "package-lock.json",
+          "lockSha256": "93d2577f1672fe51624595906905aa4cde41358cbed0c9a02bfba60fbe2f2dbf",
+          "install": {
+            "command": "npm",
+            "args": [
+              "ci",
+              "--ignore-scripts",
+              "--no-audit",
+              "--no-fund"
+            ]
+          },
+          "workspaceLinks": [
+            {
+              "name": "@wikimedia/codex-design-tokens",
+              "target": "packages/codex-design-tokens"
+            },
+            {
+              "name": "@wikimedia/codex-icons",
+              "target": "packages/codex-icons"
+            },
+            {
+              "name": "@wikimedia/codex",
+              "target": "packages/codex"
+            },
+            {
+              "name": "codex-docs",
+              "target": "packages/codex-docs"
+            }
+          ]
+        }
+      },
+      "sparseCheckout": false
+    }
+  ],
+  "bootstrap": {
+    "command": "npm run bootstrap",
+    "checkoutRoot": ".upstream",
+    "vendorRoot": "vendor",
+    "defaultMode": "locked-snapshot",
+    "refreshMode": "npm run bootstrap -- --refresh",
+    "releaseMode": "npm run bootstrap -- --release 1.47",
+    "transaction": "A refresh or release candidate replaces the lock and manifest only when clone, repository-local upstream builds, materialization, generation, and generated-output freshness checks all succeed.",
+    "toolingInstall": "Root tooling and project-owned upstream build toolchains use npm ci with their distributed package-lock.json files. The lock files are treated as immutable inputs and any attempted mutation fails.",
+    "vendorProvenance": "Every vendor input comes from an exact Git checkout. Upstream packages that publish generated distributions are rebuilt inside their locked checkout before vendor materialization."
+  },
+  "notes": [
+    "The distributed archive intentionally excludes vendor/, .upstream/, generated CSS/Vue outputs, runtime assets, node_modules/, and upstream build outputs.",
+    "The default bootstrap never resolves moving branch heads; it checks out the exact commits recorded above.",
+    "--refresh resolves the newest heads of the currently locked release line and is explicit.",
+    "--release X.Y resolves RELX_Y explicitly; it does not silently detect or adopt a new stable release.",
+    "Before every run, materialized vendor files and generated outputs are removed. Existing Git checkouts are reset, cleaned including ignored files, and detached at the exact locked commit.",
+    "Repositories without upstream build steps use sparse checkout from the declared source inventory. Build-bearing repositories may set sparseCheckout to false so the exact upstream build receives its complete source workspace instead of a guessed file subset.",
+    "The design-codex repository is checked out completely at its locked commit, linked to the pinned project-owned build toolchain, and built through its own workspace scripts.",
+    "The DarkMode extension is locked to the same MediaWiki release line. Its ResourceLoader style module is generated from upstream LESS; the thetree theme state is only adapted to the extension-owned html class contract.",
+    "The final page stylesheet imports are generated from locked parser-output, skin-option, BeforePageDisplay, runtime loader, extension-attribute, and on-demand module sources. OutputPage enqueue order and ClientHtml::makeLoad sorting/source-group partitioning are both verified against the locked MediaWiki core source; css/screen.css does not hand-order upstream ResourceLoader modules."
+  ],
+  "invariants": [
+    "The final page stylesheet imports are generated from locked parser-output, skin-option, BeforePageDisplay, runtime loader, extension-attribute, and on-demand module sources. OutputPage enqueue order is verified, then head style modules are serialized by the locked ClientHtml::makeLoad sort and source/group partition algorithm; css/screen.css does not hand-order upstream ResourceLoader modules."
+  ]
+}

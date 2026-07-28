@@ -1,0 +1,93 @@
+/* Adapter for the tree container and dynamic values around upstream Vector DOM. */
+
+/*
+ * Body-level Vector document boundary.
+ * the tree mounts a skin below a Vue layout boundary that MediaWiki's
+ * skin-legacy.mustache does not have.  This adapter root carries runtime values
+ * and language/direction context, but it
+ * must not create formatting boxes between the browser body and the upstream
+ * Vector shell (#mw-page-base, #mw-head-base, #content, #mw-navigation,
+ * #footer).  Keep them in the DOM for Vue/runtime ownership while exposing the
+ * same top-level layout flow as the original Vector document.
+ */
+.tt-vector {
+  display: contents;
+}
+
+/*
+ * MediaWiki applies the Vector base typography to html/body.  Inside the tree
+ * frontend the skin subtree can sit below application wrappers that may define
+ * their own inherited typography.  The transparent mount root therefore acts as
+ * the body-level inheritance boundary for the ported Vector document.
+ */
+.tt-vector {
+  font-family: sans-serif;
+  font-size: 1rem;
+  line-height: normal;
+}
+
+#p-logo a {
+  background-image: var(--tt-vector-logo, none);
+  text-indent: -9999px;
+  overflow: hidden;
+}
+
+
+/*
+ * #bodyContent.vector-body is the upstream content-common typography owner.
+ * The host-content boundary does not reset inherited font or line metrics;
+ * selector isolation is performed mechanically in generated ResourceLoader CSS.
+ */
+
+/* Adapter for the tree data/assets inside the Vector legacy DOM. Do not place generic content-button fixes here. */
+/* Categories normalized out of #mw-content-text keep the same MediaWiki category box contract. */
+[data-tt-vector-catlinks-surface="1"] {
+  clear: both;
+  margin-top: 1em;
+  padding: 5px;
+  border: var(--border-width-base) var(--border-style-base) var(--border-color-base);
+  background: var(--background-color-neutral-subtle);
+  color: var(--color-base);
+  text-align: left;
+}
+
+/* v267: global article catlinks and edit-preview local catlinks share one surface contract. */
+[data-tt-vector-catlinks-surface="1"] .mw-normal-catlinks ul {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+[data-tt-vector-catlinks-surface="1"] .mw-normal-catlinks li {
+  display: inline;
+  margin: 0;
+  padding: 0 0.5em;
+  border-left: var(--border-width-base) var(--border-style-base) var(--border-color-base);
+  line-height: 1.25em;
+}
+
+[data-tt-vector-catlinks-surface="1"] .mw-normal-catlinks li:first-child {
+  border-left: 0;
+  padding-left: 0.25em;
+}
+
+[data-tt-vector-catlinks-surface="1"] .mw-catlinks-label {
+  color: var(--color-base);
+}
+
+/* v131: the tree WikiCategory is a source duplicate when Vector owns the categories slot. */
+#mw-content-text[data-tt-host-content="1"][data-tt-vector-surface="parser-output"] > :is(.category, .wiki-category, [data-content-role='categories']),
+#mw-content-text[data-tt-host-content="1"][data-tt-vector-surface="parser-output"] > .wiki-content + :is(.category, .wiki-category, [data-content-role='categories']),
+#mw-content-text[data-tt-host-content="1"][data-tt-vector-surface="parser-output"] [data-tt-vector-category-source='1'] {
+  display: none !important;
+}
+
+[data-tt-vector-catlinks-surface="1"] {
+  display: block;
+}
+
+/* Host global label fence for Vector chrome labels. */
+.vector-menu-heading {
+  word-break: normal;
+}

@@ -1,0 +1,57 @@
+thetree-skin-vector v346
+Copyright and upstream notices
+
+This package is licensed under GPL-2.0-or-later. See LICENSE.
+
+The distribution archive does not bundle upstream checkouts, unmodified upstream runtime asset copies,
+or generated outputs. It does include the project's modified source ports. `npm run bootstrap` retrieves
+the exact locked sources, materializes the required runtime assets, and performs deterministic generation
+and freshness checking.
+
+1. MediaWiki Vector
+   Repository: wikimedia/mediawiki-skins-Vector
+   Ref: REL1_46
+   Commit: ccdb96450f920bd927e958c43f4f3be0458ce9f7
+   License: GPL-2.0-or-later
+
+2. MediaWiki core
+   Repository: wikimedia/mediawiki
+   Ref: REL1_46
+   Commit: 94b1bc0df0d57a470404266bed914f8584ead52f
+   License: GPL-2.0-or-later
+
+3. MediaWiki DarkMode
+   Repository: wikimedia/mediawiki-extensions-DarkMode
+   Ref: REL1_46
+   Commit: ccccb2f21445c31ceb4c4f8226da765d5de709fb
+   License: MIT
+
+4. MediaWiki Popups
+   Repository: wikimedia/mediawiki-extensions-Popups
+   Ref: REL1_46
+   Commit: 9b31b9c994809279b045e9bbbfe2c9187267e58a
+   License: GPL-2.0-or-later
+
+5. MediaWiki Cite
+   Repository: wikimedia/mediawiki-extensions-Cite
+   Ref: REL1_46
+   Commit: 2a40af56b1e377482197bb22aec25c3107747fad
+   License: GPL-2.0-or-later
+
+6. MediaWiki TextExtracts
+   Repository: wikimedia/mediawiki-extensions-TextExtracts
+   Ref: REL1_46
+   Commit: 2c87fa96df9214db22646a3394bf42c30d3b3230
+   License: GPL-2.0-or-later
+
+7. Wikimedia Codex
+   Repository: wikimedia/design-codex
+   Tag/commit: v2.3.1 / 451588b3ed4e610a50b9b656ef528898e049bb2f
+   Source build: Codex, design tokens, public LESS mixins, and icon-path
+   variables are generated from this exact Git checkout; no Codex npm
+   package artifact is used as a vendor source.
+   License: GPL-2.0-or-later (Codex and design tokens); MIT (Codex Icons).
+
+The minimal upstream input list, local source-role inventory, source-port correspondence, materialized runtime
+asset list, and generated output list are recorded in ORIGIN-MANIFEST.json. Moving upstream refs are used only through explicit
+bootstrap update modes.

@@ -1885,7 +1885,7 @@
     "contentProjection": {
       "schema": 1,
       "mode": "optional-runtime-layer",
-      "default": "enabled",
+      "default": "disabled",
       "javascriptEntry": "lib/contentProjection/index.js",
       "javascriptConsumer": "layout.vue",
       "stylesheetEntry": "css/content-projection.css",
@@ -1896,7 +1896,7 @@
       "ssrPreference": {
         "protocol": "thetree-vector-content-projection/v1",
         "serverDataKey": "thetreeVectorContentProjection",
-        "fallback": "enabled"
+        "fallback": "disabled"
       }
     },
     "moduleGraph": {

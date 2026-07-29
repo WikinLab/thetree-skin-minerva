@@ -21,7 +21,7 @@ Vector 크롬과 더트리 프론트엔드의 원본 본문 출력은 항상 존
 
 CSS도 `css/content-projection.css` 하나만 프로젝션 전용 어댑터를 불러옵니다. 프로젝션이 꺼지면 `mw-body-content`, `wiki-article`, `data-tt-vector-surface`와 category surface를 설치하지 않으므로 생성된 원본 콘텐츠 CSS와 로컬 프로젝션 CSS가 더트리 원본 본문에 도달하지 않습니다. 크롬, 검색, 포틀릿, DarkMode와 Popups 런타임은 그대로 유지됩니다.
 
-선택적 [thetree-plugin-vector-content-projection](https://github.com/Bvextratest/thetree-plugin-vector-content-projection) 플러그인은 브라우저 쿠키를 기존 `skinData` hook의 SSR 데이터로 전달합니다. 플러그인이 감지되면 Vector 개인 도구에 `스킨 본문 끄기/켜기`가 나타나며, 선택값을 저장한 뒤 한 번 새로고침하여 서버 HTML과 hydration이 처음부터 같은 모드를 사용합니다. 플러그인이 없으면 토글을 노출하지 않고 기존 프로젝션 활성 상태를 기본값으로 사용합니다.
+선택적 [thetree-plugin-vector](https://github.com/Bvextratest/thetree-plugin-vector) 플러그인은 브라우저 쿠키를 기존 `skinData` hook의 SSR 데이터로 전달합니다. 플러그인이 감지되면 Vector 개인 도구에 `스킨 본문 켜기/끄기`가 나타나며, 선택값을 저장한 뒤 한 번 새로고침하여 서버 HTML과 hydration이 처음부터 같은 모드를 사용합니다. 기본값은 Lite입니다. 플러그인이나 유효한 SSR 계약이 없을 때도 프로젝션과 옵션 항목을 만들지 않으므로 더트리 본문 출력이 그대로 남습니다.
 
 별도 Lite 배포판은 새로운 본문 구현이 아닙니다. `layout.vue`의 단일 JavaScript 프로젝션 진입점과 `css/screen.css`의 단일 프로젝션 stylesheet 진입점을 제외하면, 동일한 Vector 크롬 안에 동일한 더트리 원본 본문이 남습니다. `ORIGIN-MANIFEST.json`과 preflight는 외부 코드가 프로젝션 내부 파일을 직접 import하지 못하도록 이 제거 경계를 검사합니다.
 

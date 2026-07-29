@@ -22,8 +22,8 @@ function contextWith(enabled) {
 
 assert.deepEqual(resolveContentProjectionPreference({}), {
   available: false,
-  enabled: true,
-  source: 'skin-default'
+  enabled: false,
+  source: 'host-default'
 });
 assert.equal(resolveContentProjectionPreference(contextWith(true)).enabled, true);
 assert.equal(resolveContentProjectionPreference(contextWith(false)).enabled, false);
@@ -34,7 +34,7 @@ assert.equal(resolveContentProjectionPreference({
       enabled: false
     }
   }
-}).enabled, true);
+}).enabled, false);
 
 assert.equal(insertContentProjectionPersonalTool([], {}).length, 0);
 assert.equal(insertContentProjectionPersonalTool([], contextWith(true))[0].label, '스킨 본문 끄기');

@@ -318,8 +318,11 @@ function validateStylesheetDelivery(root, manifest) {
 function validateContentProjectionIntegration(root, manifest) {
   const contract = manifest.integration?.contentProjection;
   if (!contract) return;
-  if (contract.schema !== 1 || contract.mode !== 'optional-runtime-layer' || contract.default !== 'enabled') {
+  if (contract.schema !== 1 || contract.mode !== 'optional-runtime-layer' || contract.default !== 'disabled') {
     throw new Error(`Unsupported content projection contract: ${contract.schema ?? 'none'} ${contract.mode ?? 'none'} ${contract.default ?? 'none'}`);
+  }
+  if (contract.ssrPreference?.fallback !== contract.default) {
+    throw new Error(`Content projection SSR fallback must match the package default: ${contract.ssrPreference?.fallback ?? 'none'} != ${contract.default}.`);
   }
 
   const javascriptEntry = normalizeRelativePath(contract.javascriptEntry);

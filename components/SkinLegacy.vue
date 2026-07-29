@@ -93,6 +93,7 @@ import { buildLegacyTitleHeadingData } from '../lib/legacyTitleData';
 import { getSearchModeFromSubmitEvent, makeSearchSubmitTargetForContext } from '../lib/legacySearchSubmit';
 import { makeSkinLegacyAdapterState } from '../lib/legacySkinAdapter';
 import { makeTheTreePopupsRuntimeData } from '../lib/adapters/thetree-popups/data';
+import { createTheTreePopupsExtension } from '../lib/adapters/thetree-popups/extension';
 import { createSkinRuntimeController } from '../lib/runtime/createSkinRuntimeController';
 import { isDarkModeToggleTarget, toggleTheTreeDarkMode } from '../lib/adapters/mediawiki-darkmode';
 import {
@@ -314,13 +315,19 @@ export default {
     },
     ensureLegacySkinRuntimeController() {
       if (this.legacySkinRuntimeController) return this.legacySkinRuntimeController;
+      const popupsExtension = createTheTreePopupsExtension({
+        getData: () => this.theTreePopupsRuntimeData,
+        getOptions: () => this.makePopupsRuntimeOptions()
+      });
       this.legacySkinRuntimeController = createSkinRuntimeController({
         createContentRuntime: this.contentProjection
           ? (optionsSource) => this.contentProjection.createMountedRuntime(optionsSource)
           : null,
         getContentRuntimeOptions: () => this.makeContentRuntimeOptions(),
-        getPopupsData: () => this.theTreePopupsRuntimeData,
-        getPopupsOptions: () => this.makePopupsRuntimeOptions(),
+        getMediaWikiRuntimeData: () => this.theTreePopupsRuntimeData,
+        getMediaWikiRuntimeOptions: () => this.makePopupsRuntimeOptions(),
+        extensions: [popupsExtension],
+        getCapabilities: () => this.contentProjection?.capabilities || [],
         schedule: (callback) => this.$nextTick(callback)
       });
       return this.legacySkinRuntimeController;

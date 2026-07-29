@@ -19,7 +19,9 @@ The host content tree is projected from one explicit contract: the upstream `#bo
 
 Vector 크롬과 더트리 프론트엔드의 원본 본문 출력은 항상 존재합니다. `lib/contentProjection/index.js`만 일반 문서의 store 사전 변환, 동적 WikiContent 변환, ParserOutput fragment navigation, Vector catlinks와 surface 표식을 소유하는 선택적 레이어입니다. `layout.vue`와 `SkinLegacy.vue`는 이 공개 진입점 외의 구체 구현을 import하지 않습니다.
 
-CSS도 `css/content-projection.css` 하나만 프로젝션 전용 어댑터를 불러옵니다. 프로젝션이 꺼지면 `mw-body-content`, `wiki-article`, `data-tt-vector-surface`와 category surface를 설치하지 않으므로 생성된 원본 콘텐츠 CSS와 로컬 프로젝션 CSS가 더트리 원본 본문에 도달하지 않습니다. 크롬, 검색, 포틀릿, DarkMode와 Popups 런타임은 그대로 유지됩니다.
+CSS도 `css/content-projection.css` 하나만 프로젝션 전용 어댑터를 불러옵니다. 프로젝션이 꺼지면 `mw-body-content`, `wiki-article`, `data-tt-vector-surface`와 category surface를 설치하지 않으므로 생성된 원본 콘텐츠 CSS와 로컬 프로젝션 CSS가 더트리 원본 본문에 도달하지 않습니다. 크롬, 검색, 포틀릿과 DarkMode는 그대로 유지되며, 미디어위키 본문 표면을 소비하는 Popups 확장 런타임은 프로젝션과 함께 비활성화됩니다.
+
+이 관계는 Popups 전용 조건문으로 처리하지 않습니다. 본문 프로젝션은 `mediawiki-content-surface` capability를 제공하고, Popups의 독립 확장 등록은 그 capability를 요구합니다. 공통 스킨 런타임은 등록된 확장의 이름이나 종류를 판단하지 않고 현재 capability가 요구사항을 충족하는 확장만 생성합니다. 따라서 Lite에서는 Popups 런타임 객체, 전역 hover listener, 타이머, 게이트웨이와 설정 UI가 처음부터 생성되지 않습니다.
 
 선택적 [thetree-plugin-vector](https://github.com/Bvextratest/thetree-plugin-vector) 플러그인은 브라우저 쿠키를 기존 `skinData` hook의 SSR 데이터로 전달합니다. 플러그인이 감지되면 Vector 개인 도구에 `스킨 본문 켜기/끄기`가 나타나며, 선택값을 저장한 뒤 한 번 새로고침하여 서버 HTML과 hydration이 처음부터 같은 모드를 사용합니다. 기본값은 Lite입니다. 플러그인이나 유효한 SSR 계약이 없을 때도 프로젝션과 옵션 항목을 만들지 않으므로 더트리 본문 출력이 그대로 남습니다.
 

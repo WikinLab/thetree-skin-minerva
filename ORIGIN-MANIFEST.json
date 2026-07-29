@@ -1118,6 +1118,11 @@
         "hostDependency": "thetree"
       },
       {
+        "path": "lib/adapters/thetree-popups/extension.js",
+        "kind": "skin-integration",
+        "hostDependency": "thetree"
+      },
+      {
         "path": "lib/adapters/thetree-popups/footerLink.js",
         "kind": "host-adapter",
         "hostDependency": "thetree"
@@ -1401,6 +1406,16 @@
         "path": "lib/parserOutput/toc.js",
         "kind": "parser-output-adapter",
         "hostDependency": "thetree-mediawiki-boundary"
+      },
+      {
+        "path": "lib/runtime/capabilities.js",
+        "kind": "skin-integration",
+        "hostDependency": "none"
+      },
+      {
+        "path": "lib/runtime/createExtensionRuntimeHost.js",
+        "kind": "skin-integration",
+        "hostDependency": "none"
       },
       {
         "path": "lib/runtime/createSkinRuntimeController.js",

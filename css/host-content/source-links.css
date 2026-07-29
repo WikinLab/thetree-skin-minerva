@@ -8,10 +8,13 @@
  * user-agent purple. :where() lets component-scoped classes override every
  * declaration without specificity workarounds.
  */
-:where(#mw-content-text[data-tt-host-content="1"])
-  :where(a:link, a:visited)
-  :where(
-    :not(
+:where(
+  #mw-content-text[data-tt-host-content="1"]:not(
+    [data-tt-vector-surface="parser-output"]
+  )
+)
+  :where(a:link, a:visited):not(
+    :where(
       [data-tt-vector-surface="parser-output"],
       [data-tt-vector-surface="parser-output"] *
     )
@@ -20,10 +23,13 @@
   text-decoration: none;
 }
 
-:where(#mw-content-text[data-tt-host-content="1"])
-  :where(a:any-link:hover, a:any-link:focus)
-  :where(
-    :not(
+:where(
+  #mw-content-text[data-tt-host-content="1"]:not(
+    [data-tt-vector-surface="parser-output"]
+  )
+)
+  :where(a:any-link:hover, a:any-link:focus):not(
+    :where(
       [data-tt-vector-surface="parser-output"],
       [data-tt-vector-surface="parser-output"] *
     )
@@ -32,10 +38,13 @@
   text-decoration: underline;
 }
 
-:where(#mw-content-text[data-tt-host-content="1"])
-  :where(a:any-link:active)
-  :where(
-    :not(
+:where(
+  #mw-content-text[data-tt-host-content="1"]:not(
+    [data-tt-vector-surface="parser-output"]
+  )
+)
+  :where(a:any-link:active):not(
+    :where(
       [data-tt-vector-surface="parser-output"],
       [data-tt-vector-surface="parser-output"] *
     )

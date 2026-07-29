@@ -55,6 +55,30 @@ assert.ok(sourceLinkSelectors.length >= 3);
 for (const selector of sourceLinkSelectors) {
   assert.match(selector, /\[data-tt-host-content="1"\]/);
   assert.match(selector, /\[data-tt-vector-surface="parser-output"\]/);
+
+  const selectorAst = selectorParser().astSync(selector);
+  assert.equal(selectorAst.nodes.length, 1);
+  const topLevelNodes = selectorAst.nodes[0].nodes;
+  const hostBoundaryIndex = topLevelNodes.findIndex((node) => (
+    node.type === 'pseudo'
+    && node.value === ':where'
+    && node.toString().includes('#mw-content-text')
+  ));
+  const linkSubjectIndex = topLevelNodes.findIndex((node) => (
+    node.type === 'pseudo'
+    && node.value === ':where'
+    && node.toString().includes('a:')
+  ));
+  const parserOutputExclusionIndex = topLevelNodes.findIndex((node) => (
+    node.type === 'pseudo'
+    && node.value === ':not'
+    && node.toString().includes('[data-tt-vector-surface="parser-output"]')
+  ));
+
+  assert.equal(hostBoundaryIndex, 0);
+  assert.equal(topLevelNodes[hostBoundaryIndex + 1]?.type, 'combinator');
+  assert.equal(parserOutputExclusionIndex, linkSubjectIndex + 1);
+  assert.notEqual(topLevelNodes[linkSubjectIndex + 1]?.type, 'combinator');
 }
 assert.match(sourceLinksSource, /a:visited/);
 assert.match(sourceLinksSource, /var\(--color-link,\s*#36c\)/);

@@ -1423,6 +1423,11 @@
         "hostDependency": "none"
       },
       {
+        "path": "tools/bootstrap-checkout-contract-test.mjs",
+        "kind": "generation-contract",
+        "hostDependency": "none"
+      },
+      {
         "path": "tools/content-projection-contract-test.mjs",
         "kind": "generation-contract",
         "hostDependency": "none"

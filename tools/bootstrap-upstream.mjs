@@ -3,7 +3,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { parseFirstPhpArrayAfter } from './php-array-literal.mjs';
 
@@ -17,6 +17,7 @@ const upstreamRoot = path.join(root, '.upstream');
 const vendorRoot = path.join(root, 'vendor');
 const buildToolRoot = path.join(root, '.build-tools');
 const gitExecutable = process.platform === 'win32' ? 'git.exe' : 'git';
+const checkoutConcurrency = 3;
 
 function fail(message) {
   throw new Error(message);
@@ -36,6 +37,36 @@ function run(command, args, options = {}) {
     fail(`${command} ${args.join(' ')} failed with status ${result.status}.${detail}`);
   }
   return options.capture ? String(result.stdout || '').trim() : '';
+}
+
+function runAsync(command, args, options = {}) {
+  return new Promise((resolve, reject) => {
+    const capture = options.capture === true;
+    const child = spawn(command, args, {
+      cwd: options.cwd || root,
+      stdio: capture ? ['ignore', 'pipe', 'pipe'] : 'inherit',
+      env: { ...process.env, ...(options.env || {}) },
+      windowsHide: true
+    });
+    const stdout = [];
+    const stderr = [];
+    if (capture) {
+      child.stdout.on('data', (chunk) => stdout.push(chunk));
+      child.stderr.on('data', (chunk) => stderr.push(chunk));
+    }
+    child.on('error', reject);
+    child.on('close', (status) => {
+      const output = Buffer.concat(stdout).toString('utf8').trim();
+      if (status === 0) {
+        resolve(output);
+        return;
+      }
+      const detail = capture
+        ? `\n${Buffer.concat(stderr).toString('utf8') || output}`
+        : '';
+      reject(new Error(`${command} ${args.join(' ')} failed with status ${status}.${detail}`));
+    });
+  });
 }
 
 function runBuffer(command, args, options = {}) {
@@ -217,51 +248,119 @@ function requiredSparsePaths(manifest, repository) {
   return [...paths].sort();
 }
 
-function checkoutRepository(repository, manifest) {
-  const checkout = repositoryCheckout(repository.name);
-  const sparsePaths = requiredSparsePaths(manifest, repository);
-  const url = repositoryUrl(repository.repository);
+async function mapConcurrent(values, concurrency, worker) {
+  if (!Number.isInteger(concurrency) || concurrency < 1) fail(`Invalid concurrency: ${concurrency}.`);
+  let nextIndex = 0;
+  const results = new Array(values.length);
+  async function consume() {
+    while (nextIndex < values.length) {
+      const index = nextIndex;
+      nextIndex += 1;
+      results[index] = await worker(values[index], index);
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(concurrency, values.length) }, consume));
+  return results;
+}
 
+async function commandSucceeds(command, args, options = {}) {
+  try {
+    await runAsync(command, args, { ...options, capture: true });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function checkoutExactCommit(options) {
+  const {
+    checkout,
+    url,
+    commit,
+    sparsePaths = [],
+    sparseCheckout = true,
+    label = path.basename(checkout)
+  } = options;
+  if (!/^[0-9a-f]{40}$/.test(commit)) fail(`Invalid locked commit for ${label}: ${commit}.`);
+
+  const gitDirectory = path.join(checkout, '.git');
+  if (fs.existsSync(checkout) && !fs.existsSync(gitDirectory)) {
+    fs.rmSync(checkout, { recursive: true, force: true });
+  }
   if (fs.existsSync(checkout)) {
-    const currentRemote = run(gitExecutable, ['-C', checkout, 'remote', 'get-url', 'origin'], { capture: true });
+    let currentRemote = null;
+    try {
+      currentRemote = await runAsync(gitExecutable, ['-C', checkout, 'remote', 'get-url', 'origin'], { capture: true });
+    } catch {
+      // A corrupt managed checkout is recreated from its locked input.
+    }
     if (currentRemote !== url) fs.rmSync(checkout, { recursive: true, force: true });
   }
 
   if (!fs.existsSync(checkout)) {
-    fs.mkdirSync(path.dirname(checkout), { recursive: true });
-    run(gitExecutable, [
-      'clone', '--filter=blob:none', '--no-checkout', '--single-branch',
-      '--branch', repository.ref, url, checkout
-    ]);
+    fs.mkdirSync(checkout, { recursive: true });
+    await runAsync(gitExecutable, ['-C', checkout, 'init', '--quiet'], { capture: true });
+    await runAsync(gitExecutable, ['-C', checkout, 'remote', 'add', 'origin', url], { capture: true });
   }
 
   // Upstream source bytes must not depend on the caller's global Windows Git settings.
-  run(gitExecutable, ['-C', checkout, 'config', 'core.autocrlf', 'false']);
-  run(gitExecutable, ['-C', checkout, 'config', 'core.eol', 'lf']);
+  await runAsync(gitExecutable, ['-C', checkout, 'config', 'core.autocrlf', 'false'], { capture: true });
+  await runAsync(gitExecutable, ['-C', checkout, 'config', 'core.eol', 'lf'], { capture: true });
+  await runAsync(gitExecutable, ['-C', checkout, 'config', 'remote.origin.promisor', 'true'], { capture: true });
+  await runAsync(gitExecutable, ['-C', checkout, 'config', 'remote.origin.partialclonefilter', 'blob:none'], { capture: true });
 
-  if (repository.sparseCheckout === false) {
-    try {
-      run(gitExecutable, ['-C', checkout, 'sparse-checkout', 'disable']);
-    } catch {
-      // A new or already-full checkout has no sparse worktree to disable.
-    }
+  if (sparseCheckout === false) {
+    await commandSucceeds(gitExecutable, ['-C', checkout, 'sparse-checkout', 'disable']);
   } else {
-    run(gitExecutable, ['-C', checkout, 'sparse-checkout', 'init', '--no-cone']);
-    if (sparsePaths.length) run(gitExecutable, ['-C', checkout, 'sparse-checkout', 'set', '--no-cone', ...sparsePaths]);
+    await runAsync(gitExecutable, ['-C', checkout, 'sparse-checkout', 'init', '--no-cone'], { capture: true });
+    if (sparsePaths.length) {
+      await runAsync(gitExecutable, ['-C', checkout, 'sparse-checkout', 'set', '--no-cone', ...sparsePaths], { capture: true });
+    }
   }
 
-  let fetched = true;
-  try {
-    run(gitExecutable, ['-C', checkout, 'fetch', '--depth', '1', 'origin', repository.commit]);
-  } catch {
-    fetched = false;
+  const hasCommit = await commandSucceeds(
+    gitExecutable,
+    ['-C', checkout, 'cat-file', '-e', `${commit}^{commit}`],
+    { env: { GIT_NO_LAZY_FETCH: '1' } }
+  );
+  if (!hasCommit) {
+    try {
+      await runAsync(gitExecutable, [
+        '-C', checkout, 'fetch', '--quiet', '--depth', '1', '--no-tags',
+        '--filter=blob:none', 'origin', commit
+      ], { capture: true });
+    } catch (error) {
+      const detail = error instanceof Error ? `\n${error.message}` : '';
+      throw new Error(`Unable to fetch locked commit for ${label} (${commit}).${detail}`);
+    }
   }
-  if (!fetched) run(gitExecutable, ['-C', checkout, 'fetch', 'origin', repository.ref]);
-  run(gitExecutable, ['-C', checkout, 'checkout', '--detach', '--force', repository.commit]);
-  run(gitExecutable, ['-C', checkout, 'reset', '--hard', repository.commit]);
-  run(gitExecutable, ['-C', checkout, 'clean', '-ffdx']);
-  const head = run(gitExecutable, ['-C', checkout, 'rev-parse', 'HEAD'], { capture: true });
-  if (head !== repository.commit) fail(`Checkout mismatch for ${repository.name}: expected ${repository.commit}, got ${head}.`);
+
+  await runAsync(gitExecutable, ['-C', checkout, 'checkout', '--detach', '--force', commit], { capture: true });
+  await runAsync(gitExecutable, ['-C', checkout, 'reset', '--hard', commit], { capture: true });
+  await runAsync(gitExecutable, ['-C', checkout, 'clean', '-ffdx'], { capture: true });
+  const head = await runAsync(gitExecutable, ['-C', checkout, 'rev-parse', 'HEAD'], { capture: true });
+  if (head !== commit) fail(`Checkout mismatch for ${label}: expected ${commit}, got ${head}.`);
+}
+
+async function checkoutRepository(repository, manifest) {
+  const startedAt = Date.now();
+  console.log(`[checkout] ${repository.name}: ${repository.commit}`);
+  await checkoutExactCommit({
+    checkout: repositoryCheckout(repository.name),
+    url: repositoryUrl(repository.repository),
+    commit: repository.commit,
+    sparsePaths: requiredSparsePaths(manifest, repository),
+    sparseCheckout: repository.sparseCheckout !== false,
+    label: repository.name
+  });
+  console.log(`[checkout] ${repository.name}: ready in ${((Date.now() - startedAt) / 1000).toFixed(1)}s`);
+}
+
+async function checkoutRepositories(lock, manifest) {
+  const repositories = allCheckoutRepositories(lock, manifest);
+  const startedAt = Date.now();
+  await mapConcurrent(repositories, checkoutConcurrency, (repository) => checkoutRepository(repository, manifest));
+  console.log(`[checkout] ${repositories.length} repositories ready in ${((Date.now() - startedAt) / 1000).toFixed(1)}s (max ${checkoutConcurrency} concurrent).`);
 }
 
 function readVectorCodexVersions(lock) {
@@ -308,7 +407,7 @@ function assertDesignCodexVersionAlignment(lock) {
   }
 }
 
-function resolveReleaseCandidate(baseLock, releaseVersion) {
+async function resolveReleaseCandidate(baseLock, releaseVersion) {
   const candidate = structuredClone(baseLock);
   const ref = releaseRef(releaseVersion);
   candidate.snapshotDate = new Date().toISOString().slice(0, 10);
@@ -323,7 +422,7 @@ function resolveReleaseCandidate(baseLock, releaseVersion) {
   }
 
   const manifest = readJson(manifestPath);
-  checkoutRepository(repositoryByName(candidate, 'mediawiki-skins-Vector'), manifest);
+  await checkoutRepository(repositoryByName(candidate, 'mediawiki-skins-Vector'), manifest);
   const versions = readVectorCodexVersions(candidate);
   if (versions.codex !== versions.icons) {
     fail(`Vector resolves Codex ${versions.codex} but Codex Icons ${versions.icons}; one design-codex Git tag cannot represent both.`);
@@ -839,15 +938,15 @@ async function main() {
     installRootDependencies();
     await loadInstalledGenerationTools();
 
-    if (options.refresh) lock = resolveReleaseCandidate(originalLock, originalLock.mediaWikiRelease);
-    else if (options.release) lock = resolveReleaseCandidate(originalLock, options.release);
+    if (options.refresh) lock = await resolveReleaseCandidate(originalLock, originalLock.mediaWikiRelease);
+    else if (options.release) lock = await resolveReleaseCandidate(originalLock, options.release);
 
     const manifestBeforeResolution = readJson(manifestPath);
     resolvedManifest = updateManifestForLock(manifestBeforeResolution, lock);
     writeJson(lockPath, lock);
     writeJson(manifestPath, resolvedManifest);
 
-    for (const repository of allCheckoutRepositories(lock, resolvedManifest)) checkoutRepository(repository, resolvedManifest);
+    await checkoutRepositories(lock, resolvedManifest);
     assertDesignCodexVersionAlignment(lock);
     resolvedManifest = synchronizeRuntimeAssetHashes(resolvedManifest, lock, options.refresh || Boolean(options.release));
     writeJson(manifestPath, resolvedManifest);
@@ -869,4 +968,7 @@ async function main() {
   }
 }
 
-await main();
+const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (isMain) await main();
+
+export { checkoutExactCommit, mapConcurrent };

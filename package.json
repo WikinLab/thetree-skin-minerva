@@ -9,8 +9,9 @@
     "bootstrap": "node tools/bootstrap-upstream.mjs",
     "generate": "node tools/generate-origin.mjs",
     "generate:check": "node tools/generate-origin.mjs --check",
+    "check:bootstrap-checkout": "node tools/bootstrap-checkout-contract-test.mjs",
     "check:content-projection": "node tools/content-projection-contract-test.mjs",
-    "check": "npm run generate:check && npm run check:content-projection"
+    "check": "npm run generate:check && npm run check:bootstrap-checkout && npm run check:content-projection"
   },
   "devDependencies": {
     "less": "4.6.7",

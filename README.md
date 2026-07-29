@@ -45,7 +45,7 @@ npm run bootstrap
 
 1. 이전 실행의 `vendor/`, 런타임 자산 및 생성된 Vue/CSS/JavaScript를 먼저 제거합니다.
 2. 루트 도구 의존성을 `npm ci --ignore-scripts --no-audit --no-fund`로 설치합니다. `package-lock.json`은 설치 결과로 갱신하는 파일이 아니라 정확한 의존성 입력이며, 변경이 감지되면 원상복구한 뒤 실패합니다.
-3. `UPSTREAM-LOCK.json`의 MediaWiki 계열 upstream과 `ORIGIN-MANIFEST.json`의 thetree host lock을 정확한 Git 커밋으로 clone 또는 fetch한 뒤 detached checkout으로 맞춥니다. 기존 checkout도 `reset --hard`와 `clean -ffdx`를 거치므로 이전 빌드 출력과 `node_modules`가 입력으로 재사용되지 않습니다.
+3. `UPSTREAM-LOCK.json`의 MediaWiki 계열 upstream과 `ORIGIN-MANIFEST.json`의 thetree host lock을 빈 partial 저장소에 잠긴 Git 커밋 하나만 `depth 1`로 fetch한 뒤 detached checkout으로 맞춥니다. 서로 독립적인 저장소는 최대 3개까지 병렬로 준비하며, 브랜치 이력 전체를 먼저 clone하거나 exact fetch 실패 시 브랜치 전체로 물러나는 경로는 없습니다. 기존 checkout도 `reset --hard`와 `clean -ffdx`를 거치므로 이전 빌드 출력과 `node_modules`가 입력으로 재사용되지 않습니다.
 4. Codex CSS·디자인 토큰·공개 LESS mixin·아이콘 경로 변수는 npm 패키지 아티팩트를 입력으로 사용하지 않습니다. 잠긴 `design-codex` Git 태그는 upstream 전체 workspace를 checkout하고, 프로젝트가 보관하는 최소 build-toolchain lock과 실제 workspace package link를 임시 연결한 뒤 upstream 자체 빌드 명령을 실행합니다. upstream 저장소에 존재하지 않는 lock 파일을 가정하지 않으며, toolchain lock이 변경되면 실패합니다.
 5. 선언된 upstream 파일과 upstream에서 빌드한 결과를 `vendor/`에 물질화합니다. LESS 파일은 선언된 seed에서 같은 import parser·resolver로 로컬 import를 재귀 추적하여, import된 upstream 파일 하나를 대응 vendor 파일 하나로 기계적으로 추가합니다. 이후 checkout의 임시 빌드 출력과 의존성을 다시 제거합니다.
 6. 잠긴 upstream의 SVG 런타임 자산 14개를 Git blob 바이트에서 `images/`로 물질화합니다.
@@ -63,7 +63,7 @@ npm run bootstrap -- --refresh
 npm run bootstrap -- --release 1.47
 ```
 
-기본 부트스트랩은 이동하는 브랜치 HEAD를 해석하지 않고 잠금 파일의 정확한 커밋만 사용합니다. 다른 Codex 버전으로 갱신할 때는 같은 버전의 build-toolchain 계약이 소스에 존재해야 하며, 없으면 부트스트랩이 임의 설치로 완화되지 않고 실패합니다. SVG 런타임 자산은 checkout 작업 트리의 줄바꿈 형식이 아니라 잠긴 커밋의 Git blob 바이트에서 직접 생성됩니다. upstream checkout의 자동 CRLF 변환도 비활성화하므로 Windows와 Unix 계열 환경에서 같은 원본 바이트를 사용합니다.
+기본 부트스트랩은 이동하는 브랜치 HEAD를 해석하지 않고 잠금 파일의 정확한 커밋만 사용합니다. 제한 병렬화는 checkout 준비 시간만 줄이며, 이후 원본 빌드·물질화·생성 그래프의 결정론적 순서는 바꾸지 않습니다. 다른 Codex 버전으로 갱신할 때는 같은 버전의 build-toolchain 계약이 소스에 존재해야 하며, 없으면 부트스트랩이 임의 설치로 완화되지 않고 실패합니다. SVG 런타임 자산은 checkout 작업 트리의 줄바꿈 형식이 아니라 잠긴 커밋의 Git blob 바이트에서 직접 생성됩니다. upstream checkout의 자동 CRLF 변환도 비활성화하므로 Windows와 Unix 계열 환경에서 같은 원본 바이트를 사용합니다.
 
 ## 배포 구조
 

@@ -1,0 +1,4 @@
+/* Build-selected content stylesheet entrypoint. Full is the only shipped profile. */
+@import "./full/vector-category.css";
+@import "./full/parser-output-host.css";
+@import "./full/source-aliases.css";

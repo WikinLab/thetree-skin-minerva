@@ -289,6 +289,52 @@ function validateStylesheetDelivery(root, manifest) {
   }
 }
 
+function validateContentProfileIntegration(root, manifest) {
+  const contract = manifest.integration?.contentProfile;
+  if (!contract) return;
+  if (contract.schema !== 1 || contract.selection !== 'build-time-static') {
+    throw new Error(`Unsupported content profile contract: ${contract.schema ?? 'none'} ${contract.selection ?? 'none'}`);
+  }
+
+  const profile = contract.profiles?.[contract.active];
+  if (!profile || profile.status !== 'implemented') {
+    throw new Error(`Active content profile is not implemented: ${contract.active || 'none'}`);
+  }
+
+  const javascriptEntry = normalizeRelativePath(contract.javascriptEntry);
+  const stylesheetEntry = normalizeRelativePath(contract.stylesheetEntry);
+  const implementationRoot = normalizeRelativePath(profile.implementationRoot).replace(/\/$/, '');
+  const stylesheetRoot = normalizeRelativePath(profile.stylesheetRoot).replace(/\/$/, '');
+  const localFiles = toPathSet(manifest.sourceInventory?.localFiles);
+  for (const entry of [javascriptEntry, stylesheetEntry]) {
+    if (!localFiles.has(entry) || !fs.existsSync(path.join(root, entry))) {
+      throw new Error(`Content profile entry is not a declared source file: ${entry}`);
+    }
+  }
+
+  const javascriptSource = fs.readFileSync(path.join(root, javascriptEntry), 'utf8');
+  const dependencies = parseModuleDependencies([{ path: javascriptEntry, source: javascriptSource }]).get(javascriptEntry) || [];
+  const resolvedDependencies = dependencies.flatMap((specifier) => {
+    if (!specifier.startsWith('.')) return [];
+    return moduleResolutionCandidates(javascriptEntry, specifier).filter((candidate) => fs.existsSync(path.join(root, candidate)));
+  });
+  if (!resolvedDependencies.some((pathname) => pathname === implementationRoot || pathname.startsWith(`${implementationRoot}/`))) {
+    throw new Error(`Active JavaScript content profile does not select ${implementationRoot}: ${javascriptEntry}`);
+  }
+
+  const stylesheetSource = fs.readFileSync(path.join(root, stylesheetEntry), 'utf8');
+  const stylesheetImports = cssEntryImports(stylesheetSource, stylesheetEntry)
+    .map((specifier) => normalizeRelativePath(path.posix.join(path.posix.dirname(stylesheetEntry), specifier)));
+  if (!stylesheetImports.length || stylesheetImports.some((pathname) => !pathname.startsWith(`${stylesheetRoot}/`))) {
+    throw new Error(`Active stylesheet content profile must import only ${stylesheetRoot}: ${stylesheetEntry}`);
+  }
+  for (const pathname of stylesheetImports) {
+    if (!localFiles.has(pathname) || !fs.existsSync(path.join(root, pathname))) {
+      throw new Error(`Content profile stylesheet is not a declared source file: ${pathname}`);
+    }
+  }
+}
+
 function validatePackageIntegration(root, manifest, options = {}) {
   const contract = manifest.integration;
   if (!contract) return;
@@ -310,6 +356,7 @@ function validatePackageIntegration(root, manifest, options = {}) {
       throw new Error(`Versioned contract mismatch: ${pathname}=${value ?? 'none'}, expected v${expected.split('.').at(-1)}`);
     }
   }
+  validateContentProfileIntegration(root, manifest);
   validateStylesheetDelivery(root, manifest);
   validateModuleGraph(root, manifest, options);
 }

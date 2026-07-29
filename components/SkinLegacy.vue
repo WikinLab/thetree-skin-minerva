@@ -45,6 +45,7 @@
         :data-tt-vector-interface-equivalence="isInterfaceSurface ? featureEquivalence : null"
         :data-tt-vector-page-contract="adapterContext.pageContract.featureMappingId"
         :data-tt-host-content-name="adapterContext.pageContract.hostContentName || null"
+        :data-tt-content-profile="contentProfile.id"
       >
         <slot />
       </div>
@@ -92,13 +93,18 @@ import { buildLegacyTitleHeadingData } from '../lib/legacyTitleData';
 import { getSearchModeFromSubmitEvent, makeSearchSubmitTargetForContext } from '../lib/legacySearchSubmit';
 import { makeSkinLegacyAdapterState } from '../lib/legacySkinAdapter';
 import { makeTheTreePopupsRuntimeData } from '../lib/adapters/thetree-popups/data';
-import { makeLegacyCategoryData } from '../lib/legacyCategoryData';
 import { createSkinRuntimeController } from '../lib/runtime/createSkinRuntimeController';
 import { isDarkModeToggleTarget, toggleTheTreeDarkMode } from '../lib/adapters/mediawiki-darkmode';
 
 export default {
   name: 'SkinLegacy',
   mixins: [Common],
+  props: {
+    contentProfile: {
+      type: Object,
+      required: true
+    }
+  },
   components: {
     Alert,
     RawHtmlFragment,
@@ -107,8 +113,7 @@ export default {
   data() {
     return {
       isShowACLMessage: true,
-      legacySkinRuntimeController: null,
-      projectionSurfaceRuntimeSignature: 'pending'
+      legacySkinRuntimeController: null
     };
   },
   computed: {
@@ -136,16 +141,19 @@ export default {
       return this.titleData['page-title'] || '';
     },
     projectionContract() {
-      return this.adapterContext.pageContract.projection;
+      return this.contentSurface.projection;
+    },
+    contentSurface() {
+      return this.contentProfile.resolveSurface(this.adapterContext);
     },
     rootSurface() {
       return this.projectionContract.root;
     },
     isInterfaceSurface() {
-      return this.adapterContext.pageContract.isInterface;
+      return this.contentSurface.isInterface;
     },
     featureEquivalence() {
-      return this.adapterContext.pageContract.featureEquivalence;
+      return this.contentSurface.featureEquivalence;
     },
     contentDirectionClass() {
       const direction = this.adapterContext.config?.dir || this.adapterContext.config?.['wiki.dir'] || 'ltr';
@@ -155,14 +163,14 @@ export default {
       return {
         'mw-body-content': true,
         [this.contentDirectionClass]: true,
-        'wiki-article': this.adapterContext.pageContract.isArticle
+        'wiki-article': this.contentSurface.isArticle
       };
     },
     skinAdapter() {
       return makeSkinLegacyAdapterState(this.adapterContext);
     },
     legacyCategoryData() {
-      return makeLegacyCategoryData(this.adapterContext);
+      return this.contentProfile.makeCategoryData(this.adapterContext);
     },
     theTreePopupsRuntimeData() {
       return makeTheTreePopupsRuntimeData(this.adapterContext);
@@ -239,11 +247,11 @@ export default {
       const target = makeSearchSubmitTargetForContext(q, mode, this.adapterContext);
       this.$router.push(target);
     },
-    makeProjectionSurfaceRuntimeOptions() {
+    makeContentRuntimeOptions() {
       const config = this.$store.state.config || {};
       return {
         getRoot: () => this.$refs.contentText || null,
-        getProjectionContract: () => this.adapterContext.pageContract.projection,
+        getProjectionContract: () => this.contentSurface.projection,
         lang: config.lang || config['wiki.lang'] || 'ko',
         config,
         messages: config.mediaWikiMessages || config.mediawikiMessages || config.messages || null
@@ -279,12 +287,10 @@ export default {
     ensureLegacySkinRuntimeController() {
       if (this.legacySkinRuntimeController) return this.legacySkinRuntimeController;
       this.legacySkinRuntimeController = createSkinRuntimeController({
-        getProjectionSurfaceOptions: () => this.makeProjectionSurfaceRuntimeOptions(),
+        createContentRuntime: (optionsSource) => this.contentProfile.createMountedRuntime(optionsSource),
+        getContentRuntimeOptions: () => this.makeContentRuntimeOptions(),
         getPopupsData: () => this.theTreePopupsRuntimeData,
         getPopupsOptions: () => this.makePopupsRuntimeOptions(),
-        onProjectionSurfaceTransform: (result) => {
-          this.projectionSurfaceRuntimeSignature = result?.signature || 'unavailable';
-        },
         schedule: (callback) => this.$nextTick(callback)
       });
       return this.legacySkinRuntimeController;

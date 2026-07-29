@@ -1048,7 +1048,17 @@
         "hostDependency": "none"
       },
       {
-        "path": "css/content.css",
+        "path": "css/content/active.css",
+        "kind": "skin-integration",
+        "hostDependency": "thetree"
+      },
+      {
+        "path": "css/content/full/vector-category.css",
+        "kind": "host-adapter",
+        "hostDependency": "thetree"
+      },
+      {
+        "path": "css/content/full/parser-output-host.css",
         "kind": "host-adapter",
         "hostDependency": "thetree"
       },
@@ -1063,7 +1073,7 @@
         "hostDependency": "thetree"
       },
       {
-        "path": "css/thetree-content.css",
+        "path": "css/content/full/source-aliases.css",
         "kind": "host-adapter",
         "hostDependency": "thetree"
       },
@@ -1168,12 +1178,27 @@
         "hostDependency": "thetree"
       },
       {
+        "path": "lib/content/active.js",
+        "kind": "skin-integration",
+        "hostDependency": "thetree"
+      },
+      {
+        "path": "lib/content/contract.js",
+        "kind": "skin-integration",
+        "hostDependency": "none"
+      },
+      {
+        "path": "lib/content/full/index.js",
+        "kind": "parser-output-adapter",
+        "hostDependency": "thetree-mediawiki-boundary"
+      },
+      {
         "path": "lib/legacyCategoryContract.js",
         "kind": "parser-output-adapter",
         "hostDependency": "thetree-mediawiki-boundary"
       },
       {
-        "path": "lib/legacyCategoryData.js",
+        "path": "lib/content/full/categoryData.js",
         "kind": "parser-output-adapter",
         "hostDependency": "thetree-mediawiki-boundary"
       },
@@ -1208,7 +1233,7 @@
         "hostDependency": "thetree"
       },
       {
-        "path": "lib/legacyMountedParserOutputTransform.js",
+        "path": "lib/content/full/mounted.js",
         "kind": "parser-output-adapter",
         "hostDependency": "thetree-mediawiki-boundary"
       },
@@ -1223,7 +1248,7 @@
         "hostDependency": "thetree"
       },
       {
-        "path": "lib/legacyParserOutputFragmentNavigation.js",
+        "path": "lib/content/full/fragmentNavigation.js",
         "kind": "parser-output-adapter",
         "hostDependency": "thetree-mediawiki-boundary"
       },
@@ -1358,7 +1383,7 @@
         "hostDependency": "thetree-mediawiki-boundary"
       },
       {
-        "path": "lib/parserOutput/storeRuntime.js",
+        "path": "lib/content/full/storeRuntime.js",
         "kind": "parser-output-adapter",
         "hostDependency": "thetree-mediawiki-boundary"
       },
@@ -1842,6 +1867,20 @@
     "versionedContracts": [
       "contracts/resource-loader-origin-contract.json"
     ],
+    "contentProfile": {
+      "schema": 1,
+      "selection": "build-time-static",
+      "active": "full",
+      "javascriptEntry": "lib/content/active.js",
+      "stylesheetEntry": "css/content/active.css",
+      "profiles": {
+        "full": {
+          "status": "implemented",
+          "implementationRoot": "lib/content/full",
+          "stylesheetRoot": "css/content/full"
+        }
+      }
+    },
     "moduleGraph": {
       "schema": 1,
       "ignoredRoots": [
@@ -1869,8 +1908,7 @@
       "adapterImports": [
         "css/popups-adapter.css",
         "css/vector-adapter.css",
-        "css/content.css",
-        "css/thetree-content.css"
+        "css/content/active.css"
       ],
       "resourceLoaderContract": "contracts/resource-loader-origin-contract.json",
       "hostLimitation": "thetree skin CSS is selected as one static entry and exposes no per-page ResourceLoader queue injection point; the maximal locked page profile is therefore generated once and host-only adapters are appended after it."

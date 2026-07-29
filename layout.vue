@@ -4,9 +4,10 @@
     :style="skinVars"
     :lang="legacyDocumentEnvironment.htmlAttributes.lang"
     :dir="legacyDocumentEnvironment.htmlAttributes.dir"
-    :data-tt-parser-output-transform="parserOutputTransformSignature"
+    :data-tt-content-profile="contentProfile.id"
+    :data-tt-content-transform="contentTransformSignature"
   >
-    <SkinLegacy>
+    <SkinLegacy :content-profile="contentProfile">
       <nuxt />
     </SkinLegacy>
   </div>
@@ -21,7 +22,7 @@ import SkinLegacy from './components/SkinLegacy';
 import { applyLegacyDocumentEnvironment, makeLegacyDocumentEnvironment } from './lib/legacyDocumentEnvironment';
 import { makeTheTreeAdapterContext } from './lib/legacyTheTreeAdapter';
 import { makeLegacySkinVars, makeLegacyThemeColor } from './lib/legacySkinVars';
-import { createLegacyParserOutputStoreRuntime } from './lib/parserOutput/storeRuntime';
+import activeContentProfile from './lib/content/active';
 
 export default {
   name: 'TheTreeVectorSkin',
@@ -31,8 +32,9 @@ export default {
   data() {
     return {
       legacyDocumentCleanup: null,
-      legacyParserOutputStoreRuntime: null,
-      parserOutputTransformSignature: 'pending'
+      contentStoreRuntime: null,
+      contentTransformSignature: 'pending',
+      contentProfile: activeContentProfile
     };
   },
   head() {
@@ -83,10 +85,10 @@ export default {
     },
   },
   created() {
-    this.installParserOutputStoreRuntime();
+    this.installContentStoreRuntime();
   },
   beforeUpdate() {
-    this.syncParserOutputStoreRuntime();
+    this.syncContentStoreRuntime();
   },
   watch: {
     legacyDocumentEnvironment: {
@@ -100,34 +102,34 @@ export default {
     this.syncLegacyDocumentEnvironment();
   },
   beforeDestroy() {
-    this.teardownParserOutputStoreRuntime();
+    this.teardownContentStoreRuntime();
     this.teardownLegacyDocumentEnvironment();
   },
   beforeUnmount() {
-    this.teardownParserOutputStoreRuntime();
+    this.teardownContentStoreRuntime();
     this.teardownLegacyDocumentEnvironment();
   },
   methods: {
-    installParserOutputStoreRuntime() {
-      if (this.legacyParserOutputStoreRuntime) return;
-      this.legacyParserOutputStoreRuntime = createLegacyParserOutputStoreRuntime({
+    installContentStoreRuntime() {
+      if (this.contentStoreRuntime) return;
+      this.contentStoreRuntime = this.contentProfile.createStoreRuntime({
         store: this.$store,
         onUpdate: (signature) => {
-          this.parserOutputTransformSignature = signature;
+          this.contentTransformSignature = signature;
         }
       });
-      this.legacyParserOutputStoreRuntime.init();
+      this.contentStoreRuntime.init();
     },
-    syncParserOutputStoreRuntime() {
-      if (this.legacyParserOutputStoreRuntime) {
-        this.legacyParserOutputStoreRuntime.sync();
+    syncContentStoreRuntime() {
+      if (this.contentStoreRuntime) {
+        this.contentStoreRuntime.sync();
       }
     },
-    teardownParserOutputStoreRuntime() {
-      if (this.legacyParserOutputStoreRuntime) {
-        this.legacyParserOutputStoreRuntime.destroy();
+    teardownContentStoreRuntime() {
+      if (this.contentStoreRuntime) {
+        this.contentStoreRuntime.destroy();
       }
-      this.legacyParserOutputStoreRuntime = null;
+      this.contentStoreRuntime = null;
     },
     syncLegacyDocumentEnvironment() {
       this.teardownLegacyDocumentEnvironment();

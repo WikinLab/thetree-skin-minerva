@@ -15,6 +15,12 @@ The DarkMode extension personal-tool hook is mapped into Vector's `data-user-men
 
 The host content tree is projected from one explicit contract: the upstream `#bodyContent.vector-body` element owns the shared Vector content context, `#mw-content-text` owns the current root surface, and declared dynamic children such as the editor preview re-enter the same canonical ParserOutput projector used by ordinary articles. Interface surfaces no longer reset inherited Vector typography. Generic generated element rules remain isolated from interface DOM, while upstream rules explicitly anchored by `.vector-body` or `#bodyContent` retain their original content-context reach.
 
+## 콘텐츠 빌드 프로필 경계
+
+현재 배포본은 `full` 콘텐츠 프로필만 구현합니다. 공통 Vector 크롬은 ParserOutput·동적 surface·카테고리 구현을 직접 import하지 않고 `lib/content/active.js`의 정적 프로필 계약만 사용합니다. Full 프로필은 `lib/content/full/`에서 일반 문서의 store 사전 변환, 동적 WikiContent projection, ParserOutput fragment navigation, Vector catlinks 소유권과 surface 해석을 함께 소유합니다.
+
+CSS도 `css/content/active.css` 하나를 정적 진입점으로 사용합니다. 현재 진입점은 Full 전용 category adapter와 기존 ParserOutput host adapter를 원래 cascade 순서로 불러옵니다. 따라서 향후 Lite 배포본은 공통 Vector 크롬을 수정하지 않고 JavaScript/CSS의 active 진입점을 Lite 구현으로 교체하고 Full 전용 의존성 묶음을 배포 inventory에서 제외할 수 있습니다. Lite 구현, 런타임 전환, 설정 UI는 아직 포함하지 않습니다.
+
 ## 부트스트랩
 
 소스 ZIP의 구조 계약만 먼저 확인하려면 다음 명령을 실행합니다.
@@ -55,7 +61,10 @@ npm run bootstrap -- --release 1.47
 
 ## 배포 구조
 
-- `layout.vue`, `components/SkinLegacy.vue`, `lib/`, `css/`: 스킨 소스와 로컬 어댑터
+- `layout.vue`, `components/SkinLegacy.vue`: 공통 Vector 크롬과 더트리 장착 경계
+- `lib/content/active.js`, `css/content/active.css`: 빌드가 선택하는 콘텐츠 프로필 진입점
+- `lib/content/full/`, `lib/parserOutput/`, `css/content/full/`: 현재 Full 콘텐츠 구현과 공통 ParserOutput 컴파일러
+- `lib/`, `css/`: 나머지 스킨 소스와 로컬 어댑터
 - `lib/ports/`: 원본 실행 환경과의 실제 차이 때문에 adapter가 필요한 수정 소스 포트 및 bootstrap 생성 포트 경로
 - `lib/generated/`: 잠긴 upstream JavaScript 함수 조각 등 bootstrap 생성물
 - `tools/`: 부트스트랩과 결정론적 생성에 필요한 도구

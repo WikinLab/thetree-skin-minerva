@@ -6,14 +6,7 @@ MediaWiki Vector legacy 구조를 더트리 스킨으로 이식한 GPL-2.0-or-la
 
 ## 버전 체계
 
-이 프로젝트는 `0.<마일스톤>.<수정>` 형식의 SemVer를 사용합니다.
-
-- 새 기능·아키텍처 마일스톤은 가운데 숫자를 올리고 `0.x.0`에서 시작합니다.
-- 같은 마일스톤의 후속 작업은 기능, 수정, 문서 또는 메타데이터 변경인지와 관계없이 마지막 숫자를 1 올립니다.
-- 명시적으로 취소된 작업은 릴리스 버전에 포함하지 않습니다.
-- 현재 버전의 기준은 `package.json`이며 `package-lock.json`, `ORIGIN-MANIFEST.json`과 versioned contract가 이를 따라야 합니다.
-
-릴리스 이력은 Git 커밋과 태그에서 관리합니다. README에는 특정 과거 버전의 누적 변경 로그를 보관하지 않습니다.
+이 프로젝트는 [Semantic Versioning](https://semver.org/)을 사용합니다. 현재 버전은 `package.json`을 기준으로 하며 릴리스 이력은 Git 태그와 GitHub Releases에서 관리합니다.
 
 ## 원본과 호스트 경계
 

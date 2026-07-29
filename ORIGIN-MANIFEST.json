@@ -1073,6 +1073,21 @@
         "hostDependency": "thetree"
       },
       {
+        "path": "css/host-content.css",
+        "kind": "skin-integration",
+        "hostDependency": "thetree"
+      },
+      {
+        "path": "css/host-content/foundation.css",
+        "kind": "host-adapter",
+        "hostDependency": "thetree"
+      },
+      {
+        "path": "css/host-content/source-links.css",
+        "kind": "host-adapter",
+        "hostDependency": "thetree"
+      },
+      {
         "path": "css/popups-adapter.css",
         "kind": "host-adapter",
         "hostDependency": "thetree"
@@ -1444,6 +1459,11 @@
       },
       {
         "path": "tools/content-projection-contract-test.mjs",
+        "kind": "generation-contract",
+        "hostDependency": "none"
+      },
+      {
+        "path": "tools/host-content-contract-test.mjs",
         "kind": "generation-contract",
         "hostDependency": "none"
       },
@@ -1941,6 +1961,7 @@
       "adapterImports": [
         "css/popups-adapter.css",
         "css/vector-adapter.css",
+        "css/host-content.css",
         "css/content-projection.css"
       ],
       "resourceLoaderContract": "contracts/resource-loader-origin-contract.json",

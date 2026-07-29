@@ -15,6 +15,12 @@ The DarkMode extension personal-tool hook is mapped into Vector's `data-user-men
 
 The host content tree is projected from one explicit contract: the upstream `#bodyContent.vector-body` element owns the shared Vector content context, `#mw-content-text` owns the current root surface, and declared dynamic children such as the editor preview re-enter the same canonical ParserOutput projector used by ordinary articles. Interface surfaces no longer reset inherited Vector typography. Generic generated element rules remain isolated from interface DOM, while upstream rules explicitly anchored by `.vector-body` or `#bodyContent` retain their original content-context reach.
 
+## 호스트 본문 베이스라인
+
+`css/host-content.css`는 선택적 MediaWiki 본문 프로젝션과 독립된 더트리 원본 UI 호환 경계입니다. `foundation.css`는 일반 더트리 스킨 프레임워크가 제공하던 `border-box` 전제를 `data-tt-host-content` 아래의 호스트 소유 요소에만 복구하고, 일반 문서 및 편집 미리보기의 ParserOutput surface와 그 자손은 제외합니다. 따라서 `LinkTab`처럼 `width: 100%`와 내부 padding을 함께 쓰는 Vue 컴포넌트가 특정 페이지용 보정 없이 원래 박스 모델로 동작합니다.
+
+`source-links.css`는 Lite의 원본 본문과 프로젝션된 interface surface처럼 더트리가 계속 소유하는 DOM의 일반 링크에 Vector/Codex link token을 낮은 우선순위로 제공합니다. 방문 기록에 따른 브라우저 기본 보라색은 만들지 않으며, 더트리 컴포넌트의 scoped class와 일반 문서·편집 미리보기의 MediaWiki ParserOutput 링크 규칙은 계속 우선합니다.
+
 ## 선택적 본문 프로젝션 경계
 
 Vector 크롬과 더트리 프론트엔드의 원본 본문 출력은 항상 존재합니다. `lib/contentProjection/index.js`만 일반 문서의 store 사전 변환, 동적 WikiContent 변환, ParserOutput fragment navigation, Vector catlinks와 surface 표식을 소유하는 선택적 레이어입니다. `layout.vue`와 `SkinLegacy.vue`는 이 공개 진입점 외의 구체 구현을 import하지 않습니다.
@@ -70,6 +76,7 @@ npm run bootstrap -- --release 1.47
 ## 배포 구조
 
 - `layout.vue`, `components/SkinLegacy.vue`: 공통 Vector 크롬과 더트리 장착 경계
+- `css/host-content.css`, `css/host-content/`: 프로젝션과 독립된 더트리 소유 UI 구조 및 링크 베이스라인
 - `lib/contentProjection/`, `css/content-projection.css`: 제거 가능한 단일 Vector 본문 프로젝션 모듈
 - `lib/parserOutput/`, `css/content-projection/`: 프로젝션 내부 ParserOutput 컴파일러와 전용 host adapter
 - `lib/`, `css/`: 나머지 스킨 소스와 로컬 어댑터

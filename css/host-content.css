@@ -1,0 +1,9 @@
+/*
+ * thetree source-content compatibility entry.
+ *
+ * This module is independent of the optional MediaWiki content projection.
+ * It restores the host UI assumptions required by Vue content components and
+ * gives host-owned source content a deliberately low-specificity Vector theme.
+ */
+@import "./host-content/foundation.css";
+@import "./host-content/source-links.css";

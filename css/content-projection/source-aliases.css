@@ -108,7 +108,7 @@
   text-align: center;
 }
 
-/* v148: source ownership fences for uncompiled source aliases only.
+/* Source ownership fences for uncompiled source aliases only.
  * Emitted MediaWiki `a.external.text` is origin-owned and must not match this
  * block, so selectors are exact source aliases instead of class-substring
  * probes such as [class*='external']. */

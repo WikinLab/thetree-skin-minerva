@@ -553,7 +553,7 @@ export function validateLockedHostViewSourceContract(root, manifest) {
     validator: lock.validator
   };
   if (JSON.stringify(observed) !== JSON.stringify(THETREE_HOST_LOCK)) {
-    throw new Error('ORIGIN-MANIFEST hostLock does not match the v355 host source contract.');
+    throw new Error('ORIGIN-MANIFEST hostLock does not match the locked host source contract.');
   }
 
   const frontendCheckout = assertLockedCheckout(root, frontend, 'thetree frontend');

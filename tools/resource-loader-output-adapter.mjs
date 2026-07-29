@@ -545,7 +545,7 @@ function appendSubjectFilter(selector, filterSelector) {
  *
  * The zero-specificity subject filter preserves the original selector and
  * cascade weight. This makes the projection a routing boundary rather than a
- * second hand-written stylesheet: article output keeps the v347 declarations
+ * second hand-written stylesheet: article output keeps the source declarations
  * and order, raw interface DOM is isolated, and nested edit-preview
  * parser-output is re-admitted through the same projection contract.
  */

@@ -406,8 +406,8 @@ function validatePackageIntegration(root, manifest, options = {}) {
   }
   for (const pathname of contract.versionedContracts || []) {
     const value = readJson(pathname).version;
-    if (value !== `v${expected.split('.').at(-1)}`) {
-      throw new Error(`Versioned contract mismatch: ${pathname}=${value ?? 'none'}, expected v${expected.split('.').at(-1)}`);
+    if (value !== expected) {
+      throw new Error(`Versioned contract mismatch: ${pathname}=${value ?? 'none'}, expected ${expected}`);
     }
   }
   validateContentProjectionIntegration(root, manifest);
@@ -664,7 +664,7 @@ async function main() {
       validator: hostLock.validator
     };
     if (JSON.stringify(observedHostLock) !== JSON.stringify(THETREE_HOST_LOCK)) {
-      throw new Error('ORIGIN-MANIFEST hostLock does not match the v355 host source contract.');
+      throw new Error('ORIGIN-MANIFEST hostLock does not match the locked host source contract.');
     }
     for (const node of nodes) {
       if (node.kind !== 'resource-loader-origin') continue;

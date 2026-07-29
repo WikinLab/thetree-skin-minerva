@@ -1,6 +1,6 @@
 {
   "schema": 30,
-  "packageVersion": "0.0.355",
+  "packageVersion": "0.29.2",
   "title": "thetree Vector legacy bootstrap source manifest",
   "upstreamLockFile": "UPSTREAM-LOCK.json",
   "hostLock": {

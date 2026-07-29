@@ -4,10 +4,10 @@
     :style="skinVars"
     :lang="legacyDocumentEnvironment.htmlAttributes.lang"
     :dir="legacyDocumentEnvironment.htmlAttributes.dir"
-    :data-tt-content-profile="contentProfile.id"
+    :data-tt-content-projection="activeContentProjection ? activeContentProjection.id : null"
     :data-tt-content-transform="contentTransformSignature"
   >
-    <SkinLegacy :content-profile="contentProfile">
+    <SkinLegacy :content-projection="activeContentProjection">
       <nuxt />
     </SkinLegacy>
   </div>
@@ -22,7 +22,8 @@ import SkinLegacy from './components/SkinLegacy';
 import { applyLegacyDocumentEnvironment, makeLegacyDocumentEnvironment } from './lib/legacyDocumentEnvironment';
 import { makeTheTreeAdapterContext } from './lib/legacyTheTreeAdapter';
 import { makeLegacySkinVars, makeLegacyThemeColor } from './lib/legacySkinVars';
-import activeContentProfile from './lib/content/active';
+import vectorContentProjection from './lib/contentProjection';
+import { resolveContentProjectionPreference } from './lib/adapters/thetree-content-projection';
 
 export default {
   name: 'TheTreeVectorSkin',
@@ -33,8 +34,8 @@ export default {
     return {
       legacyDocumentCleanup: null,
       contentStoreRuntime: null,
-      contentTransformSignature: 'pending',
-      contentProfile: activeContentProfile
+      contentTransformSignature: 'projection-pending',
+      contentProjection: vectorContentProjection
     };
   },
   head() {
@@ -57,6 +58,12 @@ export default {
         storeState: this.$store.state,
         route: this.$route
       });
+    },
+    contentProjectionPreference() {
+      return resolveContentProjectionPreference(this.adapterContext);
+    },
+    activeContentProjection() {
+      return this.contentProjectionPreference.enabled ? this.contentProjection : null;
     },
     legacyDocumentEnvironment() {
       const config = this.$store.state.config || {};
@@ -112,7 +119,11 @@ export default {
   methods: {
     installContentStoreRuntime() {
       if (this.contentStoreRuntime) return;
-      this.contentStoreRuntime = this.contentProfile.createStoreRuntime({
+      if (!this.activeContentProjection) {
+        this.contentTransformSignature = 'projection-disabled';
+        return;
+      }
+      this.contentStoreRuntime = this.activeContentProjection.createStoreRuntime({
         store: this.$store,
         onUpdate: (signature) => {
           this.contentTransformSignature = signature;

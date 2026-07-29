@@ -1,0 +1,9 @@
+/*
+ * Optional Vector content projection stylesheet entry.
+ *
+ * Every rule below is gated by projection-owned surface attributes. Removing
+ * this one import leaves the original Vector chrome and the host Nuxt content.
+ */
+@import "./content-projection/vector-category.css";
+@import "./content-projection/parser-output-host.css";
+@import "./content-projection/source-aliases.css";

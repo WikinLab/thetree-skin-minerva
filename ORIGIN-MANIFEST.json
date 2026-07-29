@@ -1003,6 +1003,16 @@
     ],
     "localFiles": [
       {
+        "path": ".gitattributes",
+        "kind": "package-metadata",
+        "hostDependency": "none"
+      },
+      {
+        "path": ".gitignore",
+        "kind": "package-metadata",
+        "hostDependency": "none"
+      },
+      {
         "path": "LICENSE",
         "kind": "package-metadata",
         "hostDependency": "none"
@@ -1048,17 +1058,17 @@
         "hostDependency": "none"
       },
       {
-        "path": "css/content/active.css",
+        "path": "css/content-projection.css",
         "kind": "skin-integration",
         "hostDependency": "thetree"
       },
       {
-        "path": "css/content/full/vector-category.css",
+        "path": "css/content-projection/vector-category.css",
         "kind": "host-adapter",
         "hostDependency": "thetree"
       },
       {
-        "path": "css/content/full/parser-output-host.css",
+        "path": "css/content-projection/parser-output-host.css",
         "kind": "host-adapter",
         "hostDependency": "thetree"
       },
@@ -1073,7 +1083,7 @@
         "hostDependency": "thetree"
       },
       {
-        "path": "css/content/full/source-aliases.css",
+        "path": "css/content-projection/source-aliases.css",
         "kind": "host-adapter",
         "hostDependency": "thetree"
       },
@@ -1089,6 +1099,11 @@
       },
       {
         "path": "lib/adapters/mediawiki-darkmode.js",
+        "kind": "host-adapter",
+        "hostDependency": "thetree"
+      },
+      {
+        "path": "lib/adapters/thetree-content-projection.js",
         "kind": "host-adapter",
         "hostDependency": "thetree"
       },
@@ -1178,17 +1193,7 @@
         "hostDependency": "thetree"
       },
       {
-        "path": "lib/content/active.js",
-        "kind": "skin-integration",
-        "hostDependency": "thetree"
-      },
-      {
-        "path": "lib/content/contract.js",
-        "kind": "skin-integration",
-        "hostDependency": "none"
-      },
-      {
-        "path": "lib/content/full/index.js",
+        "path": "lib/contentProjection/index.js",
         "kind": "parser-output-adapter",
         "hostDependency": "thetree-mediawiki-boundary"
       },
@@ -1198,7 +1203,7 @@
         "hostDependency": "thetree-mediawiki-boundary"
       },
       {
-        "path": "lib/content/full/categoryData.js",
+        "path": "lib/contentProjection/categoryData.js",
         "kind": "parser-output-adapter",
         "hostDependency": "thetree-mediawiki-boundary"
       },
@@ -1233,7 +1238,7 @@
         "hostDependency": "thetree"
       },
       {
-        "path": "lib/content/full/mounted.js",
+        "path": "lib/contentProjection/mounted.js",
         "kind": "parser-output-adapter",
         "hostDependency": "thetree-mediawiki-boundary"
       },
@@ -1248,7 +1253,7 @@
         "hostDependency": "thetree"
       },
       {
-        "path": "lib/content/full/fragmentNavigation.js",
+        "path": "lib/contentProjection/fragmentNavigation.js",
         "kind": "parser-output-adapter",
         "hostDependency": "thetree-mediawiki-boundary"
       },
@@ -1383,7 +1388,7 @@
         "hostDependency": "thetree-mediawiki-boundary"
       },
       {
-        "path": "lib/content/full/storeRuntime.js",
+        "path": "lib/contentProjection/storeRuntime.js",
         "kind": "parser-output-adapter",
         "hostDependency": "thetree-mediawiki-boundary"
       },
@@ -1415,6 +1420,11 @@
       {
         "path": "tools/bootstrap-upstream.mjs",
         "kind": "generation-tool",
+        "hostDependency": "none"
+      },
+      {
+        "path": "tools/content-projection-contract-test.mjs",
+        "kind": "generation-contract",
         "hostDependency": "none"
       },
       {
@@ -1867,18 +1877,21 @@
     "versionedContracts": [
       "contracts/resource-loader-origin-contract.json"
     ],
-    "contentProfile": {
+    "contentProjection": {
       "schema": 1,
-      "selection": "build-time-static",
-      "active": "full",
-      "javascriptEntry": "lib/content/active.js",
-      "stylesheetEntry": "css/content/active.css",
-      "profiles": {
-        "full": {
-          "status": "implemented",
-          "implementationRoot": "lib/content/full",
-          "stylesheetRoot": "css/content/full"
-        }
+      "mode": "optional-runtime-layer",
+      "default": "enabled",
+      "javascriptEntry": "lib/contentProjection/index.js",
+      "javascriptConsumer": "layout.vue",
+      "stylesheetEntry": "css/content-projection.css",
+      "stylesheetConsumer": "css/screen.css",
+      "preferenceAdapter": "lib/adapters/thetree-content-projection.js",
+      "activationAttribute": "data-tt-content-projection",
+      "activationValue": "vector",
+      "ssrPreference": {
+        "protocol": "thetree-vector-content-projection/v1",
+        "serverDataKey": "thetreeVectorContentProjection",
+        "fallback": "enabled"
       }
     },
     "moduleGraph": {
@@ -1908,7 +1921,7 @@
       "adapterImports": [
         "css/popups-adapter.css",
         "css/vector-adapter.css",
-        "css/content/active.css"
+        "css/content-projection.css"
       ],
       "resourceLoaderContract": "contracts/resource-loader-origin-contract.json",
       "hostLimitation": "thetree skin CSS is selected as one static entry and exposes no per-page ResourceLoader queue injection point; the maximal locked page profile is therefore generated once and host-only adapters are appended after it."

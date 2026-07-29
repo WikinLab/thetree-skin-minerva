@@ -6,4 +6,4 @@
 @import "./vendor/resource-loader/page-styles.css";
 @import "./popups-adapter.css";
 @import "./vector-adapter.css";
-@import "./content/active.css";
+@import "./content-projection.css";

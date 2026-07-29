@@ -15,11 +15,15 @@ The DarkMode extension personal-tool hook is mapped into Vector's `data-user-men
 
 The host content tree is projected from one explicit contract: the upstream `#bodyContent.vector-body` element owns the shared Vector content context, `#mw-content-text` owns the current root surface, and declared dynamic children such as the editor preview re-enter the same canonical ParserOutput projector used by ordinary articles. Interface surfaces no longer reset inherited Vector typography. Generic generated element rules remain isolated from interface DOM, while upstream rules explicitly anchored by `.vector-body` or `#bodyContent` retain their original content-context reach.
 
-## 콘텐츠 빌드 프로필 경계
+## 선택적 본문 프로젝션 경계
 
-현재 배포본은 `full` 콘텐츠 프로필만 구현합니다. 공통 Vector 크롬은 ParserOutput·동적 surface·카테고리 구현을 직접 import하지 않고 `lib/content/active.js`의 정적 프로필 계약만 사용합니다. Full 프로필은 `lib/content/full/`에서 일반 문서의 store 사전 변환, 동적 WikiContent projection, ParserOutput fragment navigation, Vector catlinks 소유권과 surface 해석을 함께 소유합니다.
+Vector 크롬과 더트리 프론트엔드의 원본 본문 출력은 항상 존재합니다. `lib/contentProjection/index.js`만 일반 문서의 store 사전 변환, 동적 WikiContent 변환, ParserOutput fragment navigation, Vector catlinks와 surface 표식을 소유하는 선택적 레이어입니다. `layout.vue`와 `SkinLegacy.vue`는 이 공개 진입점 외의 구체 구현을 import하지 않습니다.
 
-CSS도 `css/content/active.css` 하나를 정적 진입점으로 사용합니다. 현재 진입점은 Full 전용 category adapter와 기존 ParserOutput host adapter를 원래 cascade 순서로 불러옵니다. 따라서 향후 Lite 배포본은 공통 Vector 크롬을 수정하지 않고 JavaScript/CSS의 active 진입점을 Lite 구현으로 교체하고 Full 전용 의존성 묶음을 배포 inventory에서 제외할 수 있습니다. Lite 구현, 런타임 전환, 설정 UI는 아직 포함하지 않습니다.
+CSS도 `css/content-projection.css` 하나만 프로젝션 전용 어댑터를 불러옵니다. 프로젝션이 꺼지면 `mw-body-content`, `wiki-article`, `data-tt-vector-surface`와 category surface를 설치하지 않으므로 생성된 원본 콘텐츠 CSS와 로컬 프로젝션 CSS가 더트리 원본 본문에 도달하지 않습니다. 크롬, 검색, 포틀릿, DarkMode와 Popups 런타임은 그대로 유지됩니다.
+
+선택적 [thetree-plugin-vector-content-projection](https://github.com/Bvextratest/thetree-plugin-vector-content-projection) 플러그인은 브라우저 쿠키를 기존 `skinData` hook의 SSR 데이터로 전달합니다. 플러그인이 감지되면 Vector 개인 도구에 `스킨 본문 끄기/켜기`가 나타나며, 선택값을 저장한 뒤 한 번 새로고침하여 서버 HTML과 hydration이 처음부터 같은 모드를 사용합니다. 플러그인이 없으면 토글을 노출하지 않고 기존 프로젝션 활성 상태를 기본값으로 사용합니다.
+
+별도 Lite 배포판은 새로운 본문 구현이 아닙니다. `layout.vue`의 단일 JavaScript 프로젝션 진입점과 `css/screen.css`의 단일 프로젝션 stylesheet 진입점을 제외하면, 동일한 Vector 크롬 안에 동일한 더트리 원본 본문이 남습니다. `ORIGIN-MANIFEST.json`과 preflight는 외부 코드가 프로젝션 내부 파일을 직접 import하지 못하도록 이 제거 경계를 검사합니다.
 
 ## 부트스트랩
 
@@ -30,6 +34,8 @@ npm run preflight
 ```
 
 잠긴 `design-codex` 태그의 upstream 빌드 요구사항 때문에 Node.js 20.19.1 이상, npm 10.8.2 이상, Git이 필요합니다.
+
+Windows의 전역 `core.autocrlf=true`와 무관하게 hash-locked build-toolchain `package-lock.json`은 `.gitattributes`에서 LF checkout을 강제합니다. `npm run preflight`도 부트스트랩 전에 기대 SHA-256과 실제 SHA-256을 검사하므로 줄바꿈이 달라진 작업 트리를 즉시 명확한 오류로 보고합니다. 잠금 해시를 CRLF 결과로 바꾸거나 검사를 우회해서는 안 됩니다.
 
 ```bash
 npm run bootstrap
@@ -62,8 +68,8 @@ npm run bootstrap -- --release 1.47
 ## 배포 구조
 
 - `layout.vue`, `components/SkinLegacy.vue`: 공통 Vector 크롬과 더트리 장착 경계
-- `lib/content/active.js`, `css/content/active.css`: 빌드가 선택하는 콘텐츠 프로필 진입점
-- `lib/content/full/`, `lib/parserOutput/`, `css/content/full/`: 현재 Full 콘텐츠 구현과 공통 ParserOutput 컴파일러
+- `lib/contentProjection/`, `css/content-projection.css`: 제거 가능한 단일 Vector 본문 프로젝션 모듈
+- `lib/parserOutput/`, `css/content-projection/`: 프로젝션 내부 ParserOutput 컴파일러와 전용 host adapter
 - `lib/`, `css/`: 나머지 스킨 소스와 로컬 어댑터
 - `lib/ports/`: 원본 실행 환경과의 실제 차이 때문에 adapter가 필요한 수정 소스 포트 및 bootstrap 생성 포트 경로
 - `lib/generated/`: 잠긴 upstream JavaScript 함수 조각 등 bootstrap 생성물

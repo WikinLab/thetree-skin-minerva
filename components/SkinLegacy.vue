@@ -38,14 +38,14 @@
         key="mw-content-text"
         :class="contentTextClassList"
         data-tt-host-content="1"
-        :data-tt-vector-surface="rootSurface.type"
-        :data-tt-vector-surface-role="rootSurface.role"
+        :data-tt-vector-surface="contentProjection ? rootSurface.type : null"
+        :data-tt-vector-surface-role="contentProjection ? rootSurface.role : null"
         :data-tt-vector-interface-surface="isInterfaceSurface ? rootSurface.upstreamSurface : null"
         :data-tt-vector-interface-archetype="isInterfaceSurface ? rootSurface.archetype : null"
         :data-tt-vector-interface-equivalence="isInterfaceSurface ? featureEquivalence : null"
-        :data-tt-vector-page-contract="adapterContext.pageContract.featureMappingId"
+        :data-tt-vector-page-contract="contentProjection ? adapterContext.pageContract.featureMappingId : null"
         :data-tt-host-content-name="adapterContext.pageContract.hostContentName || null"
-        :data-tt-content-profile="contentProfile.id"
+        :data-tt-content-projection="contentProjection ? contentProjection.id : null"
       >
         <slot />
       </div>
@@ -95,14 +95,31 @@ import { makeSkinLegacyAdapterState } from '../lib/legacySkinAdapter';
 import { makeTheTreePopupsRuntimeData } from '../lib/adapters/thetree-popups/data';
 import { createSkinRuntimeController } from '../lib/runtime/createSkinRuntimeController';
 import { isDarkModeToggleTarget, toggleTheTreeDarkMode } from '../lib/adapters/mediawiki-darkmode';
+import {
+  isContentProjectionToggleTarget,
+  toggleTheTreeContentProjection
+} from '../lib/adapters/thetree-content-projection';
+
+const RAW_CONTENT_SURFACE = Object.freeze({
+  projection: null,
+  root: Object.freeze({}),
+  isArticle: false,
+  isInterface: false,
+  featureEquivalence: null
+});
+
+const EMPTY_CATEGORY_DATA = Object.freeze({
+  hasCategories: false,
+  items: Object.freeze([])
+});
 
 export default {
   name: 'SkinLegacy',
   mixins: [Common],
   props: {
-    contentProfile: {
+    contentProjection: {
       type: Object,
-      required: true
+      default: null
     }
   },
   components: {
@@ -144,10 +161,12 @@ export default {
       return this.contentSurface.projection;
     },
     contentSurface() {
-      return this.contentProfile.resolveSurface(this.adapterContext);
+      return this.contentProjection
+        ? this.contentProjection.resolveSurface(this.adapterContext)
+        : RAW_CONTENT_SURFACE;
     },
     rootSurface() {
-      return this.projectionContract.root;
+      return this.projectionContract?.root || RAW_CONTENT_SURFACE.root;
     },
     isInterfaceSurface() {
       return this.contentSurface.isInterface;
@@ -161,16 +180,18 @@ export default {
     },
     contentTextClassList() {
       return {
-        'mw-body-content': true,
-        [this.contentDirectionClass]: true,
-        'wiki-article': this.contentSurface.isArticle
+        'mw-body-content': !!this.contentProjection,
+        [this.contentDirectionClass]: !!this.contentProjection,
+        'wiki-article': !!this.contentProjection && this.contentSurface.isArticle
       };
     },
     skinAdapter() {
       return makeSkinLegacyAdapterState(this.adapterContext);
     },
     legacyCategoryData() {
-      return this.contentProfile.makeCategoryData(this.adapterContext);
+      return this.contentProjection
+        ? this.contentProjection.makeCategoryData(this.adapterContext)
+        : EMPTY_CATEGORY_DATA;
     },
     theTreePopupsRuntimeData() {
       return makeTheTreePopupsRuntimeData(this.adapterContext);
@@ -230,6 +251,13 @@ export default {
         toggleTheTreeDarkMode(this.$store.state);
         return;
       }
+      const projectionToggle = isContentProjectionToggleTarget(event && event.target);
+      if (projectionToggle) {
+        event.preventDefault();
+        event.stopPropagation();
+        toggleTheTreeContentProjection(this.adapterContext, this.$store.state);
+        return;
+      }
       this.onDynamicContentClick(event);
     },
     submitSearch(event) {
@@ -287,7 +315,9 @@ export default {
     ensureLegacySkinRuntimeController() {
       if (this.legacySkinRuntimeController) return this.legacySkinRuntimeController;
       this.legacySkinRuntimeController = createSkinRuntimeController({
-        createContentRuntime: (optionsSource) => this.contentProfile.createMountedRuntime(optionsSource),
+        createContentRuntime: this.contentProjection
+          ? (optionsSource) => this.contentProjection.createMountedRuntime(optionsSource)
+          : null,
         getContentRuntimeOptions: () => this.makeContentRuntimeOptions(),
         getPopupsData: () => this.theTreePopupsRuntimeData,
         getPopupsOptions: () => this.makePopupsRuntimeOptions(),

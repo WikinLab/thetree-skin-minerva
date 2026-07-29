@@ -2,6 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { assertResourceLoaderOriginContractSchema } from './resource-loader-origin-schema.mjs';
@@ -15,6 +16,31 @@ const preflight = process.argv.includes('--preflight');
 
 function readJson(relativePath) {
   return JSON.parse(fs.readFileSync(path.join(root, relativePath), 'utf8'));
+}
+
+function sha256File(pathname) {
+  return crypto.createHash('sha256').update(fs.readFileSync(pathname)).digest('hex');
+}
+
+function validateBuildToolchainLocks(root, lock) {
+  for (const repository of lock.repositories || []) {
+    const toolchain = repository.build?.toolchain;
+    if (!toolchain) continue;
+    const source = normalizeRelativePath(toolchain.source);
+    const lockFile = normalizeRelativePath(toolchain.lockFile || 'package-lock.json');
+    const pathname = path.join(root, source, lockFile);
+    if (!fs.existsSync(pathname) || !fs.statSync(pathname).isFile()) {
+      throw new Error(`Build toolchain lock file is missing for ${repository.name}: ${pathname}`);
+    }
+    if (!toolchain.lockSha256) continue;
+    const actual = sha256File(pathname);
+    if (actual !== toolchain.lockSha256) {
+      throw new Error(
+        `Build toolchain lock hash mismatch for ${repository.name}: expected ${toolchain.lockSha256}, got ${actual}. ` +
+        'Hash-locked package-lock.json files must be checked out with LF line endings.'
+      );
+    }
+  }
 }
 
 function valueAtPath(object, dottedPath) {
@@ -289,49 +315,74 @@ function validateStylesheetDelivery(root, manifest) {
   }
 }
 
-function validateContentProfileIntegration(root, manifest) {
-  const contract = manifest.integration?.contentProfile;
+function validateContentProjectionIntegration(root, manifest) {
+  const contract = manifest.integration?.contentProjection;
   if (!contract) return;
-  if (contract.schema !== 1 || contract.selection !== 'build-time-static') {
-    throw new Error(`Unsupported content profile contract: ${contract.schema ?? 'none'} ${contract.selection ?? 'none'}`);
-  }
-
-  const profile = contract.profiles?.[contract.active];
-  if (!profile || profile.status !== 'implemented') {
-    throw new Error(`Active content profile is not implemented: ${contract.active || 'none'}`);
+  if (contract.schema !== 1 || contract.mode !== 'optional-runtime-layer' || contract.default !== 'enabled') {
+    throw new Error(`Unsupported content projection contract: ${contract.schema ?? 'none'} ${contract.mode ?? 'none'} ${contract.default ?? 'none'}`);
   }
 
   const javascriptEntry = normalizeRelativePath(contract.javascriptEntry);
+  const javascriptConsumer = normalizeRelativePath(contract.javascriptConsumer);
   const stylesheetEntry = normalizeRelativePath(contract.stylesheetEntry);
-  const implementationRoot = normalizeRelativePath(profile.implementationRoot).replace(/\/$/, '');
-  const stylesheetRoot = normalizeRelativePath(profile.stylesheetRoot).replace(/\/$/, '');
+  const stylesheetConsumer = normalizeRelativePath(contract.stylesheetConsumer);
+  const preferenceAdapter = normalizeRelativePath(contract.preferenceAdapter);
   const localFiles = toPathSet(manifest.sourceInventory?.localFiles);
-  for (const entry of [javascriptEntry, stylesheetEntry]) {
+  for (const entry of [javascriptEntry, javascriptConsumer, stylesheetEntry, stylesheetConsumer, preferenceAdapter]) {
     if (!localFiles.has(entry) || !fs.existsSync(path.join(root, entry))) {
-      throw new Error(`Content profile entry is not a declared source file: ${entry}`);
+      throw new Error(`Content projection boundary file is not a declared source file: ${entry}`);
     }
   }
 
-  const javascriptSource = fs.readFileSync(path.join(root, javascriptEntry), 'utf8');
-  const dependencies = parseModuleDependencies([{ path: javascriptEntry, source: javascriptSource }]).get(javascriptEntry) || [];
-  const resolvedDependencies = dependencies.flatMap((specifier) => {
-    if (!specifier.startsWith('.')) return [];
-    return moduleResolutionCandidates(javascriptEntry, specifier).filter((candidate) => fs.existsSync(path.join(root, candidate)));
-  });
-  if (!resolvedDependencies.some((pathname) => pathname === implementationRoot || pathname.startsWith(`${implementationRoot}/`))) {
-    throw new Error(`Active JavaScript content profile does not select ${implementationRoot}: ${javascriptEntry}`);
+  const projectionRoot = `${path.posix.dirname(javascriptEntry)}/`;
+  const modules = [...localFiles]
+    .filter((pathname) => ['.js', '.mjs', '.vue'].includes(path.extname(pathname)) && fs.existsSync(path.join(root, pathname)))
+    .map((pathname) => {
+      const raw = fs.readFileSync(path.join(root, pathname), 'utf8');
+      return { path: pathname, source: pathname.endsWith('.vue') ? extractVueModuleScript(raw, pathname) : raw };
+    });
+  const dependenciesByModule = parseModuleDependencies(modules);
+  const externalConsumers = [];
+  const boundaryErrors = [];
+  for (const [importer, specifiers] of dependenciesByModule) {
+    for (const specifier of specifiers) {
+      if (!specifier.startsWith('.')) continue;
+      const resolved = moduleResolutionCandidates(importer, specifier).find((candidate) => localFiles.has(candidate));
+      if (!resolved || !resolved.startsWith(projectionRoot) || importer.startsWith(projectionRoot)) continue;
+      if (resolved === javascriptEntry) externalConsumers.push(importer);
+      else boundaryErrors.push(`${importer} imports private projection module ${resolved}`);
+    }
+  }
+  const uniqueConsumers = [...new Set(externalConsumers)].sort();
+  if (JSON.stringify(uniqueConsumers) !== JSON.stringify([javascriptConsumer])) {
+    boundaryErrors.push(`projection JavaScript entry consumers must be [${javascriptConsumer}], found [${uniqueConsumers.join(', ')}]`);
+  }
+  if (boundaryErrors.length) {
+    throw new Error(`Content projection JavaScript boundary mismatch:\n- ${boundaryErrors.join('\n- ')}`);
   }
 
   const stylesheetSource = fs.readFileSync(path.join(root, stylesheetEntry), 'utf8');
   const stylesheetImports = cssEntryImports(stylesheetSource, stylesheetEntry)
     .map((specifier) => normalizeRelativePath(path.posix.join(path.posix.dirname(stylesheetEntry), specifier)));
-  if (!stylesheetImports.length || stylesheetImports.some((pathname) => !pathname.startsWith(`${stylesheetRoot}/`))) {
-    throw new Error(`Active stylesheet content profile must import only ${stylesheetRoot}: ${stylesheetEntry}`);
-  }
+  if (!stylesheetImports.length) throw new Error(`Content projection stylesheet entry has no implementation imports: ${stylesheetEntry}`);
   for (const pathname of stylesheetImports) {
     if (!localFiles.has(pathname) || !fs.existsSync(path.join(root, pathname))) {
-      throw new Error(`Content profile stylesheet is not a declared source file: ${pathname}`);
+      throw new Error(`Content projection stylesheet is not a declared source file: ${pathname}`);
     }
+  }
+  const consumerImports = cssEntryImports(fs.readFileSync(path.join(root, stylesheetConsumer), 'utf8'), stylesheetConsumer)
+    .map((specifier) => normalizeRelativePath(path.posix.join(path.posix.dirname(stylesheetConsumer), specifier)));
+  if (consumerImports.filter((pathname) => pathname === stylesheetEntry).length !== 1) {
+    throw new Error(`Content projection stylesheet entry must be imported once by ${stylesheetConsumer}.`);
+  }
+
+  const layoutSource = fs.readFileSync(path.join(root, javascriptConsumer), 'utf8');
+  if (!layoutSource.includes(contract.activationAttribute) || !layoutSource.includes(contract.activationValue)) {
+    throw new Error(`Content projection activation marker is missing from ${javascriptConsumer}.`);
+  }
+  const adapterSource = fs.readFileSync(path.join(root, preferenceAdapter), 'utf8');
+  if (!adapterSource.includes(contract.ssrPreference?.protocol) || !adapterSource.includes(contract.ssrPreference?.serverDataKey)) {
+    throw new Error(`Content projection SSR preference protocol does not match ${preferenceAdapter}.`);
   }
 }
 
@@ -356,7 +407,7 @@ function validatePackageIntegration(root, manifest, options = {}) {
       throw new Error(`Versioned contract mismatch: ${pathname}=${value ?? 'none'}, expected v${expected.split('.').at(-1)}`);
     }
   }
-  validateContentProfileIntegration(root, manifest);
+  validateContentProjectionIntegration(root, manifest);
   validateStylesheetDelivery(root, manifest);
   validateModuleGraph(root, manifest, options);
 }
@@ -577,6 +628,7 @@ const engines = Object.freeze({
 async function main() {
   const manifest = readJson('ORIGIN-MANIFEST.json');
   const lock = readJson(manifest.upstreamLockFile || 'UPSTREAM-LOCK.json');
+  validateBuildToolchainLocks(root, lock);
   validateSourceInventoryCoverage(manifest);
   const generation = manifest.generation;
   if (generation?.schema !== 1 || !Array.isArray(generation.nodes)) {

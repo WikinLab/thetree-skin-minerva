@@ -1,8 +1,8 @@
 {
   "private": true,
   "name": "thetree-skin-vector",
-  "version": "0.30.3",
-  "description": "MediaWiki Vector legacy, DarkMode, and ClientHtml-serialized ResourceLoader page-style source port with locked REL1_46 bootstrap",
+  "version": "0.31.0",
+  "description": "MediaWiki Vector Legacy skin variant with locked, deterministic ResourceLoader and content-mode generation",
   "type": "module",
   "packageManager": "npm@10.8.2",
   "engines": {

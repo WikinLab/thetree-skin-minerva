@@ -1,11 +1,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { assertResourceLoaderOriginContractSchema } from './resource-loader-origin-schema.mjs';
+import { resolveResourceLoaderOriginContract } from './resource-loader-contract.mjs';
 import { compileResourceLoaderStyleModuleCss } from './resource-loader-less.mjs';
 import { compileCustomPropertyClosure } from './resource-loader-custom-properties.mjs';
 import { parseFirstPhpArrayAfter, parsePhpFeatureCompatibilityAfter, parsePhpFeatureLessMessageBindingsAfter } from './php-array-literal.mjs';
 import {
   adaptResourceLoaderOutputCss,
+  filterResourceLoaderOutputCssBySubjectTags,
   makeCssAssetUrlRewrites,
   isolateResourceLoaderOutputCssFromHostContent,
   scopeResourceLoaderOutputCss,
@@ -350,6 +352,24 @@ async function compileModule(root, contract, record) {
     }),
     lessMessages
   };
+}
+
+async function compileHostElementProjection(root, contract, record) {
+  const source = contract.skinVariant.upstream.elementsSource;
+  const raw = await compileResourceLoaderStyleModuleCss({
+    root,
+    moduleName: record.name,
+    entrypoint: source,
+    preludeEntries: contract.shared.lessPreludeEntries,
+    importPaths: [path.posix.dirname(source), ...contract.shared.importPaths],
+    importAliases: contract.shared.importAliases
+  });
+  const filtered = filterResourceLoaderOutputCssBySubjectTags(raw, record.subjectTagNames);
+  const adapted = adaptOwnership(filtered, record.ownership, contract.shared);
+  return withGeneratedCssBanner(adapted, {
+    banner: `/* Generated mechanically for ${contract.skinVariant.id} from ${source}. */`,
+    moduleName: record.name
+  });
 }
 
 
@@ -795,7 +815,7 @@ function writeOrCheck(root, output, content, check) {
 }
 
 export async function generateResourceLoaderOrigins({ root, contractPath, check = false }) {
-  const contract = readJson(root, contractPath);
+  const contract = resolveResourceLoaderOriginContract(root, readJson(root, contractPath));
   assertResourceLoaderOriginContractSchema(contract.schema);
   const generatedRoot = path.join(root, contract.generatedRoot);
   if (!check) fs.rmSync(generatedRoot, { recursive: true, force: true });
@@ -812,6 +832,12 @@ export async function generateResourceLoaderOrigins({ root, contractPath, check 
     for (const key of compiled.lessMessages) lessMessages.add(key);
     pending.push({ output: module.output, content: compiled.css });
     materializeAssets(root, module.assets, check);
+  }
+  if (contract.hostElementProjection) {
+    expected.add(posix(contract.hostElementProjection.output));
+    const css = await compileHostElementProjection(root, contract, contract.hostElementProjection);
+    generatedCss.push(css);
+    pending.push({ output: contract.hostElementProjection.output, content: css });
   }
   for (const bundle of contract.bundles || []) {
     expected.add(posix(bundle.output));

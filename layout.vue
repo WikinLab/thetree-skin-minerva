@@ -4,6 +4,8 @@
     :style="skinVars"
     :lang="legacyDocumentEnvironment.htmlAttributes.lang"
     :dir="legacyDocumentEnvironment.htmlAttributes.dir"
+    :data-tt-skin-variant="skinVariantId"
+    :data-tt-content-mode="contentModePreference.mode"
     :data-tt-content-projection="activeContentProjection ? activeContentProjection.id : null"
     :data-tt-content-transform="contentTransformSignature"
   >
@@ -23,7 +25,9 @@ import { applyLegacyDocumentEnvironment, makeLegacyDocumentEnvironment } from '.
 import { makeTheTreeAdapterContext } from './lib/legacyTheTreeAdapter';
 import { makeLegacySkinVars, makeLegacyThemeColor } from './lib/legacySkinVars';
 import vectorContentProjection from './lib/contentProjection';
-import { resolveContentProjectionPreference } from './lib/adapters/thetree-content-projection';
+import { CONTENT_MODE_PROJECTED } from './lib/contentMode.js';
+import { SKIN_VARIANT_ID } from './lib/skinVariant.js';
+import { resolveContentModePreference } from './lib/adapters/thetree-content-projection';
 
 export default {
   name: 'TheTreeVectorSkin',
@@ -35,7 +39,8 @@ export default {
       legacyDocumentCleanup: null,
       contentStoreRuntime: null,
       contentTransformSignature: 'projection-pending',
-      contentProjection: vectorContentProjection
+      projectedContentAdapter: vectorContentProjection,
+      skinVariantId: SKIN_VARIANT_ID
     };
   },
   head() {
@@ -59,11 +64,13 @@ export default {
         route: this.$route
       });
     },
-    contentProjectionPreference() {
-      return resolveContentProjectionPreference(this.adapterContext);
+    contentModePreference() {
+      return resolveContentModePreference(this.adapterContext);
     },
     activeContentProjection() {
-      return this.contentProjectionPreference.enabled ? this.contentProjection : null;
+      return this.contentModePreference.mode === CONTENT_MODE_PROJECTED
+        ? this.projectedContentAdapter
+        : null;
     },
     legacyDocumentEnvironment() {
       const config = this.$store.state.config || {};
@@ -120,7 +127,7 @@ export default {
     installContentStoreRuntime() {
       if (this.contentStoreRuntime) return;
       if (!this.activeContentProjection) {
-        this.contentTransformSignature = 'projection-disabled';
+        this.contentTransformSignature = 'content-native';
         return;
       }
       this.contentStoreRuntime = this.activeContentProjection.createStoreRuntime({

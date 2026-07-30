@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import postcss from 'postcss';
 import selectorParser from 'postcss-selector-parser';
+import { resolveResourceLoaderOriginContract } from './resource-loader-contract.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -33,7 +34,7 @@ assert.ok(screenSource.indexOf(hostContentImport) < screenSource.indexOf(project
 
 assert.deepEqual(imports(read('css/host-content.css')), [
   './host-content/foundation.css',
-  './host-content/source-links.css'
+  './vendor/resource-loader/host-content-elements.css'
 ]);
 
 const foundationSource = read('css/host-content/foundation.css');
@@ -49,56 +50,59 @@ assert.match(foundationSource, /::after/);
 assert.doesNotMatch(foundationSource, /!important/);
 assert.doesNotMatch(foundationSource, /data-tt-content-projection/);
 
-const sourceLinksSource = read('css/host-content/source-links.css');
+const hostElementsSource = read('css/vendor/resource-loader/host-content-elements.css');
 const upstreamElementsSource = read('vendor/mediawiki-core/resources/src/mediawiki.skinning/elements.less');
-const resourceLoaderContract = JSON.parse(read('contracts/resource-loader-origin-contract.json'));
+const skinVariablesSource = read('vendor/mediawiki-vector-legacy/resources/mediawiki.less/vector/mediawiki.skin.variables.less');
+const rawResourceLoaderContract = JSON.parse(read('contracts/resource-loader-origin-contract.json'));
+const resourceLoaderContract = resolveResourceLoaderOriginContract(root, rawResourceLoaderContract);
+const skinVariantContract = JSON.parse(read('contracts/skin-variant-contract.json'));
 const generatedVectorCss = read('css/vendor/resource-loader/skins.vector.styles.legacy.css');
-const sourceLinkSelectors = selectors('css/host-content/source-links.css');
-assert.ok(sourceLinkSelectors.length >= 5);
-for (const selector of sourceLinkSelectors) {
+const hostElementSelectors = selectors('css/vendor/resource-loader/host-content-elements.css');
+assert.ok(hostElementSelectors.length >= 5);
+for (const selector of hostElementSelectors) {
   assert.match(selector, /\[data-tt-host-content="1"\]/);
   assert.match(selector, /\[data-tt-vector-surface="parser-output"\]/);
 
   const selectorAst = selectorParser().astSync(selector);
-  assert.equal(selectorAst.nodes.length, 1);
-  const topLevelNodes = selectorAst.nodes[0].nodes;
-  const hostBoundaryIndex = topLevelNodes.findIndex((node) => (
-    node.type === 'pseudo'
-    && node.value === ':where'
-    && node.toString().includes('#mw-content-text')
-  ));
-  const linkSubjectIndex = topLevelNodes.findIndex((node) => (
-    (node.type === 'tag' && node.value === 'a')
-    || (node.type === 'pseudo' && node.value === ':is' && node.toString().includes('a:'))
-  ));
-  const parserOutputExclusionIndex = topLevelNodes.findIndex((node) => (
-    node.type === 'pseudo'
-    && node.value === ':not'
-    && node.toString().includes('[data-tt-vector-surface="parser-output"]')
-  ));
-
-  assert.equal(hostBoundaryIndex, 0);
-  assert.equal(topLevelNodes[hostBoundaryIndex + 1]?.type, 'combinator');
-  assert.ok(linkSubjectIndex > hostBoundaryIndex);
-  assert.ok(parserOutputExclusionIndex > linkSubjectIndex);
-  assert.equal(
-    topLevelNodes.slice(linkSubjectIndex, parserOutputExclusionIndex).some((node) => node.type === 'combinator'),
-    false
-  );
+  for (const branch of selectorAst.nodes) {
+    const topLevelNodes = branch.nodes;
+    assert.equal(topLevelNodes[0]?.type, 'pseudo');
+    assert.equal(topLevelNodes[0]?.value, ':where');
+    assert.equal(topLevelNodes[1]?.type, 'combinator');
+    assert.equal(topLevelNodes[2]?.type, 'tag');
+    assert.equal(topLevelNodes[2]?.value, 'a');
+    assert.equal(topLevelNodes.slice(3).some((node) => node.type === 'combinator'), false);
+  }
 }
 assert.match(upstreamElementsSource, /a\s*\{[\s\S]*?color:\s*@color-link;/);
 assert.match(upstreamElementsSource, /&:not\(\s*\[\s*href\s*\]\s*\)\s*\{[\s\S]*?cursor:\s*pointer/);
-assert.match(sourceLinksSource, /\)\s+a:not\(/);
-assert.match(sourceLinksSource, /a:not\(\[href\]\)/);
-assert.match(sourceLinksSource, /cursor:\s*pointer/);
-assert.match(sourceLinksSource, /a:visited/);
-assert.match(sourceLinksSource, /var\(--color-link,\s*#36c\)/);
-assert.match(sourceLinksSource, /var\(--color-link--visited,\s*#6a60b0\)/);
-assert.match(sourceLinksSource, /var\(--color-link--active,\s*#233566\)/);
-assert.match(sourceLinksSource, /background:\s*none/);
-assert.match(sourceLinksSource, /:is\(a:hover,\s*a:focus\)/);
-assert.doesNotMatch(sourceLinksSource, /color-link--hover/);
-assert.doesNotMatch(sourceLinksSource, /!important/);
+assert.match(skinVariablesSource, /@color-link:\s*#0645ad/);
+assert.match(skinVariablesSource, /@color-link--visited:\s*#0b0080/);
+assert.match(skinVariablesSource, /@color-link--active:\s*#faa700/);
+assert.match(hostElementsSource, /Generated mechanically for vector-legacy/);
+assert.match(hostElementsSource, /a:not\(\s*\[\s*href\s*\]\s*\)/);
+assert.match(hostElementsSource, /cursor:\s*pointer/);
+assert.match(hostElementsSource, /a:visited/);
+assert.match(hostElementsSource, /color:\s*#0645ad/);
+assert.match(hostElementsSource, /color:\s*#0b0080/);
+assert.match(hostElementsSource, /color:\s*#faa700/);
+assert.match(hostElementsSource, /background:\s*none/);
+assert.match(hostElementsSource, /a:hover/);
+assert.match(hostElementsSource, /a:focus/);
+assert.doesNotMatch(hostElementsSource, /#36c|#6a60b0|#233566/);
+assert.doesNotMatch(hostElementsSource, /!important/);
+
+assert.equal(skinVariantContract.id, 'vector-legacy');
+assert.equal(skinVariantContract.upstreamSkinName, 'vector');
+assert.deepEqual(skinVariantContract.contentModes, ['native', 'projected']);
+assert.equal(skinVariantContract.defaultContentMode, 'native');
+assert.equal(rawResourceLoaderContract.skinVariantContract, 'contracts/skin-variant-contract.json');
+assert.equal(
+  resourceLoaderContract.shared.importAliases['mediawiki.skin.variables.less'],
+  skinVariantContract.upstream.lessVariables
+);
+assert.equal(resourceLoaderContract.hostElementProjection.ownership, 'host-content-elements');
+assert.deepEqual(resourceLoaderContract.hostElementProjection.subjectTagNames, ['a']);
 
 assert.match(resourceLoaderContract.shared.hostSurfaces.contentLinks, /data-tt-vector-surface/);
 assert.match(resourceLoaderContract.shared.hostSurfaces.contentLinks, /data-tt-vector-catlinks-surface/);

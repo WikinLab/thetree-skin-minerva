@@ -4,9 +4,16 @@ import {
   CONTENT_PROJECTION_PROTOCOL,
   CONTENT_PROJECTION_SERVER_DATA_KEY,
   insertContentProjectionPersonalTool,
+  resolveContentModePreference,
   resolveContentProjectionPreference,
   serializeContentProjectionCookie
 } from '../lib/adapters/thetree-content-projection.js';
+import {
+  CONTENT_MODE_NATIVE,
+  CONTENT_MODE_PROJECTED,
+  contentModeUsesProjection
+} from '../lib/contentMode.js';
+import { SKIN_VARIANT_ID, UPSTREAM_SKIN_NAME } from '../lib/skinVariant.js';
 import { RUNTIME_CAPABILITIES } from '../lib/runtime/capabilities.js';
 import { createExtensionRuntimeHost } from '../lib/runtime/createExtensionRuntimeHost.js';
 import { normalizeLegacyStructuredCategory } from '../lib/legacyCategoryContract.js';
@@ -30,6 +37,17 @@ assert.deepEqual(resolveContentProjectionPreference({}), {
 });
 assert.equal(resolveContentProjectionPreference(contextWith(true)).enabled, true);
 assert.equal(resolveContentProjectionPreference(contextWith(false)).enabled, false);
+assert.deepEqual(resolveContentModePreference({}), {
+  available: false,
+  mode: CONTENT_MODE_NATIVE,
+  source: 'host-default'
+});
+assert.equal(resolveContentModePreference(contextWith(true)).mode, CONTENT_MODE_PROJECTED);
+assert.equal(resolveContentModePreference(contextWith(false)).mode, CONTENT_MODE_NATIVE);
+assert.equal(contentModeUsesProjection(CONTENT_MODE_PROJECTED), true);
+assert.equal(contentModeUsesProjection(CONTENT_MODE_NATIVE), false);
+assert.equal(SKIN_VARIANT_ID, 'vector-legacy');
+assert.equal(UPSTREAM_SKIN_NAME, 'vector');
 assert.equal(resolveContentProjectionPreference({
   viewData: {
     [CONTENT_PROJECTION_SERVER_DATA_KEY]: {

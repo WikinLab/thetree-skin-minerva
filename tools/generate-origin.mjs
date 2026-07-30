@@ -6,6 +6,7 @@ import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { assertResourceLoaderOriginContractSchema } from './resource-loader-origin-schema.mjs';
+import { resolveResourceLoaderOriginContract } from './resource-loader-contract.mjs';
 import { validateLegacyHostViewContract } from '../lib/legacySpecialPageContract.js';
 import { validateHostLockContract, validateHostViewExtractorContract } from './host-view-contract-engine.mjs';
 import { walkFiles } from './shared/files.mjs';
@@ -328,7 +329,12 @@ function validateStylesheetDelivery(root, manifest) {
 function validateContentProjectionIntegration(root, manifest) {
   const contract = manifest.integration?.contentProjection;
   if (!contract) return;
-  if (contract.schema !== 1 || contract.mode !== 'optional-runtime-layer' || contract.default !== 'disabled') {
+  if (
+    contract.schema !== 1
+    || contract.mode !== 'runtime-content-mode'
+    || contract.default !== 'native'
+    || JSON.stringify(contract.values) !== JSON.stringify(['native', 'projected'])
+  ) {
     throw new Error(`Unsupported content projection contract: ${contract.schema ?? 'none'} ${contract.mode ?? 'none'} ${contract.default ?? 'none'}`);
   }
   if (contract.ssrPreference?.fallback !== contract.default) {
@@ -390,12 +396,45 @@ function validateContentProjectionIntegration(root, manifest) {
   }
 
   const layoutSource = fs.readFileSync(path.join(root, javascriptConsumer), 'utf8');
-  if (!layoutSource.includes(contract.activationAttribute) || !layoutSource.includes(contract.activationValue)) {
+  const projectionSource = fs.readFileSync(path.join(root, javascriptEntry), 'utf8');
+  if (
+    !layoutSource.includes(contract.activationAttribute)
+    || !layoutSource.includes(contract.contentModeAttribute)
+    || !projectionSource.includes(contract.activationValue)
+  ) {
     throw new Error(`Content projection activation marker is missing from ${javascriptConsumer}.`);
   }
   const adapterSource = fs.readFileSync(path.join(root, preferenceAdapter), 'utf8');
   if (!adapterSource.includes(contract.ssrPreference?.protocol) || !adapterSource.includes(contract.ssrPreference?.serverDataKey)) {
     throw new Error(`Content projection SSR preference protocol does not match ${preferenceAdapter}.`);
+  }
+}
+
+function validateSkinVariantIntegration(root, manifest) {
+  const integration = manifest.integration?.skinVariant;
+  if (!integration) throw new Error('Package integration requires a skinVariant contract.');
+  if (integration.schema !== 1) throw new Error(`Unsupported skin variant integration schema: ${integration.schema}`);
+  const localFiles = toPathSet(manifest.sourceInventory?.localFiles);
+  const contractPath = normalizeRelativePath(integration.contract);
+  const runtimePath = normalizeRelativePath(integration.runtimeModule);
+  for (const pathname of [contractPath, runtimePath]) {
+    if (!localFiles.has(pathname) || !fs.existsSync(path.join(root, pathname))) {
+      throw new Error(`Skin variant boundary file is not a declared source file: ${pathname}`);
+    }
+  }
+  const variant = readJson(contractPath);
+  const runtime = fs.readFileSync(path.join(root, runtimePath), 'utf8');
+  if (
+    variant.schema !== 1
+    || !runtime.includes(`'${variant.family}'`)
+    || !runtime.includes(`'${variant.id}'`)
+    || !runtime.includes(`'${variant.upstreamSkinName}'`)
+  ) {
+    throw new Error(`Runtime skin variant identity disagrees with ${contractPath}.`);
+  }
+  const layoutSource = fs.readFileSync(path.join(root, manifest.integration.contentProjection.javascriptConsumer), 'utf8');
+  if (!layoutSource.includes(integration.activationAttribute)) {
+    throw new Error(`Skin variant activation marker is missing from layout: ${integration.activationAttribute}`);
   }
 }
 
@@ -414,6 +453,7 @@ function validatePackageIntegration(root, manifest, options = {}) {
     if (version !== expected) throw new Error(`Package integration version mismatch: ${label}=${version ?? 'none'}, package.json=${expected}`);
   }
   validateContentProjectionIntegration(root, manifest);
+  validateSkinVariantIntegration(root, manifest);
   validateStylesheetDelivery(root, manifest);
   validateModuleGraph(root, manifest, options);
 }
@@ -640,6 +680,7 @@ async function main() {
       if (node.kind !== 'resource-loader-origin') continue;
       const contract = readJson(node.contract);
       assertResourceLoaderOriginContractSchema(contract.schema);
+      resolveResourceLoaderOriginContract(root, contract);
     }
     validatePackageIntegration(root, manifest, { requireMaterialized: false });
     console.log('checked package integration preflight');

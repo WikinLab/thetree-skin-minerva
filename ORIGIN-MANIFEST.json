@@ -1094,6 +1094,11 @@
         "hostDependency": "none"
       },
       {
+        "path": "contracts/skin-variant-contract.json",
+        "kind": "generation-contract",
+        "hostDependency": "none"
+      },
+      {
         "path": "contracts/upstream-build-toolchains/design-codex-2.3.1/package-lock.json",
         "kind": "upstream-build-contract",
         "hostDependency": "none"
@@ -1125,11 +1130,6 @@
       },
       {
         "path": "css/host-content/foundation.css",
-        "kind": "host-adapter",
-        "hostDependency": "thetree"
-      },
-      {
-        "path": "css/host-content/source-links.css",
         "kind": "host-adapter",
         "hostDependency": "thetree"
       },
@@ -1262,6 +1262,11 @@
         "path": "lib/contentProjection/index.js",
         "kind": "parser-output-adapter",
         "hostDependency": "thetree-mediawiki-boundary"
+      },
+      {
+        "path": "lib/contentMode.js",
+        "kind": "skin-integration",
+        "hostDependency": "none"
       },
       {
         "path": "lib/legacyCategoryContract.js",
@@ -1489,6 +1494,11 @@
         "hostDependency": "thetree"
       },
       {
+        "path": "lib/skinVariant.js",
+        "kind": "skin-integration",
+        "hostDependency": "none"
+      },
+      {
         "path": "package-lock.json",
         "kind": "package-metadata",
         "hostDependency": "none"
@@ -1556,6 +1566,11 @@
       {
         "path": "tools/resource-loader-origin-schema.mjs",
         "kind": "generation-contract",
+        "hostDependency": "none"
+      },
+      {
+        "path": "tools/resource-loader-contract.mjs",
+        "kind": "generation-tool",
         "hostDependency": "none"
       },
       {
@@ -1740,6 +1755,10 @@
       },
       {
         "path": "css/vendor/resource-loader/mediawiki-variable-shim.css",
+        "originNode": "resource-loader-css"
+      },
+      {
+        "path": "css/vendor/resource-loader/host-content-elements.css",
         "originNode": "resource-loader-css"
       },
       {
@@ -1992,20 +2011,32 @@
     "schema": 1,
     "contentProjection": {
       "schema": 1,
-      "mode": "optional-runtime-layer",
-      "default": "disabled",
+      "mode": "runtime-content-mode",
+      "values": [
+        "native",
+        "projected"
+      ],
+      "default": "native",
       "javascriptEntry": "lib/contentProjection/index.js",
       "javascriptConsumer": "layout.vue",
       "stylesheetEntry": "css/content-projection.css",
       "stylesheetConsumer": "css/screen.css",
       "preferenceAdapter": "lib/adapters/thetree-content-projection.js",
       "activationAttribute": "data-tt-content-projection",
-      "activationValue": "vector",
+      "activationValue": "vector-legacy",
+      "contentModeAttribute": "data-tt-content-mode",
       "ssrPreference": {
         "protocol": "thetree-vector-content-projection/v1",
         "serverDataKey": "thetreeVectorContentProjection",
-        "fallback": "disabled"
+        "wireField": "enabled",
+        "fallback": "native"
       }
+    },
+    "skinVariant": {
+      "schema": 1,
+      "contract": "contracts/skin-variant-contract.json",
+      "runtimeModule": "lib/skinVariant.js",
+      "activationAttribute": "data-tt-skin-variant"
     },
     "moduleGraph": {
       "schema": 1,

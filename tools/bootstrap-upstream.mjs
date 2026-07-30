@@ -6,6 +6,7 @@ import process from 'node:process';
 import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { parseFirstPhpArrayAfter } from './php-array-literal.mjs';
+import { resolveResourceLoaderOriginContract } from './resource-loader-contract.mjs';
 
 let listResourceLoaderLessImportCandidates;
 let parseResourceLoaderLessImports;
@@ -618,7 +619,11 @@ function assertVendorLessClosureContract(manifest) {
 async function resolveVendorLessClosure(lock, manifest) {
   assertVendorLessClosureContract(manifest);
   const declared = manifest.sourceInventory?.vendorFiles || [];
-  const lessContract = readJson(path.join(root, 'contracts', 'resource-loader-origin-contract.json')).shared || {};
+  const resourceLoaderContract = resolveResourceLoaderOriginContract(
+    root,
+    readJson(path.join(root, 'contracts', 'resource-loader-origin-contract.json'))
+  );
+  const lessContract = resourceLoaderContract.shared || {};
   const entries = new Map();
   const queue = [];
 

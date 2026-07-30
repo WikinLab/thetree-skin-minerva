@@ -513,6 +513,38 @@ export function scopeResourceLoaderOutputCss(css, options = {}) {
   return root.toString();
 }
 
+export function filterResourceLoaderOutputCssBySubjectTags(css, tagNames = []) {
+  const allowed = new Set((tagNames || []).map((name) => String(name).toLowerCase()));
+  if (!allowed.size) throw new Error('ResourceLoader subject tag filter requires at least one tag name');
+  const root = postcss.parse(css);
+  root.walkRules((rule) => {
+    if (isInsideKeyframes(rule)) return;
+    const selectors = selectorParser().astSync(rule.selector);
+    const retained = selectors.nodes.filter((selector) => {
+      if (selector.nodes.some((node) => node.type === 'combinator')) return false;
+      return selector.nodes.some((node) => (
+        node.type === 'tag' && allowed.has(String(node.value || '').toLowerCase())
+      ));
+    });
+    if (!retained.length) {
+      rule.remove();
+      return;
+    }
+    rule.selector = retained.map((selector) => selector.toString()).join(',\n');
+  });
+
+  let removedEmptyContainer = true;
+  while (removedEmptyContainer) {
+    removedEmptyContainer = false;
+    root.walkAtRules((atRule) => {
+      if (!Array.isArray(atRule.nodes) || atRule.nodes.length) return;
+      atRule.remove();
+      removedEmptyContainer = true;
+    });
+  }
+  return root.toString();
+}
+
 
 function appendSubjectFilter(selector, filterSelector) {
   const filterAst = selectorParser().astSync(`x${filterSelector}`);

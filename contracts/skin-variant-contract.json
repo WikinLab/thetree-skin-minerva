@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "family": "vector",
+  "id": "vector-legacy",
+  "upstreamSkinName": "vector",
+  "upstream": {
+    "lessVariables": "vendor/mediawiki-vector-legacy/resources/mediawiki.less/vector/mediawiki.skin.variables.less",
+    "elementsSource": "vendor/mediawiki-core/resources/src/mediawiki.skinning/elements.less"
+  },
+  "contentModes": [
+    "native",
+    "projected"
+  ],
+  "defaultContentMode": "native"
+}

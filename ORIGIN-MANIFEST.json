@@ -1134,6 +1134,11 @@
         "hostDependency": "thetree"
       },
       {
+        "path": "css/host-content/native-links.css",
+        "kind": "host-adapter",
+        "hostDependency": "thetree"
+      },
+      {
         "path": "css/popups-adapter.css",
         "kind": "host-adapter",
         "hostDependency": "thetree"
@@ -1760,10 +1765,6 @@
       },
       {
         "path": "css/vendor/resource-loader/mediawiki-variable-shim.css",
-        "originNode": "resource-loader-css"
-      },
-      {
-        "path": "css/vendor/resource-loader/host-content-elements.css",
         "originNode": "resource-loader-css"
       },
       {

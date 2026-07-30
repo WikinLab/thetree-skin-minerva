@@ -30,9 +30,6 @@
     },
     "ownershipPolicies": {
       "global": {},
-      "host-content-elements": {
-        "scopeSurface": "hostOwnedContent"
-      },
       "skin": {
         "isolateHostContent": true,
         "projectedSurface": "parserOutput",
@@ -196,31 +193,6 @@
       "ownership": "mixed"
     }
   ],
-  "hostElementProjection": {
-    "name": "vector-host-content-elements",
-    "output": "css/vendor/resource-loader/host-content-elements.css",
-    "ownership": "host-content-elements",
-    "subjectTagNames": [
-      "a"
-    ],
-    "linkPalette": {
-      "allowedProperties": [
-        "color"
-      ],
-      "importantProperties": [
-        "color"
-      ],
-      "removableRootClassNames": [
-        "mw-parser-output"
-      ],
-      "decoratorColor": {
-        "pseudoElement": "before",
-        "sourceProperty": "color",
-        "targetProperty": "background-color",
-        "important": true
-      }
-    }
-  },
   "bundles": [
     {
       "name": "codex-styles",

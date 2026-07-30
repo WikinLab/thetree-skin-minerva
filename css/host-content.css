@@ -3,8 +3,8 @@
  *
  * This module is independent of the optional MediaWiki content projection.
  * It restores the host UI assumptions required by Vue content components.
- * Variant-owned element rules are generated from the selected upstream skin
- * variables and scoped to native host content.
+ * Native link colors and decorators remain owned by thetree; only the
+ * skin-independent no-underline policy is applied here.
  */
 @import "./host-content/foundation.css";
-@import "./vendor/resource-loader/host-content-elements.css";
+@import "./host-content/native-links.css";

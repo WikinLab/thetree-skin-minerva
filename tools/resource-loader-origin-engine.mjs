@@ -7,17 +7,12 @@ import { compileCustomPropertyClosure } from './resource-loader-custom-propertie
 import { parseFirstPhpArrayAfter, parsePhpFeatureCompatibilityAfter, parsePhpFeatureLessMessageBindingsAfter } from './php-array-literal.mjs';
 import {
   adaptResourceLoaderOutputCss,
-  filterResourceLoaderOutputCssBySubjectTags,
-  markResourceLoaderPropertiesImportant,
-  projectResourceLoaderLinkDecoratorColor,
-  projectResourceLoaderLinkSemantics,
   makeCssAssetUrlRewrites,
   isolateResourceLoaderOutputCssFromHostContent,
   scopeResourceLoaderOutputCss,
   withGeneratedCssBanner,
   rewriteResourceLoaderSelectorRoots
 } from './resource-loader-output-adapter.mjs';
-import { LINK_SEMANTICS } from '../lib/linkSemantics.js';
 import { walkFiles } from './shared/files.mjs';
 
 const asArray = (value) => value == null ? [] : Array.isArray(value) ? value : [value];
@@ -357,55 +352,6 @@ async function compileModule(root, contract, record) {
     lessMessages
   };
 }
-
-async function compileHostElementProjection(root, contract, record) {
-  const compileUpstreamSource = (source, moduleName) => compileResourceLoaderStyleModuleCss({
-    root,
-    moduleName,
-    entrypoint: source,
-    preludeEntries: contract.shared.lessPreludeEntries,
-    importPaths: [path.posix.dirname(source), ...contract.shared.importPaths],
-    importAliases: contract.shared.importAliases
-  });
-
-  const elementsSource = contract.skinVariant.upstream.elementsSource;
-  const rawElements = await compileUpstreamSource(elementsSource, record.name);
-  const filteredElements = filterResourceLoaderOutputCssBySubjectTags(rawElements, record.subjectTagNames);
-  const adaptedElements = adaptOwnership(filteredElements, record.ownership, contract.shared);
-  const parts = [markResourceLoaderPropertiesImportant(
-    adaptedElements,
-    record.linkPalette?.importantProperties
-  )];
-
-  if (record.linkPalette) {
-    const contentLinksSource = contract.skinVariant.upstream.contentLinksSource;
-    const rawContentLinks = await compileUpstreamSource(contentLinksSource, `${record.name}-link-palette`);
-    const classAliases = {};
-    for (const semantic of Object.values(LINK_SEMANTICS)) {
-      for (const upstreamClass of semantic.upstreamClasses || []) {
-        classAliases[upstreamClass] = semantic.hostClasses;
-      }
-    }
-    const projectedPalette = projectResourceLoaderLinkSemantics(rawContentLinks, {
-      ...record.linkPalette,
-      classAliases
-    });
-    parts.push(adaptOwnership(projectedPalette, record.ownership, contract.shared));
-    if (record.linkPalette.decoratorColor) {
-      const decoratorPalette = projectResourceLoaderLinkDecoratorColor(projectedPalette, {
-        ...record.linkPalette.decoratorColor,
-        classNames: LINK_SEMANTICS.external.decoratorHostClasses
-      });
-      parts.push(adaptOwnership(decoratorPalette, record.ownership, contract.shared));
-    }
-  }
-
-  return withGeneratedCssBanner(parts.filter(Boolean).join('\n\n'), {
-    banner: `/* Generated mechanically for ${contract.skinVariant.id} from ${elementsSource} and its link palette contract. */`,
-    moduleName: record.name
-  });
-}
-
 
 function lexicalStringLiterals(source) {
   const values = [];
@@ -866,12 +812,6 @@ export async function generateResourceLoaderOrigins({ root, contractPath, check 
     for (const key of compiled.lessMessages) lessMessages.add(key);
     pending.push({ output: module.output, content: compiled.css });
     materializeAssets(root, module.assets, check);
-  }
-  if (contract.hostElementProjection) {
-    expected.add(posix(contract.hostElementProjection.output));
-    const css = await compileHostElementProjection(root, contract, contract.hostElementProjection);
-    generatedCss.push(css);
-    pending.push({ output: contract.hostElementProjection.output, content: css });
   }
   for (const bundle of contract.bundles || []) {
     expected.add(posix(bundle.output));

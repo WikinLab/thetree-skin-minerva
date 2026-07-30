@@ -110,11 +110,9 @@ assert.deepEqual(normalizedCategory, {
 
 assert.deepEqual(LINK_SEMANTICS.missing, {
   hostClasses: ['not-exist'],
-  upstreamClasses: ['new'],
-  presentationOwner: 'skin-variant'
+  upstreamClasses: ['new']
 });
 assert.deepEqual(LINK_SEMANTICS.external.hostClasses, ['wiki-link-external', 'wiki-link-whitelisted']);
-assert.deepEqual(LINK_SEMANTICS.external.decoratorHostClasses, ['wiki-link-external']);
 assert.deepEqual(LINK_SEMANTICS.external.emittedClasses, ['external', 'text']);
 
 const linkSources = parseHtmlFragment([

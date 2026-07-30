@@ -2,19 +2,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import { collectMustachePartials, parseMustache } from '../lib/mustacheTemplateEngine.js';
+import { compareCodePoints } from './shared/deterministic.mjs';
+import { walkFiles } from './shared/files.mjs';
 
 function toPosix(value) {
   return value.split(path.sep).join('/');
-}
-
-function walkFiles(directory) {
-  const result = [];
-  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
-    const absolute = path.join(directory, entry.name);
-    if (entry.isDirectory()) result.push(...walkFiles(absolute));
-    else if (entry.isFile()) result.push(absolute);
-  }
-  return result;
 }
 
 function componentName(relativeTemplatePath, inputExtension) {
@@ -98,10 +90,10 @@ function collectPartialGraph(ownerPath, parsedByPath, templateRoot, inputExtensi
   }
 
   const directDependencies = [...new Set(directPartialPaths(ownerPath).map(({ partialPath }) => partialPath))]
-    .sort((a, b) => toPosix(a).localeCompare(toPosix(b)));
+    .sort((a, b) => compareCodePoints(toPosix(a), toPosix(b)));
   visit(ownerPath);
   return {
-    partials: Object.fromEntries([...partials.entries()].sort(([a], [b]) => a.localeCompare(b))),
+    partials: Object.fromEntries([...partials.entries()].sort(([a], [b]) => compareCodePoints(a, b))),
     directDependencies
   };
 }
@@ -144,7 +136,7 @@ export function generateMustacheVueComponents({
 
   const templateFiles = walkFiles(templateRoot)
     .filter((absolutePath) => absolutePath.endsWith(inputExtension))
-    .sort((a, b) => toPosix(a).localeCompare(toPosix(b)));
+    .sort((a, b) => compareCodePoints(toPosix(a), toPosix(b)));
   if (templateFiles.length === 0) throw new Error('No materialized Mustache templates were found.');
 
   const index = makeTemplateIndex(templateRoot, templateFiles, inputExtension);

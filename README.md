@@ -30,11 +30,10 @@ Vector 크롬과 더트리 프론트엔드의 원본 본문 출력은 항상 유
 
 ## 요구사항
 
-- Node.js 20.19.1 이상
-- npm 10.8.2 이상
+- `package.json`의 `engines`를 충족하는 Node.js와 npm
 - Git
 
-잠긴 `design-codex` upstream build를 재현하기 위해 위 버전 경계를 사용합니다.
+잠긴 `design-codex` upstream build를 재현하기 위해 선언된 런타임 버전 경계를 사용합니다.
 
 ## 부트스트랩과 검증
 

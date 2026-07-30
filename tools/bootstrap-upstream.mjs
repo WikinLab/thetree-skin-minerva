@@ -18,6 +18,7 @@ const vendorRoot = path.join(root, 'vendor');
 const buildToolRoot = path.join(root, '.build-tools');
 const gitExecutable = process.platform === 'win32' ? 'git.exe' : 'git';
 const checkoutConcurrency = 3;
+const repositoryBlobCache = new Map();
 
 function fail(message) {
   throw new Error(message);
@@ -67,22 +68,6 @@ function runAsync(command, args, options = {}) {
       reject(new Error(`${command} ${args.join(' ')} failed with status ${status}.${detail}`));
     });
   });
-}
-
-function runBuffer(command, args, options = {}) {
-  const result = spawnSync(command, args, {
-    cwd: options.cwd || root,
-    stdio: ['ignore', 'pipe', 'pipe'],
-    encoding: null,
-    env: { ...process.env, ...(options.env || {}) },
-    windowsHide: true
-  });
-  if (result.error) throw result.error;
-  if (result.status !== 0) {
-    const detail = Buffer.concat([result.stderr || Buffer.alloc(0), result.stdout || Buffer.alloc(0)]).toString('utf8');
-    fail(`${command} ${args.join(' ')} failed with status ${result.status}.\n${detail}`);
-  }
-  return result.stdout || Buffer.alloc(0);
 }
 
 function resolveNpmCli() {
@@ -735,17 +720,29 @@ function repositoryBlobSpec(repository, upstreamPath) {
   return `${repository.commit}:${normalizeProjectPath(upstreamPath)}`;
 }
 
-function repositoryHasBlob(repository, upstreamPath) {
+function readRepositoryBlob(repository, upstreamPath) {
+  const spec = repositoryBlobSpec(repository, upstreamPath);
+  const cacheKey = `${repository.name}\0${spec}`;
+  if (repositoryBlobCache.has(cacheKey)) return repositoryBlobCache.get(cacheKey);
+
   const result = spawnSync(gitExecutable, [
     '-C', repositoryCheckout(repository.name),
-    'cat-file', '-e', repositoryBlobSpec(repository, upstreamPath)
+    'cat-file', 'blob', spec
   ], {
     cwd: root,
-    stdio: ['ignore', 'ignore', 'ignore'],
+    stdio: ['ignore', 'pipe', 'pipe'],
+    encoding: null,
+    maxBuffer: 64 * 1024 * 1024,
     windowsHide: true
   });
   if (result.error) throw result.error;
-  return result.status === 0;
+  const value = result.status === 0 ? (result.stdout || Buffer.alloc(0)) : null;
+  repositoryBlobCache.set(cacheKey, value);
+  return value;
+}
+
+function repositoryHasBlob(repository, upstreamPath) {
+  return readRepositoryBlob(repository, upstreamPath) !== null;
 }
 
 function vendorSourceExists(repository, sourceField, sourcePath) {
@@ -756,10 +753,9 @@ function vendorSourceExists(repository, sourceField, sourcePath) {
 
 function repositoryBlob(entry, lock) {
   const repository = repositoryByName(lock, entry.repository);
-  return runBuffer(gitExecutable, [
-    '-C', repositoryCheckout(repository.name),
-    'cat-file', 'blob', repositoryBlobSpec(repository, entry.upstreamPath)
-  ]);
+  const source = readRepositoryBlob(repository, entry.upstreamPath);
+  if (source === null) fail(`Locked Git blob is missing: ${repositoryBlobSpec(repository, entry.upstreamPath)}`);
+  return source;
 }
 
 function readVendorSourceBuffer(entry, lock) {
@@ -866,11 +862,6 @@ async function materializeVendor(lock, manifest) {
 
 function updateManifestForLock(manifest, lock) {
   const updated = structuredClone(manifest);
-  const packageMetadata = readJson(path.join(root, 'package.json'));
-  if (typeof packageMetadata.version !== 'string' || !packageMetadata.version) {
-    fail('package.json lacks a package version for manifest synchronization.');
-  }
-  updated.packageVersion = packageMetadata.version;
   updated.distribution = {
     mode: 'bootstrap-source-only',
     snapshotDate: lock.snapshotDate,

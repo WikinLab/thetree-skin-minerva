@@ -1,10 +1,7 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
-import process from 'node:process';
-import { spawnSync } from 'node:child_process';
-
-const gitExecutable = process.platform === 'win32' ? 'git.exe' : 'git';
+import { readGitBlobs } from './shared/git-blobs.mjs';
 
 function fail(message) {
   throw new Error(message);
@@ -20,22 +17,28 @@ function repositoryByName(lock, name) {
   return repository;
 }
 
-function sourceBlob(root, lock, entry) {
-  const repository = repositoryByName(lock, entry.repository);
-  const checkout = path.join(root, '.upstream', entry.repository);
-  const result = spawnSync(gitExecutable, [
-    '-C', checkout, 'cat-file', 'blob', `${repository.commit}:${entry.upstreamPath}`
-  ], {
-    stdio: ['ignore', 'pipe', 'pipe'],
-    encoding: null,
-    windowsHide: true
-  });
-  if (result.error) throw result.error;
-  if (result.status !== 0) {
-    const detail = Buffer.concat([result.stderr || Buffer.alloc(0), result.stdout || Buffer.alloc(0)]).toString('utf8');
-    fail(`Runtime asset source is missing: ${entry.path} <- ${repository.commit}:${entry.upstreamPath}\n${detail}`);
+function sourceBlobs(root, lock, entries) {
+  const groups = new Map();
+  for (const entry of entries) {
+    const repository = repositoryByName(lock, entry.repository);
+    const group = groups.get(repository.name) || { repository, entries: [] };
+    group.entries.push(entry);
+    groups.set(repository.name, group);
   }
-  return result.stdout || Buffer.alloc(0);
+
+  const result = new Map();
+  for (const { repository, entries: repositoryEntries } of groups.values()) {
+    const checkout = path.join(root, '.upstream', repository.name);
+    const specs = repositoryEntries.map((entry) => `${repository.commit}:${entry.upstreamPath}`);
+    let blobs;
+    try {
+      blobs = readGitBlobs(checkout, specs);
+    } catch (error) {
+      fail(`Runtime asset source batch failed for ${repository.name}: ${error.message}`);
+    }
+    repositoryEntries.forEach((entry, index) => result.set(entry.path, blobs.get(specs[index])));
+  }
+  return result;
 }
 
 export function materializeRuntimeAssets({ root, entries, lock, check = false }) {
@@ -44,12 +47,13 @@ export function materializeRuntimeAssets({ root, entries, lock, check = false })
   }
 
   const outputs = [];
+  const lockedBlobs = sourceBlobs(root, lock, entries);
   for (const entry of entries) {
     if (!entry.path || !entry.repository || !entry.upstreamPath || !/^[0-9a-f]{64}$/.test(entry.sha256 || '')) {
       fail(`Invalid materialized runtime asset entry: ${JSON.stringify(entry)}`);
     }
 
-    const sourceBuffer = sourceBlob(root, lock, entry);
+    const sourceBuffer = lockedBlobs.get(entry.path);
     const sourceHash = sha256(sourceBuffer);
     if (sourceHash !== entry.sha256) {
       fail(`Locked runtime asset hash mismatch for ${entry.path}: expected ${entry.sha256}, got ${sourceHash}.`);

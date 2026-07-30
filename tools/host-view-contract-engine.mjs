@@ -4,23 +4,12 @@ import { spawnSync } from 'node:child_process';
 import {
   CONTENT_SURFACE_MAP,
   HOST_VIEW_INVENTORY,
-  THETREE_HOST_LOCK,
   validateLegacyHostViewContract
 } from '../lib/legacySpecialPageContract.js';
+import { walkFiles } from './shared/files.mjs';
 
 function normalizeRelativePath(value) {
   return String(value || '').replaceAll('\\', '/').replace(/^\.\//, '').replace(/\/$/, '');
-}
-
-function walkFiles(directory) {
-  if (!fs.existsSync(directory)) return [];
-  const files = [];
-  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
-    const target = path.join(directory, entry.name);
-    if (entry.isDirectory()) files.push(...walkFiles(target));
-    else if (entry.isFile()) files.push(target);
-  }
-  return files.sort();
 }
 
 function isIdentifierStart(char) {
@@ -449,6 +438,32 @@ function checkoutPath(root, entry) {
   return path.join(root, '.upstream', entry.checkout);
 }
 
+function requireString(value, label) {
+  if (typeof value !== 'string' || !value.trim()) throw new Error(`hostLock is missing ${label}.`);
+}
+
+function validateHostRepository(entry, label, { sourceRoots = false } = {}) {
+  if (!entry || typeof entry !== 'object') throw new Error(`hostLock is missing ${label}.`);
+  for (const field of ['repository', 'ref', 'commit', 'checkout']) requireString(entry[field], `${label}.${field}`);
+  if (!/^[0-9a-f]{40}$/.test(entry.commit)) throw new Error(`hostLock ${label}.commit must be an exact Git commit.`);
+  const paths = sourceRoots ? entry.sourceRoots : [entry.sourceRoot];
+  if (!Array.isArray(paths) || paths.some((value) => typeof value !== 'string' || !value)) {
+    throw new Error(`hostLock ${label} source paths are incomplete.`);
+  }
+  if (!Array.isArray(entry.bootstrapPaths) || entry.bootstrapPaths.length === 0) {
+    throw new Error(`hostLock ${label}.bootstrapPaths is incomplete.`);
+  }
+}
+
+export function validateHostLockContract(lock) {
+  if (lock?.schema !== 2) throw new Error(`Unsupported or missing hostLock schema: ${lock?.schema ?? 'none'}`);
+  validateHostRepository(lock.frontend, 'frontend');
+  validateHostRepository(lock.backend, 'backend', { sourceRoots: true });
+  requireString(lock.contract, 'contract');
+  requireString(lock.validator, 'validator');
+  return lock;
+}
+
 function assertLockedCheckout(root, entry, label) {
   const checkout = checkoutPath(root, entry);
   if (!fs.existsSync(checkout) || !fs.statSync(checkout).isDirectory()) {
@@ -532,29 +547,9 @@ export function validateHostViewSourceClosure({
 }
 
 export function validateLockedHostViewSourceContract(root, manifest) {
-  const lock = manifest?.hostLock;
-  if (lock?.schema !== 2) throw new Error(`Unsupported or missing hostLock schema: ${lock?.schema ?? 'none'}`);
+  const lock = validateHostLockContract(manifest?.hostLock);
   const frontend = lock.frontend;
   const backend = lock.backend;
-  const observed = {
-    frontendRepository: frontend?.repository,
-    frontendRef: frontend?.ref,
-    frontendCommit: frontend?.commit,
-    frontendCheckout: frontend?.checkout,
-    frontendSourceRoot: frontend?.sourceRoot,
-    frontendBootstrapPaths: frontend?.bootstrapPaths,
-    backendRepository: backend?.repository,
-    backendRef: backend?.ref,
-    backendCommit: backend?.commit,
-    backendCheckout: backend?.checkout,
-    backendSourceRoots: backend?.sourceRoots,
-    backendBootstrapPaths: backend?.bootstrapPaths,
-    contract: lock.contract,
-    validator: lock.validator
-  };
-  if (JSON.stringify(observed) !== JSON.stringify(THETREE_HOST_LOCK)) {
-    throw new Error('ORIGIN-MANIFEST hostLock does not match the locked host source contract.');
-  }
 
   const frontendCheckout = assertLockedCheckout(root, frontend, 'thetree frontend');
   const backendCheckout = assertLockedCheckout(root, backend, 'thetree backend');

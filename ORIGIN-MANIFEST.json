@@ -1,6 +1,5 @@
 {
   "schema": 30,
-  "packageVersion": "0.29.3",
   "title": "thetree Vector legacy bootstrap source manifest",
   "upstreamLockFile": "UPSTREAM-LOCK.json",
   "hostLock": {
@@ -92,6 +91,8 @@
             "hostDependency",
             "repository",
             "automationStatus",
+            "license",
+            "modifiedDates",
             "differenceClasses",
             "originInputs"
           ],
@@ -870,6 +871,11 @@
         "relation": "one-upstream-file-to-one-local-port",
         "hostDependency": "mediawiki-browser-contract",
         "automationStatus": "adapter-required",
+        "license": "GPL-2.0-or-later",
+        "modifiedDates": [
+          "2026-07-29",
+          "2026-07-30"
+        ],
         "differenceClasses": [
           "upstream-constant-aggregation",
           "preview-registration-composition"
@@ -886,6 +892,11 @@
         "relation": "one-upstream-file-to-one-local-port",
         "hostDependency": "mediawiki-browser-contract",
         "automationStatus": "adapter-required",
+        "license": "GPL-2.0-or-later",
+        "modifiedDates": [
+          "2026-07-29",
+          "2026-07-30"
+        ],
         "differenceClasses": [
           "gateway-response-adapter",
           "external-model-validation",
@@ -903,6 +914,11 @@
         "relation": "one-upstream-file-to-one-local-port",
         "hostDependency": "mediawiki-browser-contract",
         "automationStatus": "adapter-required",
+        "license": "GPL-2.0-or-later",
+        "modifiedDates": [
+          "2026-07-29",
+          "2026-07-30"
+        ],
         "differenceClasses": [
           "dom-runtime-port",
           "cite-ui-integration"
@@ -924,6 +940,11 @@
         "relation": "many-upstream-files-to-local-aggregation",
         "hostDependency": "mediawiki-browser-contract",
         "automationStatus": "adapter-required",
+        "license": "GPL-2.0-or-later",
+        "modifiedDates": [
+          "2026-07-29",
+          "2026-07-30"
+        ],
         "differenceClasses": [
           "upstream-template-aggregation",
           "cite-template-integration"
@@ -943,6 +964,11 @@
         "relation": "one-upstream-file-to-one-local-port",
         "hostDependency": "mediawiki-browser-contract",
         "automationStatus": "adapter-required",
+        "license": "GPL-2.0-or-later",
+        "modifiedDates": [
+          "2026-07-29",
+          "2026-07-30"
+        ],
         "differenceClasses": [
           "dom-runtime-port",
           "browser-capability-adapter"
@@ -959,6 +985,11 @@
         "relation": "one-upstream-file-to-one-local-port",
         "hostDependency": "mediawiki-browser-contract",
         "automationStatus": "adapter-required",
+        "license": "GPL-2.0-or-later",
+        "modifiedDates": [
+          "2026-07-29",
+          "2026-07-30"
+        ],
         "differenceClasses": [
           "jquery-to-dom-runtime",
           "spa-lifecycle"
@@ -975,6 +1006,11 @@
         "relation": "one-upstream-file-to-one-local-port",
         "hostDependency": "mediawiki-browser-contract",
         "automationStatus": "adapter-required",
+        "license": "GPL-2.0-or-later",
+        "modifiedDates": [
+          "2026-07-29",
+          "2026-07-30"
+        ],
         "differenceClasses": [
           "module-composition",
           "host-page-ready",
@@ -992,6 +1028,11 @@
         "relation": "one-upstream-file-to-one-local-port",
         "hostDependency": "mediawiki-browser-contract",
         "automationStatus": "adapter-required",
+        "license": "GPL-2.0-or-later",
+        "modifiedDates": [
+          "2026-07-29",
+          "2026-07-30"
+        ],
         "differenceClasses": [
           "jquery-to-dom-runtime",
           "spa-lifecycle"
@@ -1009,6 +1050,11 @@
       },
       {
         "path": ".gitignore",
+        "kind": "package-metadata",
+        "hostDependency": "none"
+      },
+      {
+        "path": ".github/workflows/check.yml",
         "kind": "package-metadata",
         "hostDependency": "none"
       },
@@ -1398,6 +1444,11 @@
         "hostDependency": "thetree-mediawiki-boundary"
       },
       {
+        "path": "lib/parserOutput/signature.js",
+        "kind": "parser-output-adapter",
+        "hostDependency": "thetree-mediawiki-boundary"
+      },
+      {
         "path": "lib/parserOutput/root.js",
         "kind": "parser-output-adapter",
         "hostDependency": "thetree-mediawiki-boundary"
@@ -1493,6 +1544,11 @@
         "hostDependency": "none"
       },
       {
+        "path": "tools/popups-model-contract-test.mjs",
+        "kind": "generation-contract",
+        "hostDependency": "none"
+      },
+      {
         "path": "tools/resource-loader-less.mjs",
         "kind": "generation-tool",
         "hostDependency": "none"
@@ -1508,12 +1564,32 @@
         "hostDependency": "none"
       },
       {
+        "path": "tools/resource-loader-custom-properties.mjs",
+        "kind": "generation-tool",
+        "hostDependency": "none"
+      },
+      {
         "path": "tools/resource-loader-output-adapter.mjs",
         "kind": "generation-tool",
         "hostDependency": "none"
       },
       {
         "path": "tools/runtime-asset-origin-engine.mjs",
+        "kind": "generation-tool",
+        "hostDependency": "none"
+      },
+      {
+        "path": "tools/shared/deterministic.mjs",
+        "kind": "generation-tool",
+        "hostDependency": "none"
+      },
+      {
+        "path": "tools/shared/files.mjs",
+        "kind": "generation-tool",
+        "hostDependency": "none"
+      },
+      {
+        "path": "tools/shared/git-blobs.mjs",
         "kind": "generation-tool",
         "hostDependency": "none"
       }
@@ -1914,9 +1990,6 @@
   },
   "integration": {
     "schema": 1,
-    "versionedContracts": [
-      "contracts/resource-loader-origin-contract.json"
-    ],
     "contentProjection": {
       "schema": 1,
       "mode": "optional-runtime-layer",

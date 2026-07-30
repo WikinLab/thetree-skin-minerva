@@ -6,8 +6,9 @@ import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { assertResourceLoaderOriginContractSchema } from './resource-loader-origin-schema.mjs';
-import { THETREE_HOST_LOCK, validateLegacyHostViewContract } from '../lib/legacySpecialPageContract.js';
-import { validateHostViewExtractorContract } from './host-view-contract-engine.mjs';
+import { validateLegacyHostViewContract } from '../lib/legacySpecialPageContract.js';
+import { validateHostLockContract, validateHostViewExtractorContract } from './host-view-contract-engine.mjs';
+import { walkFiles } from './shared/files.mjs';
 
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -139,6 +140,15 @@ function validateSourceInventoryCoverage(manifest) {
     vendorByOrigin.set(key, normalizeRelativePath(entry.path));
   }
   for (const entry of manifest.sourceInventory?.portedFiles || []) {
+    const source = fs.readFileSync(path.join(root, entry.path), 'utf8');
+    if (!source.includes(`SPDX-License-Identifier: ${entry.license}`)) {
+      throw new Error(`Source port SPDX notice mismatch: ${entry.path}`);
+    }
+    for (const modifiedDate of entry.modifiedDates || []) {
+      if (!source.includes(modifiedDate)) {
+        throw new Error(`Source port modification notice lacks ${modifiedDate}: ${entry.path}`);
+      }
+    }
     const upstreamPaths = entry.upstreamPath ? [entry.upstreamPath] : entry.upstreamPaths;
     const expected = (upstreamPaths || []).map((upstreamPath) => {
       const key = `${entry.repository}::${normalizeRelativePath(upstreamPath)}`;
@@ -397,33 +407,15 @@ function validatePackageIntegration(root, manifest, options = {}) {
   const packageLock = readJson('package-lock.json');
   const expected = packageMetadata.version;
   const observed = [
-    ['ORIGIN-MANIFEST.json packageVersion', manifest.packageVersion],
     ['package-lock.json version', packageLock.version],
     ['package-lock.json root version', packageLock.packages?.['']?.version]
   ];
   for (const [label, version] of observed) {
     if (version !== expected) throw new Error(`Package integration version mismatch: ${label}=${version ?? 'none'}, package.json=${expected}`);
   }
-  for (const pathname of contract.versionedContracts || []) {
-    const value = readJson(pathname).version;
-    if (value !== expected) {
-      throw new Error(`Versioned contract mismatch: ${pathname}=${value ?? 'none'}, expected ${expected}`);
-    }
-  }
   validateContentProjectionIntegration(root, manifest);
   validateStylesheetDelivery(root, manifest);
   validateModuleGraph(root, manifest, options);
-}
-
-function walkFiles(directory) {
-  if (!fs.existsSync(directory)) return [];
-  const files = [];
-  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
-    const target = path.join(directory, entry.name);
-    if (entry.isDirectory()) files.push(...walkFiles(target));
-    else if (entry.isFile()) files.push(target);
-  }
-  return files.sort();
 }
 
 function discoverNodeInputs(node) {
@@ -643,29 +635,7 @@ async function main() {
   if (preflight) {
     validateLegacyHostViewContract();
     validateHostViewExtractorContract();
-    const hostLock = manifest.hostLock || {};
-    if (hostLock.schema !== 2) {
-      throw new Error(`Unsupported or missing hostLock schema: ${hostLock.schema ?? 'none'}`);
-    }
-    const observedHostLock = {
-      frontendRepository: hostLock.frontend?.repository,
-      frontendRef: hostLock.frontend?.ref,
-      frontendCommit: hostLock.frontend?.commit,
-      frontendCheckout: hostLock.frontend?.checkout,
-      frontendSourceRoot: hostLock.frontend?.sourceRoot,
-      frontendBootstrapPaths: hostLock.frontend?.bootstrapPaths,
-      backendRepository: hostLock.backend?.repository,
-      backendRef: hostLock.backend?.ref,
-      backendCommit: hostLock.backend?.commit,
-      backendCheckout: hostLock.backend?.checkout,
-      backendSourceRoots: hostLock.backend?.sourceRoots,
-      backendBootstrapPaths: hostLock.backend?.bootstrapPaths,
-      contract: hostLock.contract,
-      validator: hostLock.validator
-    };
-    if (JSON.stringify(observedHostLock) !== JSON.stringify(THETREE_HOST_LOCK)) {
-      throw new Error('ORIGIN-MANIFEST hostLock does not match the locked host source contract.');
-    }
+    validateHostLockContract(manifest.hostLock);
     for (const node of nodes) {
       if (node.kind !== 'resource-loader-origin') continue;
       const contract = readJson(node.contract);

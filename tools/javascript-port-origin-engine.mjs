@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { compareCodePoints } from './shared/deterministic.mjs';
 
 function normalizeSource(source) {
   return String(source).replace(/\r\n?/g, '\n').replace(/\s*$/, '');
@@ -294,15 +295,6 @@ export function generateJavaScriptPorts({ root, nodeId, entries, vendorEntries =
   return {
     inputs: [...inputs].sort(),
     outputs: outputs.sort(),
-    relations: relations.sort((a, b) => a.path.localeCompare(b.path))
+    relations: relations.sort((a, b) => compareCodePoints(a.path, b.path))
   };
 }
-
-export const javascriptPortOriginInternals = Object.freeze({
-  extractExportedFunction,
-  renderCommonJsDefaultFunction,
-  renderCommonJsObjectExports,
-  renderEsmCopy,
-  renderEsmNamedDefault,
-  renderEsmFunctionSlices
-});

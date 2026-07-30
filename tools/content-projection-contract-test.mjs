@@ -17,6 +17,9 @@ import { SKIN_VARIANT_ID, UPSTREAM_SKIN_NAME } from '../lib/skinVariant.js';
 import { RUNTIME_CAPABILITIES } from '../lib/runtime/capabilities.js';
 import { createExtensionRuntimeHost } from '../lib/runtime/createExtensionRuntimeHost.js';
 import { normalizeLegacyStructuredCategory } from '../lib/legacyCategoryContract.js';
+import { LINK_SEMANTICS } from '../lib/linkSemantics.js';
+import { getClasses, parseHtmlFragment } from '../lib/parserOutput/domAst.js';
+import { isInternalWikiLink, transformExternalLink, transformInternalWikiLink } from '../lib/parserOutput/links.js';
 
 function contextWith(enabled) {
   return {
@@ -104,5 +107,25 @@ assert.deepEqual(normalizedCategory, {
   notExist: true,
   blur: true
 });
+
+assert.deepEqual(LINK_SEMANTICS.missing, {
+  hostClasses: ['not-exist'],
+  upstreamClasses: ['new'],
+  presentationOwner: 'skin-variant'
+});
+assert.deepEqual(LINK_SEMANTICS.external.hostClasses, ['wiki-link-external', 'wiki-link-whitelisted']);
+assert.deepEqual(LINK_SEMANTICS.external.emittedClasses, ['external', 'text']);
+
+const linkSources = parseHtmlFragment([
+  '<a class="wiki-link-internal not-exist" href="/w/Missing">Missing</a>',
+  '<a class="wiki-self-link" href="/w/Self">Self</a>',
+  '<a class="wiki-link-external" href="https://example.test/">External</a>'
+].join('')).children;
+const preserveChild = (child) => child;
+assert.equal(isInternalWikiLink(linkSources[0]), true);
+assert.equal(isInternalWikiLink(linkSources[1]), true);
+assert.deepEqual(getClasses(transformInternalWikiLink(linkSources[0], {}, preserveChild)), ['new']);
+assert.deepEqual(getClasses(transformInternalWikiLink(linkSources[1], {}, preserveChild)), ['mw-selflink']);
+assert.deepEqual(getClasses(transformExternalLink(linkSources[2], {}, preserveChild)), ['external', 'text']);
 
 console.log('checked optional content projection preference contract');

@@ -1,5 +1,5 @@
 {
-  "schema": 9,
+  "schema": 10,
   "skinVariantContract": "contracts/skin-variant-contract.json",
   "shared": {
     "importPaths": [
@@ -202,7 +202,18 @@
     "ownership": "host-content-elements",
     "subjectTagNames": [
       "a"
-    ]
+    ],
+    "linkPalette": {
+      "allowedProperties": [
+        "color"
+      ],
+      "importantProperties": [
+        "color"
+      ],
+      "removableRootClassNames": [
+        "mw-parser-output"
+      ]
+    }
   },
   "bundles": [
     {

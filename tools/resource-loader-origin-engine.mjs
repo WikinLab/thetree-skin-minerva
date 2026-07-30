@@ -8,12 +8,15 @@ import { parseFirstPhpArrayAfter, parsePhpFeatureCompatibilityAfter, parsePhpFea
 import {
   adaptResourceLoaderOutputCss,
   filterResourceLoaderOutputCssBySubjectTags,
+  markResourceLoaderPropertiesImportant,
+  projectResourceLoaderLinkSemantics,
   makeCssAssetUrlRewrites,
   isolateResourceLoaderOutputCssFromHostContent,
   scopeResourceLoaderOutputCss,
   withGeneratedCssBanner,
   rewriteResourceLoaderSelectorRoots
 } from './resource-loader-output-adapter.mjs';
+import { LINK_SEMANTICS } from '../lib/linkSemantics.js';
 import { walkFiles } from './shared/files.mjs';
 
 const asArray = (value) => value == null ? [] : Array.isArray(value) ? value : [value];
@@ -355,19 +358,42 @@ async function compileModule(root, contract, record) {
 }
 
 async function compileHostElementProjection(root, contract, record) {
-  const source = contract.skinVariant.upstream.elementsSource;
-  const raw = await compileResourceLoaderStyleModuleCss({
+  const compileUpstreamSource = (source, moduleName) => compileResourceLoaderStyleModuleCss({
     root,
-    moduleName: record.name,
+    moduleName,
     entrypoint: source,
     preludeEntries: contract.shared.lessPreludeEntries,
     importPaths: [path.posix.dirname(source), ...contract.shared.importPaths],
     importAliases: contract.shared.importAliases
   });
-  const filtered = filterResourceLoaderOutputCssBySubjectTags(raw, record.subjectTagNames);
-  const adapted = adaptOwnership(filtered, record.ownership, contract.shared);
-  return withGeneratedCssBanner(adapted, {
-    banner: `/* Generated mechanically for ${contract.skinVariant.id} from ${source}. */`,
+
+  const elementsSource = contract.skinVariant.upstream.elementsSource;
+  const rawElements = await compileUpstreamSource(elementsSource, record.name);
+  const filteredElements = filterResourceLoaderOutputCssBySubjectTags(rawElements, record.subjectTagNames);
+  const adaptedElements = adaptOwnership(filteredElements, record.ownership, contract.shared);
+  const parts = [markResourceLoaderPropertiesImportant(
+    adaptedElements,
+    record.linkPalette?.importantProperties
+  )];
+
+  if (record.linkPalette) {
+    const contentLinksSource = contract.skinVariant.upstream.contentLinksSource;
+    const rawContentLinks = await compileUpstreamSource(contentLinksSource, `${record.name}-link-palette`);
+    const classAliases = {};
+    for (const semantic of Object.values(LINK_SEMANTICS)) {
+      for (const upstreamClass of semantic.upstreamClasses || []) {
+        classAliases[upstreamClass] = semantic.hostClasses;
+      }
+    }
+    const projectedPalette = projectResourceLoaderLinkSemantics(rawContentLinks, {
+      ...record.linkPalette,
+      classAliases
+    });
+    parts.push(adaptOwnership(projectedPalette, record.ownership, contract.shared));
+  }
+
+  return withGeneratedCssBanner(parts.filter(Boolean).join('\n\n'), {
+    banner: `/* Generated mechanically for ${contract.skinVariant.id} from ${elementsSource} and its link palette contract. */`,
     moduleName: record.name
   });
 }

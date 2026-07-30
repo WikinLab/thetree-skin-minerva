@@ -21,11 +21,11 @@ MediaWiki Vector legacy 구조를 더트리 스킨으로 이식한 GPL-2.0-or-la
 스킨의 정체성과 본문 처리 방식은 서로 독립된 축으로 관리합니다.
 
 - `vector-legacy` 스킨 변형은 `contracts/skin-variant-contract.json`이 선언하며, Vector Legacy의 LESS 변수와 MediaWiki 요소 원본을 색상·요소 규칙의 유일한 기준으로 사용합니다.
-- `native` 본문 모드는 더트리가 만든 본문 구조를 유지하는 기본값입니다. 호스트 본문의 링크 같은 공통 요소도 해당 스킨 변형의 잠긴 upstream 원본에서 기계적으로 생성합니다.
+- `native` 본문 모드는 더트리가 만든 본문 구조를 유지하는 기본값입니다. 일반·방문·없는·외부 링크의 텍스트 색상은 해당 스킨 변형의 잠긴 MediaWiki 변수와 링크 규칙에서 기계적으로 생성하고, 더트리의 외부 링크 아이콘과 DOM 구조는 변경하지 않습니다.
 - `projected` 본문 모드는 더트리 본문을 MediaWiki ParserOutput surface로 변환하는 선택 기능입니다.
 - 밝게·어둡게 같은 색상 모드는 스킨 변형이나 본문 모드와 섞지 않고 DarkMode 계약으로 별도 처리합니다.
 
-따라서 Vector 2022를 추가할 때는 별도 스킨 변형 계약과 그 변형의 upstream 변수 원본을 연결하고, `native`/`projected` 본문 모드 경계는 그대로 재사용할 수 있습니다.
+따라서 Vector 2022를 추가할 때는 별도 스킨 변형 계약에 그 변형의 upstream 변수와 링크 규칙 원본을 연결하고, `native`/`projected` 본문 모드 경계와 더트리 링크 의미 계약은 그대로 재사용할 수 있습니다.
 
 ## 선택적 본문 프로젝션
 
@@ -100,6 +100,7 @@ npm run bootstrap -- --release 1.47
 
 - `layout.vue`, `components/SkinLegacy.vue`: Vector 크롬과 더트리 장착 경계
 - `lib/skinVariant.js`, `lib/contentMode.js`: 런타임 스킨 변형과 직교 본문 모드 식별자
+- `lib/linkSemantics.js`: 네이티브 CSS와 ParserOutput 프로젝션이 공유하는 더트리·MediaWiki 링크 의미 계약
 - `lib/contentProjection/`, `css/content-projection.css`: 제거 가능한 본문 프로젝션 계층
 - `lib/parserOutput/`, `css/content-projection/`: ParserOutput compiler와 전용 adapter
 - `lib/adapters/`, `css/host-content/`: 더트리 host adapter

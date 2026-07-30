@@ -545,6 +545,118 @@ export function filterResourceLoaderOutputCssBySubjectTags(css, tagNames = []) {
   return root.toString();
 }
 
+export function projectResourceLoaderLinkSemantics(css, options = {}) {
+  const aliases = new Map(Object.entries(options.classAliases || {}).map(([source, targets]) => [
+    source,
+    [...new Set(asArray(targets).map(String).filter(Boolean))]
+  ]));
+  const removableRoots = new Set(options.removableRootClassNames || []);
+  const preservedContexts = new Set(options.preserveContextClassNames || []);
+  const allowedProperties = new Set((options.allowedProperties || []).map((name) => String(name).toLowerCase()));
+  const importantProperties = new Set((options.importantProperties || []).map((name) => String(name).toLowerCase()));
+  if (!aliases.size || [...aliases.values()].some((targets) => !targets.length)) {
+    throw new Error('ResourceLoader link semantic projection requires complete class aliases');
+  }
+
+  const root = postcss.parse(css);
+  root.walkRules((rule) => {
+    if (isInsideKeyframes(rule)) return;
+    const selectors = selectorParser().astSync(rule.selector);
+    const projected = [];
+
+    for (const selector of selectors.nodes) {
+      let hasAnchor = false;
+      let hasSemanticClass = false;
+      let unsupported = false;
+      const choices = [];
+
+      selector.walkTags((node) => {
+        const name = String(node.value || '').toLowerCase();
+        if (name === 'a') hasAnchor = true;
+        else if (!['html', 'body'].includes(name)) unsupported = true;
+      });
+      selector.walkIds(() => { unsupported = true; });
+      selector.walkClasses((node) => {
+        const name = String(node.value || '');
+        if (aliases.has(name)) {
+          hasSemanticClass = true;
+          choices.push(aliases.get(name));
+        } else if (!removableRoots.has(name) && !preservedContexts.has(name)) {
+          unsupported = true;
+        }
+      });
+      if (!hasAnchor || !hasSemanticClass || unsupported) continue;
+
+      let combinations = [[]];
+      for (const values of choices) {
+        combinations = combinations.flatMap((prefix) => values.map((value) => [...prefix, value]));
+      }
+      for (const combination of combinations) {
+        const clone = selector.clone();
+        let semanticIndex = 0;
+        clone.walkClasses((node) => {
+          const name = String(node.value || '');
+          if (aliases.has(name)) node.value = combination[semanticIndex++];
+        });
+        const roots = [];
+        clone.walkClasses((node) => {
+          if (removableRoots.has(String(node.value || ''))) roots.push(node);
+        });
+        for (const node of roots) {
+          const parent = node.parent;
+          if (parent?.type !== 'selector') {
+            unsupported = true;
+            break;
+          }
+          const next = node.next();
+          const previous = node.prev();
+          node.remove();
+          if (next?.type === 'combinator') next.remove();
+          else if (previous?.type === 'combinator') previous.remove();
+        }
+        if (!unsupported) projected.push(clone.toString());
+      }
+    }
+
+    const unique = [...new Set(projected)];
+    if (!unique.length) {
+      rule.remove();
+      return;
+    }
+    rule.selector = unique.join(',\n');
+    rule.walkDecls((declaration) => {
+      const property = String(declaration.prop || '').toLowerCase();
+      if (allowedProperties.size && !allowedProperties.has(property)) {
+        declaration.remove();
+        return;
+      }
+      if (importantProperties.has(property)) declaration.important = true;
+    });
+    if (!rule.nodes?.length) rule.remove();
+  });
+
+  let removedEmptyContainer = true;
+  while (removedEmptyContainer) {
+    removedEmptyContainer = false;
+    root.walkAtRules((atRule) => {
+      if (!Array.isArray(atRule.nodes) || atRule.nodes.length) return;
+      atRule.remove();
+      removedEmptyContainer = true;
+    });
+  }
+  return root.toString();
+}
+
+export function markResourceLoaderPropertiesImportant(css, propertyNames = []) {
+  const properties = new Set(asArray(propertyNames).map((name) => String(name).toLowerCase()));
+  if (!properties.size) return css;
+  const root = postcss.parse(css);
+  root.walkDecls((declaration) => {
+    if (properties.has(String(declaration.prop || '').toLowerCase())) declaration.important = true;
+  });
+  return root.toString();
+}
+
 
 function appendSubjectFilter(selector, filterSelector) {
   const filterAst = selectorParser().astSync(`x${filterSelector}`);

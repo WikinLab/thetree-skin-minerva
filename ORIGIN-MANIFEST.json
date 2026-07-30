@@ -1494,6 +1494,11 @@
         "hostDependency": "thetree"
       },
       {
+        "path": "lib/linkSemantics.js",
+        "kind": "host-adapter",
+        "hostDependency": "thetree-mediawiki-boundary"
+      },
+      {
         "path": "lib/skinVariant.js",
         "kind": "skin-integration",
         "hostDependency": "none"

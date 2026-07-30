@@ -15,6 +15,7 @@ function assertSkinVariantContract(variant, sourcePath) {
     || typeof variant.upstreamSkinName !== 'string'
     || typeof variant.upstream?.lessVariables !== 'string'
     || typeof variant.upstream?.elementsSource !== 'string'
+    || typeof variant.upstream?.contentLinksSource !== 'string'
     || !Array.isArray(variant.contentModes)
     || !variant.contentModes.includes(variant.defaultContentMode)
   ) {

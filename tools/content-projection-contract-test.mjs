@@ -9,6 +9,7 @@ import {
 } from '../lib/adapters/thetree-content-projection.js';
 import { RUNTIME_CAPABILITIES } from '../lib/runtime/capabilities.js';
 import { createExtensionRuntimeHost } from '../lib/runtime/createExtensionRuntimeHost.js';
+import { normalizeLegacyStructuredCategory } from '../lib/legacyCategoryContract.js';
 
 function contextWith(enabled) {
   return {
@@ -68,5 +69,22 @@ assert.equal(extensionCreates, 1);
 assert.equal(extensionInits, 1);
 extensionHost.destroy();
 assert.equal(extensionDestroys, 1);
+
+const normalizedCategory = normalizeLegacyStructuredCategory({
+  document: {
+    namespace: '분류',
+    title: '없는 분류'
+  },
+  notExist: true,
+  blur: true
+});
+assert.deepEqual(normalizedCategory, {
+  document: {
+    namespace: '분류',
+    title: '없는 분류'
+  },
+  notExist: true,
+  blur: true
+});
 
 console.log('checked optional content projection preference contract');

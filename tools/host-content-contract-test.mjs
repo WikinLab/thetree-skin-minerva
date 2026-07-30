@@ -51,6 +51,8 @@ assert.doesNotMatch(foundationSource, /data-tt-content-projection/);
 
 const sourceLinksSource = read('css/host-content/source-links.css');
 const upstreamElementsSource = read('vendor/mediawiki-core/resources/src/mediawiki.skinning/elements.less');
+const resourceLoaderContract = JSON.parse(read('contracts/resource-loader-origin-contract.json'));
+const generatedVectorCss = read('css/vendor/resource-loader/skins.vector.styles.legacy.css');
 const sourceLinkSelectors = selectors('css/host-content/source-links.css');
 assert.ok(sourceLinkSelectors.length >= 5);
 for (const selector of sourceLinkSelectors) {
@@ -66,9 +68,8 @@ for (const selector of sourceLinkSelectors) {
     && node.toString().includes('#mw-content-text')
   ));
   const linkSubjectIndex = topLevelNodes.findIndex((node) => (
-    node.type === 'pseudo'
-    && node.value === ':where'
-    && /^:where\(a(?:\)|:)/.test(node.toString())
+    (node.type === 'tag' && node.value === 'a')
+    || (node.type === 'pseudo' && node.value === ':is' && node.toString().includes('a:'))
   ));
   const parserOutputExclusionIndex = topLevelNodes.findIndex((node) => (
     node.type === 'pseudo'
@@ -78,12 +79,16 @@ for (const selector of sourceLinkSelectors) {
 
   assert.equal(hostBoundaryIndex, 0);
   assert.equal(topLevelNodes[hostBoundaryIndex + 1]?.type, 'combinator');
-  assert.equal(parserOutputExclusionIndex, linkSubjectIndex + 1);
-  assert.notEqual(topLevelNodes[linkSubjectIndex + 1]?.type, 'combinator');
+  assert.ok(linkSubjectIndex > hostBoundaryIndex);
+  assert.ok(parserOutputExclusionIndex > linkSubjectIndex);
+  assert.equal(
+    topLevelNodes.slice(linkSubjectIndex, parserOutputExclusionIndex).some((node) => node.type === 'combinator'),
+    false
+  );
 }
 assert.match(upstreamElementsSource, /a\s*\{[\s\S]*?color:\s*@color-link;/);
 assert.match(upstreamElementsSource, /&:not\(\s*\[\s*href\s*\]\s*\)\s*\{[\s\S]*?cursor:\s*pointer/);
-assert.match(sourceLinksSource, /:where\(a\):not\(/);
+assert.match(sourceLinksSource, /\)\s+a:not\(/);
 assert.match(sourceLinksSource, /a:not\(\[href\]\)/);
 assert.match(sourceLinksSource, /cursor:\s*pointer/);
 assert.match(sourceLinksSource, /a:visited/);
@@ -91,8 +96,23 @@ assert.match(sourceLinksSource, /var\(--color-link,\s*#36c\)/);
 assert.match(sourceLinksSource, /var\(--color-link--visited,\s*#6a60b0\)/);
 assert.match(sourceLinksSource, /var\(--color-link--active,\s*#233566\)/);
 assert.match(sourceLinksSource, /background:\s*none/);
-assert.match(sourceLinksSource, /a:hover,\s*a:focus/);
+assert.match(sourceLinksSource, /:is\(a:hover,\s*a:focus\)/);
 assert.doesNotMatch(sourceLinksSource, /color-link--hover/);
 assert.doesNotMatch(sourceLinksSource, /!important/);
+
+assert.match(resourceLoaderContract.shared.hostSurfaces.contentLinks, /data-tt-vector-surface/);
+assert.match(resourceLoaderContract.shared.hostSurfaces.contentLinks, /data-tt-vector-catlinks-surface/);
+assert.equal(
+  resourceLoaderContract.skinModule.ownershipRules.find((rule) => rule.pattern === '^content-links$')?.ownership,
+  'content-links'
+);
+assert.match(
+  generatedVectorCss,
+  /:where\(\[data-tt-vector-surface="parser-output"\], \[data-tt-vector-catlinks-surface="1"\]\) a\.new\s*\{\s*color:\s*#ba0000;/
+);
+assert.match(
+  generatedVectorCss,
+  /:where\(\[data-tt-vector-surface="parser-output"\], \[data-tt-vector-catlinks-surface="1"\]\) a\.new:visited\s*\{\s*color:\s*#a55858;/
+);
 
 console.log('checked host content foundation and source link theme contract');

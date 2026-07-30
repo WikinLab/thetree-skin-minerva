@@ -21,6 +21,7 @@
     "hostSurfaces": {
       "hostContent": "#mw-content-text[data-tt-host-content=\"1\"]",
       "parserOutput": ":where([data-tt-vector-surface=\"parser-output\"])",
+      "contentLinks": ":where([data-tt-vector-surface=\"parser-output\"], [data-tt-vector-catlinks-surface=\"1\"])",
       "interface": ":where([data-tt-vector-surface=\"interface\"])",
       "category": ":where([data-tt-vector-catlinks-surface=\"1\"])",
       "heading": ":where([data-tt-vector-surface=\"parser-output\"], #firstHeading)",
@@ -53,6 +54,26 @@
           "skin-theme-clientpref-os",
           "vector-feature-limited-width-clientpref-1",
           "skin-minerva"
+        ],
+        "ancestorContextTagNames": [
+          "html",
+          "body"
+        ]
+      },
+      "content-links": {
+        "scopeSurface": "contentLinks",
+        "rootClassNames": [
+          "mw-parser-output",
+          "catlinks"
+        ],
+        "rootIdNames": [
+          "catlinks"
+        ],
+        "ancestorContextClassNames": [
+          "ltr",
+          "rtl",
+          "mw-underline-always",
+          "mw-underline-never"
         ],
         "ancestorContextTagNames": [
           "html",
@@ -195,6 +216,10 @@
       {
         "pattern": "^i18n-headings$",
         "ownership": "heading"
+      },
+      {
+        "pattern": "^content-links$",
+        "ownership": "content-links"
       },
       {
         "pattern": "^content-body$",

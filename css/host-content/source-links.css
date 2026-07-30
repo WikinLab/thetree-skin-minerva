@@ -3,16 +3,17 @@
  *
  * Raw Lite content and projected interface surfaces both remain host-owned.
  * Project the locked mediawiki.skinning/elements.less anchor contract while
- * excluding canonical and nested MediaWiki ParserOutput surfaces. Keep
- * :where() weak enough for component-scoped classes to override it without
- * specificity workarounds.
+ * excluding canonical and nested MediaWiki ParserOutput surfaces. The host
+ * boundary contributes no specificity; the anchor and its states retain the
+ * same specificity as the upstream tag rules so later host-wide tag defaults
+ * cannot replace the Vector palette.
  */
 :where(
   #mw-content-text[data-tt-host-content="1"]:not(
     [data-tt-vector-surface="parser-output"]
   )
 )
-  :where(a):not(
+  a:not(
     :where(
       [data-tt-vector-surface="parser-output"],
       [data-tt-vector-surface="parser-output"] *
@@ -28,7 +29,7 @@
     [data-tt-vector-surface="parser-output"]
   )
 )
-  :where(a:not([href])):not(
+  a:not([href]):not(
     :where(
       [data-tt-vector-surface="parser-output"],
       [data-tt-vector-surface="parser-output"] *
@@ -42,7 +43,7 @@
     [data-tt-vector-surface="parser-output"]
   )
 )
-  :where(a:visited):not(
+  a:visited:not(
     :where(
       [data-tt-vector-surface="parser-output"],
       [data-tt-vector-surface="parser-output"] *
@@ -56,7 +57,7 @@
     [data-tt-vector-surface="parser-output"]
   )
 )
-  :where(a:active):not(
+  a:active:not(
     :where(
       [data-tt-vector-surface="parser-output"],
       [data-tt-vector-surface="parser-output"] *
@@ -70,7 +71,7 @@
     [data-tt-vector-surface="parser-output"]
   )
 )
-  :where(a:hover, a:focus):not(
+  :is(a:hover, a:focus):not(
     :where(
       [data-tt-vector-surface="parser-output"],
       [data-tt-vector-surface="parser-output"] *

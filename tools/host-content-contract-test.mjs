@@ -50,8 +50,9 @@ assert.doesNotMatch(foundationSource, /!important/);
 assert.doesNotMatch(foundationSource, /data-tt-content-projection/);
 
 const sourceLinksSource = read('css/host-content/source-links.css');
+const upstreamElementsSource = read('vendor/mediawiki-core/resources/src/mediawiki.skinning/elements.less');
 const sourceLinkSelectors = selectors('css/host-content/source-links.css');
-assert.ok(sourceLinkSelectors.length >= 3);
+assert.ok(sourceLinkSelectors.length >= 5);
 for (const selector of sourceLinkSelectors) {
   assert.match(selector, /\[data-tt-host-content="1"\]/);
   assert.match(selector, /\[data-tt-vector-surface="parser-output"\]/);
@@ -67,7 +68,7 @@ for (const selector of sourceLinkSelectors) {
   const linkSubjectIndex = topLevelNodes.findIndex((node) => (
     node.type === 'pseudo'
     && node.value === ':where'
-    && node.toString().includes('a:')
+    && /^:where\(a(?:\)|:)/.test(node.toString())
   ));
   const parserOutputExclusionIndex = topLevelNodes.findIndex((node) => (
     node.type === 'pseudo'
@@ -80,10 +81,18 @@ for (const selector of sourceLinkSelectors) {
   assert.equal(parserOutputExclusionIndex, linkSubjectIndex + 1);
   assert.notEqual(topLevelNodes[linkSubjectIndex + 1]?.type, 'combinator');
 }
+assert.match(upstreamElementsSource, /a\s*\{[\s\S]*?color:\s*@color-link;/);
+assert.match(upstreamElementsSource, /&:not\(\s*\[\s*href\s*\]\s*\)\s*\{[\s\S]*?cursor:\s*pointer/);
+assert.match(sourceLinksSource, /:where\(a\):not\(/);
+assert.match(sourceLinksSource, /a:not\(\[href\]\)/);
+assert.match(sourceLinksSource, /cursor:\s*pointer/);
 assert.match(sourceLinksSource, /a:visited/);
 assert.match(sourceLinksSource, /var\(--color-link,\s*#36c\)/);
-assert.match(sourceLinksSource, /var\(--color-link--hover,\s*#3056a9\)/);
+assert.match(sourceLinksSource, /var\(--color-link--visited,\s*#6a60b0\)/);
 assert.match(sourceLinksSource, /var\(--color-link--active,\s*#233566\)/);
+assert.match(sourceLinksSource, /background:\s*none/);
+assert.match(sourceLinksSource, /a:hover,\s*a:focus/);
+assert.doesNotMatch(sourceLinksSource, /color-link--hover/);
 assert.doesNotMatch(sourceLinksSource, /!important/);
 
 console.log('checked host content foundation and source link theme contract');

@@ -2,24 +2,24 @@
  * thetree-owned source link theme.
  *
  * Raw Lite content and projected interface surfaces both remain host-owned.
- * Give their ordinary links the Vector/Codex progressive palette while
+ * Project the locked mediawiki.skinning/elements.less anchor contract while
  * excluding canonical and nested MediaWiki ParserOutput surfaces. Keep
- * visited links on the same color so browser history does not introduce the
- * user-agent purple. :where() lets component-scoped classes override every
- * declaration without specificity workarounds.
+ * :where() weak enough for component-scoped classes to override it without
+ * specificity workarounds.
  */
 :where(
   #mw-content-text[data-tt-host-content="1"]:not(
     [data-tt-vector-surface="parser-output"]
   )
 )
-  :where(a:link, a:visited):not(
+  :where(a):not(
     :where(
       [data-tt-vector-surface="parser-output"],
       [data-tt-vector-surface="parser-output"] *
     )
   ) {
   color: var(--color-link, #36c);
+  background: none;
   text-decoration: none;
 }
 
@@ -28,14 +28,13 @@
     [data-tt-vector-surface="parser-output"]
   )
 )
-  :where(a:any-link:hover, a:any-link:focus):not(
+  :where(a:not([href])):not(
     :where(
       [data-tt-vector-surface="parser-output"],
       [data-tt-vector-surface="parser-output"] *
     )
   ) {
-  color: var(--color-link--hover, #3056a9);
-  text-decoration: underline;
+  cursor: pointer;
 }
 
 :where(
@@ -43,11 +42,39 @@
     [data-tt-vector-surface="parser-output"]
   )
 )
-  :where(a:any-link:active):not(
+  :where(a:visited):not(
+    :where(
+      [data-tt-vector-surface="parser-output"],
+      [data-tt-vector-surface="parser-output"] *
+    )
+  ) {
+  color: var(--color-link--visited, #6a60b0);
+}
+
+:where(
+  #mw-content-text[data-tt-host-content="1"]:not(
+    [data-tt-vector-surface="parser-output"]
+  )
+)
+  :where(a:active):not(
     :where(
       [data-tt-vector-surface="parser-output"],
       [data-tt-vector-surface="parser-output"] *
     )
   ) {
   color: var(--color-link--active, #233566);
+}
+
+:where(
+  #mw-content-text[data-tt-host-content="1"]:not(
+    [data-tt-vector-surface="parser-output"]
+  )
+)
+  :where(a:hover, a:focus):not(
+    :where(
+      [data-tt-vector-surface="parser-output"],
+      [data-tt-vector-surface="parser-output"] *
+    )
+  ) {
+  text-decoration: underline;
 }

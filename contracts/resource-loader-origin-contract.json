@@ -212,7 +212,13 @@
       ],
       "removableRootClassNames": [
         "mw-parser-output"
-      ]
+      ],
+      "decoratorColor": {
+        "pseudoElement": "before",
+        "sourceProperty": "color",
+        "targetProperty": "background-color",
+        "important": true
+      }
     }
   },
   "bundles": [

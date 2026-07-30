@@ -101,8 +101,11 @@ const semanticHostClasses = [
   ...LINK_SEMANTICS.external.hostClasses
 ];
 const semanticRules = [];
+const decoratorRules = [];
 postcss.parse(hostElementsSource).walkRules((rule) => {
-  if (semanticHostClasses.some((className) => rule.selector.includes(`.${className}`))) semanticRules.push(rule);
+  if (!semanticHostClasses.some((className) => rule.selector.includes(`.${className}`))) return;
+  if (/::before|:before/.test(rule.selector)) decoratorRules.push(rule);
+  else semanticRules.push(rule);
 });
 assert.ok(semanticRules.length >= 7);
 for (const rule of semanticRules) {
@@ -126,7 +129,14 @@ assert.ok(hasSemanticColor('a.wiki-link-whitelisted', '#36b'));
 assert.ok(hasSemanticColor('a.wiki-link-external:visited', '#636'));
 assert.ok(hasSemanticColor('a.wiki-link-external:active', '#b63'));
 assert.ok(hasSemanticColor('a.wiki-self-link', 'inherit'));
-assert.doesNotMatch(hostElementsSource, /background-image|\.wiki-link-external::before|\.wiki-link-whitelisted::before/);
+assert.equal(decoratorRules.length, 1);
+assert.match(decoratorRules[0].selector, /a\.wiki-link-external::before/);
+assert.doesNotMatch(decoratorRules[0].selector, /wiki-link-whitelisted/);
+assert.equal(decoratorRules[0].nodes.length, 1);
+assert.equal(decoratorRules[0].nodes[0].prop, 'background-color');
+assert.equal(decoratorRules[0].nodes[0].value, '#36b');
+assert.equal(decoratorRules[0].nodes[0].important, true);
+assert.doesNotMatch(hostElementsSource, /background-image|\bcontent\s*:|font-family|font-size/);
 
 assert.equal(skinVariantContract.id, 'vector-legacy');
 assert.equal(skinVariantContract.upstreamSkinName, 'vector');
@@ -145,6 +155,12 @@ assert.equal(resourceLoaderContract.hostElementProjection.ownership, 'host-conte
 assert.deepEqual(resourceLoaderContract.hostElementProjection.subjectTagNames, ['a']);
 assert.deepEqual(resourceLoaderContract.hostElementProjection.linkPalette.allowedProperties, ['color']);
 assert.deepEqual(resourceLoaderContract.hostElementProjection.linkPalette.importantProperties, ['color']);
+assert.deepEqual(resourceLoaderContract.hostElementProjection.linkPalette.decoratorColor, {
+  pseudoElement: 'before',
+  sourceProperty: 'color',
+  targetProperty: 'background-color',
+  important: true
+});
 
 assert.match(resourceLoaderContract.shared.hostSurfaces.contentLinks, /data-tt-vector-surface/);
 assert.match(resourceLoaderContract.shared.hostSurfaces.contentLinks, /data-tt-vector-catlinks-surface/);

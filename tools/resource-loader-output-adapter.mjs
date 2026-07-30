@@ -657,6 +657,53 @@ export function markResourceLoaderPropertiesImportant(css, propertyNames = []) {
   return root.toString();
 }
 
+export function projectResourceLoaderLinkDecoratorColor(css, options = {}) {
+  const classNames = new Set(asArray(options.classNames).map(String).filter(Boolean));
+  const pseudoElement = String(options.pseudoElement || 'before').replace(/^:+/, '');
+  const sourceProperty = String(options.sourceProperty || 'color').toLowerCase();
+  const targetProperty = String(options.targetProperty || 'background-color').toLowerCase();
+  if (!classNames.size || !pseudoElement || !sourceProperty || !targetProperty) {
+    throw new Error('ResourceLoader link decorator color projection requires a complete contract');
+  }
+
+  const sourceRoot = postcss.parse(css);
+  const outputRoot = postcss.root();
+  sourceRoot.walkRules((rule) => {
+    const sourceDeclaration = rule.nodes?.find((node) => (
+      node.type === 'decl' && String(node.prop || '').toLowerCase() === sourceProperty
+    ));
+    if (!sourceDeclaration) return;
+
+    const selectors = selectorParser().astSync(rule.selector);
+    const projected = selectors.nodes.flatMap((selector) => {
+      let matchesDecorator = false;
+      let hasLinkState = false;
+      selector.walkClasses((node) => {
+        if (classNames.has(String(node.value || ''))) matchesDecorator = true;
+      });
+      selector.walkPseudos((node) => {
+        if ([':visited', ':active', ':hover', ':focus'].includes(String(node.value || '').toLowerCase())) {
+          hasLinkState = true;
+        }
+      });
+      if (!matchesDecorator || hasLinkState) return [];
+      const clone = selector.clone();
+      clone.append(selectorParser.pseudo({ value: `::${pseudoElement}` }));
+      return [clone.toString()];
+    });
+    if (!projected.length) return;
+
+    const outputRule = postcss.rule({ selector: [...new Set(projected)].join(',\n') });
+    outputRule.append(postcss.decl({
+      prop: targetProperty,
+      value: sourceDeclaration.value,
+      important: Boolean(options.important)
+    }));
+    outputRoot.append(outputRule);
+  });
+  return outputRoot.toString();
+}
+
 
 function appendSubjectFilter(selector, filterSelector) {
   const filterAst = selectorParser().astSync(`x${filterSelector}`);

@@ -9,6 +9,7 @@ import {
   adaptResourceLoaderOutputCss,
   filterResourceLoaderOutputCssBySubjectTags,
   markResourceLoaderPropertiesImportant,
+  projectResourceLoaderLinkDecoratorColor,
   projectResourceLoaderLinkSemantics,
   makeCssAssetUrlRewrites,
   isolateResourceLoaderOutputCssFromHostContent,
@@ -390,6 +391,13 @@ async function compileHostElementProjection(root, contract, record) {
       classAliases
     });
     parts.push(adaptOwnership(projectedPalette, record.ownership, contract.shared));
+    if (record.linkPalette.decoratorColor) {
+      const decoratorPalette = projectResourceLoaderLinkDecoratorColor(projectedPalette, {
+        ...record.linkPalette.decoratorColor,
+        classNames: LINK_SEMANTICS.external.decoratorHostClasses
+      });
+      parts.push(adaptOwnership(decoratorPalette, record.ownership, contract.shared));
+    }
   }
 
   return withGeneratedCssBanner(parts.filter(Boolean).join('\n\n'), {

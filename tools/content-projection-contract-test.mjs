@@ -114,6 +114,7 @@ assert.deepEqual(LINK_SEMANTICS.missing, {
   presentationOwner: 'skin-variant'
 });
 assert.deepEqual(LINK_SEMANTICS.external.hostClasses, ['wiki-link-external', 'wiki-link-whitelisted']);
+assert.deepEqual(LINK_SEMANTICS.external.decoratorHostClasses, ['wiki-link-external']);
 assert.deepEqual(LINK_SEMANTICS.external.emittedClasses, ['external', 'text']);
 
 const linkSources = parseHtmlFragment([

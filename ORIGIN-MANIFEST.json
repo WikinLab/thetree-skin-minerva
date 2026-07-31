@@ -20,10 +20,12 @@
       "commit": "698e2122bafdd02e6e65170c1d55b319336a7e72",
       "checkout": "host-thetree",
       "sourceRoots": [
-        "routes"
+        "routes",
+        "utils/namumark"
       ],
       "bootstrapPaths": [
-        "routes/"
+        "routes/",
+        "utils/namumark/"
       ]
     },
     "contract": "lib/legacySpecialPageContract.js",
@@ -57,6 +59,7 @@
       "ignoredRoots": [
         ".build-tools",
         ".git",
+        ".test-dist",
         ".upstream",
         "node_modules",
         "vendor"
@@ -765,6 +768,11 @@
         "hostDependency": "none"
       },
       {
+        "path": "THIRD_PARTY_NOTICES.md",
+        "kind": "package-metadata",
+        "hostDependency": "none"
+      },
+      {
         "path": "ORIGIN-MANIFEST.json",
         "kind": "package-metadata",
         "hostDependency": "none"
@@ -818,6 +826,11 @@
         "path": "css/host-content/links.css",
         "kind": "host-adapter",
         "hostDependency": "thetree"
+      },
+      {
+        "path": "css/profile.css",
+        "kind": "skin-integration",
+        "hostDependency": "none"
       },
       {
         "path": "css/screen.css",
@@ -950,19 +963,24 @@
         "hostDependency": "thetree"
       },
       {
-        "path": "lib/mustacheTemplateEngine.js",
+        "path": "lib/mustacheVueRuntime.js",
         "kind": "origin-runtime",
         "hostDependency": "none"
       },
       {
-        "path": "lib/mustacheVueRuntime.js",
-        "kind": "origin-runtime",
+        "path": "lib/runtime/createExtensionRuntimeHost.js",
+        "kind": "skin-integration",
         "hostDependency": "none"
       },
       {
         "path": "lib/runtime/createSkinRuntimeController.js",
         "kind": "skin-integration",
         "hostDependency": "thetree"
+      },
+      {
+        "path": "lib/skinProfile.js",
+        "kind": "skin-integration",
+        "hostDependency": "none"
       },
       {
         "path": "lib/skinVariant.js",
@@ -990,6 +1008,11 @@
         "hostDependency": "none"
       },
       {
+        "path": "tools/distribution-contract-test.mjs",
+        "kind": "generation-contract",
+        "hostDependency": "none"
+      },
+      {
         "path": "tools/host-content-contract-test.mjs",
         "kind": "generation-contract",
         "hostDependency": "none"
@@ -1012,6 +1035,11 @@
       {
         "path": "tools/mustache-vue-origin-engine.mjs",
         "kind": "generation-tool",
+        "hostDependency": "none"
+      },
+      {
+        "path": "tools/mustache-origin-contract-test.mjs",
+        "kind": "generation-contract",
         "hostDependency": "none"
       },
       {
@@ -1401,6 +1429,7 @@
       "ignoredRoots": [
         ".build-tools",
         ".git",
+        ".test-dist",
         ".upstream",
         "node_modules",
         "vendor"
@@ -1422,7 +1451,8 @@
       "originBundle": "css/vendor/resource-loader/page-styles.css",
       "adapterImports": [
         "css/vector-adapter.css",
-        "css/host-content.css"
+        "css/host-content.css",
+        "css/profile.css"
       ],
       "resourceLoaderContract": "contracts/resource-loader-origin-contract.json",
       "hostLimitation": "thetree skin CSS is selected as one static entry. Vector chrome is loaded while the complete host content subtree remains under thetree ownership."

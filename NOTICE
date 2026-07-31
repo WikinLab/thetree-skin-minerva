@@ -26,25 +26,7 @@ and freshness checking.
    Commit: ccccb2f21445c31ceb4c4f8226da765d5de709fb
    License: MIT
 
-4. MediaWiki Popups
-   Repository: wikimedia/mediawiki-extensions-Popups
-   Ref: REL1_46
-   Commit: 9b31b9c994809279b045e9bbbfe2c9187267e58a
-   License: GPL-2.0-or-later
-
-5. MediaWiki Cite
-   Repository: wikimedia/mediawiki-extensions-Cite
-   Ref: REL1_46
-   Commit: 2a40af56b1e377482197bb22aec25c3107747fad
-   License: GPL-2.0-or-later
-
-6. MediaWiki TextExtracts
-   Repository: wikimedia/mediawiki-extensions-TextExtracts
-   Ref: REL1_46
-   Commit: 2c87fa96df9214db22646a3394bf42c30d3b3230
-   License: GPL-2.0-or-later
-
-7. Wikimedia Codex
+4. Wikimedia Codex
    Repository: wikimedia/design-codex
    Tag/commit: v2.3.1 / 451588b3ed4e610a50b9b656ef528898e049bb2f
    Source build: Codex, design tokens, public LESS mixins, and icon-path
@@ -52,6 +34,20 @@ and freshness checking.
    package artifact is used as a vendor source.
    License: GPL-2.0-or-later (Codex and design tokens); MIT (Codex Icons).
 
+5. mustache.js
+   Version: 4.2.0
+   License: MIT
+
+6. parse5
+   Version: 8.0.0
+   License: MIT
+
+7. entities (parse5 runtime dependency)
+   Version: 6.0.1
+   License: BSD-2-Clause
+
 The minimal upstream input list, local source-role inventory, source-port correspondence, materialized runtime
 asset list, and generated output list are recorded in ORIGIN-MANIFEST.json. Moving upstream refs are used only through explicit
 bootstrap update modes.
+
+Complete permissive-license notices used by the generated/runtime distribution are in THIRD_PARTY_NOTICES.md.

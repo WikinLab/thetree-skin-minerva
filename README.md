@@ -2,10 +2,13 @@
 
 the tree용 MediaWiki Vector 레거시 스킨입니다.
 
+> [!WARNING]
+> 현재 모바일 환경은 지원하지 않습니다. 데스크톱 환경에서 사용해 주세요.
+
 ## 주요 기능
 
 - MediaWiki Vector 레거시 디자인
-- 데스크톱과 모바일 화면 지원
+- 데스크톱 화면 지원
 - 밝은 화면과 어두운 화면 전환
 - the tree의 문서 도구, 검색과 사용자 메뉴 지원
 - 로그인 사용자의 문서 주시 및 해제
@@ -22,12 +25,11 @@ the tree용 MediaWiki Vector 레거시 스킨입니다.
 1. the tree에서 **관리자 → 개발자 설정**으로 이동합니다.
 2. **스킨** 항목에 다음 내용을 입력합니다.
    - 이름: `vector`
-   - URL: 배포 저장소의 Git URL
+   - URL: `https://github.com/Lumina0306/thetree-skin-vector`
 3. **추가**를 누릅니다.
-4. the tree 설치 디렉터리에서 다음 명령을 실행합니다.
+4. 스킨 설치 디렉터리에서 다음 명령을 실행합니다.
 
    ```bash
-   cd frontend/skins/vector
    npm run bootstrap
    ```
 
@@ -40,7 +42,7 @@ the tree용 MediaWiki Vector 레거시 스킨입니다.
 
 | 설정 키 | 설명 | 기본값 |
 | --- | --- | --- |
-| `wiki.logo_url` | 왼쪽 위에 표시할 로고 이미지 주소 | 없음 |
+| `skin.vector.logo_image` | 왼쪽 위 로고의 CSS 배경 이미지 | `wiki.logo_url` |
 | `skin.vector.logo_title` | 로고에 마우스를 올렸을 때 표시할 문구 | 위키 이름 |
 | `skin.vector.footer_html` | 푸터에 표시할 HTML | `wiki.footer_text` |
 | `skin.vector.search_placeholder` | 검색창에 표시할 안내 문구 | `검색` |
@@ -51,10 +53,9 @@ the tree용 MediaWiki Vector 레거시 스킨입니다.
 ## 업데이트
 
 1. **관리자 → 개발자 설정 → 스킨 → vector**에서 **업데이트**를 누릅니다.
-2. the tree 설치 디렉터리에서 다음 명령을 실행합니다.
+2. 스킨 설치 디렉터리에서 다음 명령을 실행합니다.
 
    ```bash
-   cd frontend/skins/vector
    npm run bootstrap
    ```
 
@@ -65,11 +66,14 @@ the tree용 MediaWiki Vector 레거시 스킨입니다.
 빌드 중 생성 파일이나 원본 파일에 관한 오류가 나오면 다음 명령으로 필요한 파일을 처음부터 다시 준비한 뒤 관리자 화면에서 다시 빌드합니다.
 
 ```bash
-cd frontend/skins/vector
 npm run bootstrap -- --clean
 ```
 
 원본을 내려받는 과정에서 멈춘 경우에는 서버에서 GitHub에 연결할 수 있는지 확인합니다.
+
+## 면책
+
+이 스킨을 사용하면서 발생하는 문제에 대해서는 책임지지 않습니다.
 
 ## 개발 도구
 

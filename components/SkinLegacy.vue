@@ -58,12 +58,13 @@ import Alert from '~/components/alert';
 
 import SkinLegacyOrigin from './skin-legacy.vue';
 import RawHtmlFragment from '../lib/legacyRawHtmlFragment';
-import { makeTheTreeAdapterContext } from '../lib/legacyTheTreeAdapter';
+import { getLegacyDocument, makeTheTreeAdapterContext, makeViewItems } from '../lib/legacyTheTreeAdapter';
 import { makeSkinLegacyData } from '../lib/legacySkinData';
 import { buildLegacyTitleHeadingData } from '../lib/legacyTitleData';
 import { getSearchModeFromSubmitEvent, makeSearchSubmitTargetForContext } from '../lib/legacySearchSubmit';
 import { makeSkinLegacyAdapterState } from '../lib/legacySkinAdapter';
 import { isDarkModeToggleTarget, toggleTheTreeDarkMode } from '../lib/adapters/mediawiki-darkmode';
+import { createVectorRuntimeController } from '../lib/runtime/createVectorRuntimeController.js';
 
 export default {
   name: 'SkinLegacy',
@@ -75,7 +76,8 @@ export default {
   },
   data() {
     return {
-      isShowACLMessage: true
+      isShowACLMessage: true,
+      vectorRuntimeController: null
     };
   },
   computed: {
@@ -108,6 +110,12 @@ export default {
     siteNoticeHtml() {
       return this.skinAdapter.siteNoticeHtml;
     },
+    document() {
+      return getLegacyDocument(this.adapterContext);
+    },
+    baseViewItems() {
+      return makeViewItems(this.adapterContext);
+    },
     hasUnreadUserDiscussion() {
       return this.skinAdapter.hasUnreadUserDiscussion;
     },
@@ -127,7 +135,23 @@ export default {
   watch: {
     $route() {
       this.isShowACLMessage = true;
+      this.resetVectorRuntime();
+    },
+    document() {
+      this.resetVectorRuntime();
+    },
+    baseViewItems() {
+      this.resetVectorRuntime();
     }
+  },
+  mounted() {
+    this.initVectorRuntime();
+  },
+  beforeDestroy() {
+    this.teardownVectorRuntime();
+  },
+  beforeUnmount() {
+    this.teardownVectorRuntime();
   },
   methods: {
     onSkinClick(event) {
@@ -154,6 +178,23 @@ export default {
       const mode = getSearchModeFromSubmitEvent(event);
       const target = makeSearchSubmitTargetForContext(q, mode, this.adapterContext);
       this.$router.push(target);
+    },
+    ensureVectorRuntimeController() {
+      if (this.vectorRuntimeController) return this.vectorRuntimeController;
+      this.vectorRuntimeController = createVectorRuntimeController({
+        schedule: (callback) => this.$nextTick(callback)
+      });
+      return this.vectorRuntimeController;
+    },
+    initVectorRuntime() {
+      this.ensureVectorRuntimeController().init();
+    },
+    teardownVectorRuntime() {
+      if (this.vectorRuntimeController) this.vectorRuntimeController.destroy();
+      this.vectorRuntimeController = null;
+    },
+    resetVectorRuntime() {
+      this.ensureVectorRuntimeController().reset();
     }
   }
 };

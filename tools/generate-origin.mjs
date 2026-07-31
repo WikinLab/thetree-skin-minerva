@@ -326,90 +326,6 @@ function validateStylesheetDelivery(root, manifest) {
   }
 }
 
-function validateContentProjectionIntegration(root, manifest) {
-  const contract = manifest.integration?.contentProjection;
-  if (!contract) return;
-  if (
-    contract.schema !== 1
-    || contract.mode !== 'runtime-content-mode'
-    || contract.default !== 'native'
-    || JSON.stringify(contract.values) !== JSON.stringify(['native', 'projected'])
-  ) {
-    throw new Error(`Unsupported content projection contract: ${contract.schema ?? 'none'} ${contract.mode ?? 'none'} ${contract.default ?? 'none'}`);
-  }
-  if (contract.ssrPreference?.fallback !== contract.default) {
-    throw new Error(`Content projection SSR fallback must match the package default: ${contract.ssrPreference?.fallback ?? 'none'} != ${contract.default}.`);
-  }
-
-  const javascriptEntry = normalizeRelativePath(contract.javascriptEntry);
-  const javascriptConsumer = normalizeRelativePath(contract.javascriptConsumer);
-  const stylesheetEntry = normalizeRelativePath(contract.stylesheetEntry);
-  const stylesheetConsumer = normalizeRelativePath(contract.stylesheetConsumer);
-  const preferenceAdapter = normalizeRelativePath(contract.preferenceAdapter);
-  const localFiles = toPathSet(manifest.sourceInventory?.localFiles);
-  for (const entry of [javascriptEntry, javascriptConsumer, stylesheetEntry, stylesheetConsumer, preferenceAdapter]) {
-    if (!localFiles.has(entry) || !fs.existsSync(path.join(root, entry))) {
-      throw new Error(`Content projection boundary file is not a declared source file: ${entry}`);
-    }
-  }
-
-  const projectionRoot = `${path.posix.dirname(javascriptEntry)}/`;
-  const modules = [...localFiles]
-    .filter((pathname) => ['.js', '.mjs', '.vue'].includes(path.extname(pathname)) && fs.existsSync(path.join(root, pathname)))
-    .map((pathname) => {
-      const raw = fs.readFileSync(path.join(root, pathname), 'utf8');
-      return { path: pathname, source: pathname.endsWith('.vue') ? extractVueModuleScript(raw, pathname) : raw };
-    });
-  const dependenciesByModule = parseModuleDependencies(modules);
-  const externalConsumers = [];
-  const boundaryErrors = [];
-  for (const [importer, specifiers] of dependenciesByModule) {
-    for (const specifier of specifiers) {
-      if (!specifier.startsWith('.')) continue;
-      const resolved = moduleResolutionCandidates(importer, specifier).find((candidate) => localFiles.has(candidate));
-      if (!resolved || !resolved.startsWith(projectionRoot) || importer.startsWith(projectionRoot)) continue;
-      if (resolved === javascriptEntry) externalConsumers.push(importer);
-      else boundaryErrors.push(`${importer} imports private projection module ${resolved}`);
-    }
-  }
-  const uniqueConsumers = [...new Set(externalConsumers)].sort();
-  if (JSON.stringify(uniqueConsumers) !== JSON.stringify([javascriptConsumer])) {
-    boundaryErrors.push(`projection JavaScript entry consumers must be [${javascriptConsumer}], found [${uniqueConsumers.join(', ')}]`);
-  }
-  if (boundaryErrors.length) {
-    throw new Error(`Content projection JavaScript boundary mismatch:\n- ${boundaryErrors.join('\n- ')}`);
-  }
-
-  const stylesheetSource = fs.readFileSync(path.join(root, stylesheetEntry), 'utf8');
-  const stylesheetImports = cssEntryImports(stylesheetSource, stylesheetEntry)
-    .map((specifier) => normalizeRelativePath(path.posix.join(path.posix.dirname(stylesheetEntry), specifier)));
-  if (!stylesheetImports.length) throw new Error(`Content projection stylesheet entry has no implementation imports: ${stylesheetEntry}`);
-  for (const pathname of stylesheetImports) {
-    if (!localFiles.has(pathname) || !fs.existsSync(path.join(root, pathname))) {
-      throw new Error(`Content projection stylesheet is not a declared source file: ${pathname}`);
-    }
-  }
-  const consumerImports = cssEntryImports(fs.readFileSync(path.join(root, stylesheetConsumer), 'utf8'), stylesheetConsumer)
-    .map((specifier) => normalizeRelativePath(path.posix.join(path.posix.dirname(stylesheetConsumer), specifier)));
-  if (consumerImports.filter((pathname) => pathname === stylesheetEntry).length !== 1) {
-    throw new Error(`Content projection stylesheet entry must be imported once by ${stylesheetConsumer}.`);
-  }
-
-  const layoutSource = fs.readFileSync(path.join(root, javascriptConsumer), 'utf8');
-  const projectionSource = fs.readFileSync(path.join(root, javascriptEntry), 'utf8');
-  if (
-    !layoutSource.includes(contract.activationAttribute)
-    || !layoutSource.includes(contract.contentModeAttribute)
-    || !projectionSource.includes(contract.activationValue)
-  ) {
-    throw new Error(`Content projection activation marker is missing from ${javascriptConsumer}.`);
-  }
-  const adapterSource = fs.readFileSync(path.join(root, preferenceAdapter), 'utf8');
-  if (!adapterSource.includes(contract.ssrPreference?.protocol) || !adapterSource.includes(contract.ssrPreference?.serverDataKey)) {
-    throw new Error(`Content projection SSR preference protocol does not match ${preferenceAdapter}.`);
-  }
-}
-
 function validateSkinVariantIntegration(root, manifest) {
   const integration = manifest.integration?.skinVariant;
   if (!integration) throw new Error('Package integration requires a skinVariant contract.');
@@ -432,7 +348,11 @@ function validateSkinVariantIntegration(root, manifest) {
   ) {
     throw new Error(`Runtime skin variant identity disagrees with ${contractPath}.`);
   }
-  const layoutSource = fs.readFileSync(path.join(root, manifest.integration.contentProjection.javascriptConsumer), 'utf8');
+  const consumerPath = normalizeRelativePath(integration.consumer);
+  if (!localFiles.has(consumerPath) || !fs.existsSync(path.join(root, consumerPath))) {
+    throw new Error(`Skin variant consumer is not a declared source file: ${consumerPath}`);
+  }
+  const layoutSource = fs.readFileSync(path.join(root, consumerPath), 'utf8');
   if (!layoutSource.includes(integration.activationAttribute)) {
     throw new Error(`Skin variant activation marker is missing from layout: ${integration.activationAttribute}`);
   }
@@ -452,7 +372,6 @@ function validatePackageIntegration(root, manifest, options = {}) {
   for (const [label, version] of observed) {
     if (version !== expected) throw new Error(`Package integration version mismatch: ${label}=${version ?? 'none'}, package.json=${expected}`);
   }
-  validateContentProjectionIntegration(root, manifest);
   validateSkinVariantIntegration(root, manifest);
   validateStylesheetDelivery(root, manifest);
   validateModuleGraph(root, manifest, options);

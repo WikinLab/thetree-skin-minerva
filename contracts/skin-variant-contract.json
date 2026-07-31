@@ -7,10 +7,5 @@
     "lessVariables": "vendor/mediawiki-vector-legacy/resources/mediawiki.less/vector/mediawiki.skin.variables.less",
     "elementsSource": "vendor/mediawiki-core/resources/src/mediawiki.skinning/elements.less",
     "contentLinksSource": "vendor/mediawiki-core/resources/src/mediawiki.skinning/content.links.less"
-  },
-  "contentModes": [
-    "native",
-    "projected"
-  ],
-  "defaultContentMode": "native"
+  }
 }

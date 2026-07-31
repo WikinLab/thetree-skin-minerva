@@ -1,10 +1,9 @@
 /*
  * thetree source-content compatibility entry.
  *
- * This module is independent of the optional MediaWiki content projection.
  * It restores the host UI assumptions required by Vue content components.
- * Native link colors and decorators remain owned by thetree; only the
- * skin-independent no-underline policy is applied here.
+ * Link colors and decorators remain owned by thetree; only the shared
+ * no-underline policy is applied here.
  */
 @import "./host-content/foundation.css";
-@import "./host-content/native-links.css";
+@import "./host-content/links.css";

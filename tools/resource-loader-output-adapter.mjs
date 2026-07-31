@@ -539,25 +539,22 @@ function appendSubjectFilter(selector, filterSelector) {
 /*
  * The Vector chrome and the tree/Nuxt content share one document. Generated
  * skin CSS therefore remains authoritative outside the immutable host-content
- * root, while the host-content subtree is excluded unless the matched subject
- * is the declared parser-output projection root or one of its descendants.
+ * root, while thetree content is excluded from the generated cascade.
  *
  * The zero-specificity subject filter preserves the original selector and
- * cascade weight. This makes the projection a routing boundary rather than a
- * second hand-written stylesheet: article output keeps the source declarations
- * and order, raw interface DOM is isolated, and nested edit-preview
- * parser-output is re-admitted through the same projection contract.
+ * cascade weight. An optional admitted surface is supported by the generator,
+ * but the base skin leaves it unset and isolates the complete host
+ * content subtree.
  */
 export function isolateResourceLoaderOutputCssFromHostContent(css, {
   hostContentSelector,
-  projectedSurfaceSelector,
+  admittedSurfaceSelector = '',
   preserveAncestorClassNames = [],
   preserveAncestorIdNames = []
 } = {}) {
   const hostContent = String(hostContentSelector || '').trim();
-  const projectedSurface = String(projectedSurfaceSelector || '').trim();
+  const admittedSurface = String(admittedSurfaceSelector || '').trim();
   if (!hostContent) throw new Error('ResourceLoader host-content selector is required');
-  if (!projectedSurface) throw new Error('ResourceLoader projected-surface selector is required');
 
   const preservedClasses = new Set(preserveAncestorClassNames || []);
   const preservedIds = new Set(preserveAncestorIdNames || []);
@@ -566,9 +563,11 @@ export function isolateResourceLoaderOutputCssFromHostContent(css, {
     || (node.type === 'id' && preservedIds.has(node.value))
   ));
 
-  const unprojectedRoot = `${hostContent}:not(${projectedSurface})`;
-  const unprojectedDescendant = `${hostContent} :not(${projectedSurface}, ${projectedSurface} *)`;
-  const subjectFilter = `:where(:not(${unprojectedRoot}, ${unprojectedDescendant}))`;
+  const excludedRoot = admittedSurface ? `${hostContent}:not(${admittedSurface})` : hostContent;
+  const excludedDescendant = admittedSurface
+    ? `${hostContent} :not(${admittedSurface}, ${admittedSurface} *)`
+    : `${hostContent} *`;
+  const subjectFilter = `:where(:not(${excludedRoot}, ${excludedDescendant}))`;
   const root = postcss.parse(css);
   root.walkRules((rule) => {
     if (isInsideKeyframes(rule)) return;

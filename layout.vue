@@ -5,11 +5,8 @@
     :lang="legacyDocumentEnvironment.htmlAttributes.lang"
     :dir="legacyDocumentEnvironment.htmlAttributes.dir"
     :data-tt-skin-variant="skinVariantId"
-    :data-tt-content-mode="contentModePreference.mode"
-    :data-tt-content-projection="activeContentProjection ? activeContentProjection.id : null"
-    :data-tt-content-transform="contentTransformSignature"
   >
-    <SkinLegacy :content-projection="activeContentProjection">
+    <SkinLegacy>
       <nuxt />
     </SkinLegacy>
   </div>
@@ -24,10 +21,7 @@ import SkinLegacy from './components/SkinLegacy';
 import { applyLegacyDocumentEnvironment, makeLegacyDocumentEnvironment } from './lib/legacyDocumentEnvironment';
 import { makeTheTreeAdapterContext } from './lib/legacyTheTreeAdapter';
 import { makeLegacySkinVars, makeLegacyThemeColor } from './lib/legacySkinVars';
-import vectorContentProjection from './lib/contentProjection';
-import { CONTENT_MODE_PROJECTED } from './lib/contentMode.js';
 import { SKIN_VARIANT_ID } from './lib/skinVariant.js';
-import { resolveContentModePreference } from './lib/adapters/thetree-content-projection';
 
 export default {
   name: 'TheTreeVectorSkin',
@@ -37,9 +31,6 @@ export default {
   data() {
     return {
       legacyDocumentCleanup: null,
-      contentStoreRuntime: null,
-      contentTransformSignature: 'projection-pending',
-      projectedContentAdapter: vectorContentProjection,
       skinVariantId: SKIN_VARIANT_ID
     };
   },
@@ -63,14 +54,6 @@ export default {
         storeState: this.$store.state,
         route: this.$route
       });
-    },
-    contentModePreference() {
-      return resolveContentModePreference(this.adapterContext);
-    },
-    activeContentProjection() {
-      return this.contentModePreference.mode === CONTENT_MODE_PROJECTED
-        ? this.projectedContentAdapter
-        : null;
     },
     legacyDocumentEnvironment() {
       const config = this.$store.state.config || {};
@@ -98,12 +81,6 @@ export default {
       });
     },
   },
-  created() {
-    this.installContentStoreRuntime();
-  },
-  beforeUpdate() {
-    this.syncContentStoreRuntime();
-  },
   watch: {
     legacyDocumentEnvironment: {
       deep: true,
@@ -116,39 +93,12 @@ export default {
     this.syncLegacyDocumentEnvironment();
   },
   beforeDestroy() {
-    this.teardownContentStoreRuntime();
     this.teardownLegacyDocumentEnvironment();
   },
   beforeUnmount() {
-    this.teardownContentStoreRuntime();
     this.teardownLegacyDocumentEnvironment();
   },
   methods: {
-    installContentStoreRuntime() {
-      if (this.contentStoreRuntime) return;
-      if (!this.activeContentProjection) {
-        this.contentTransformSignature = 'content-native';
-        return;
-      }
-      this.contentStoreRuntime = this.activeContentProjection.createStoreRuntime({
-        store: this.$store,
-        onUpdate: (signature) => {
-          this.contentTransformSignature = signature;
-        }
-      });
-      this.contentStoreRuntime.init();
-    },
-    syncContentStoreRuntime() {
-      if (this.contentStoreRuntime) {
-        this.contentStoreRuntime.sync();
-      }
-    },
-    teardownContentStoreRuntime() {
-      if (this.contentStoreRuntime) {
-        this.contentStoreRuntime.destroy();
-      }
-      this.contentStoreRuntime = null;
-    },
     syncLegacyDocumentEnvironment() {
       this.teardownLegacyDocumentEnvironment();
       this.legacyDocumentCleanup = applyLegacyDocumentEnvironment(this.legacyDocumentEnvironment);

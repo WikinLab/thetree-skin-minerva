@@ -1,0 +1,12 @@
+/*
+ * Content links retain thetree's palette and external-link decorator.
+ * Vector contributes no link colors to the host-content subtree; this bridge
+ * only restores the shared no-underline policy.
+ */
+:where(#mw-content-text[data-tt-host-content="1"]) :where(a),
+:where(#mw-content-text[data-tt-host-content="1"]) :where(a:hover),
+:where(#mw-content-text[data-tt-host-content="1"]) :where(a:focus),
+:where(#mw-content-text[data-tt-host-content="1"]) :where(a:active),
+:where(#mw-content-text[data-tt-host-content="1"]) :where(a:visited) {
+  text-decoration: none;
+}

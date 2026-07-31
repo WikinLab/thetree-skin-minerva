@@ -2,7 +2,7 @@
 
 MediaWiki Vector legacy 구조를 더트리 스킨으로 이식한 GPL-2.0-or-later 소스 패키지입니다.
 
-잠긴 MediaWiki·Vector·확장 기능 원본에서 CSS, Vue 컴포넌트, JavaScript와 런타임 자산을 결정론적으로 생성합니다. 더트리와 원본 실행 환경의 차이는 명시적인 host adapter와 content projection 경계에서만 처리합니다.
+잠긴 MediaWiki·Vector·DarkMode 원본에서 CSS, Vue 컴포넌트, JavaScript와 런타임 자산을 결정론적으로 생성합니다. 더트리와 원본 실행 환경의 차이는 명시적인 host adapter 경계에서만 처리합니다.
 
 ## 버전 체계
 
@@ -10,30 +10,19 @@ MediaWiki Vector legacy 구조를 더트리 스킨으로 이식한 GPL-2.0-or-la
 
 ## 원본과 호스트 경계
 
-- MediaWiki, Vector, DarkMode, Popups, Cite와 Codex 입력은 `UPSTREAM-LOCK.json`의 정확한 커밋이나 태그로 잠깁니다.
+- MediaWiki, Vector, DarkMode와 Codex 입력은 `UPSTREAM-LOCK.json`의 정확한 커밋이나 태그로 잠깁니다.
 - `ORIGIN-MANIFEST.json`은 upstream 입력, 로컬 소스 역할, 수정 포트, 생성 그래프와 출력 inventory를 선언합니다.
 - 수정하지 않은 upstream 런타임 자산과 생성 결과는 저장소에 중복 보관하지 않고 bootstrap 과정에서 물질화합니다.
-- 더트리 전용 차이는 `lib/adapters/`, `css/host-content/`와 선택적 content projection 계층에서만 소유합니다.
+- 더트리 전용 차이는 `lib/adapters/`와 `css/host-content/`에서만 소유합니다.
 - 페이지별 시각 보정이나 생성된 원본 파일의 직접 수정은 허용하지 않습니다.
 
-## 스킨 변형과 본문 모드
+## 브랜치 역할
 
-스킨의 정체성과 본문 처리 방식은 서로 독립된 축으로 관리합니다.
+- `main`은 Vector 크롬만 제공하는 기본 배포 브랜치입니다. 더트리가 생성한 본문 구조와 표현은 그대로 유지합니다.
+- `projection`은 항상 `main`을 기반으로 하며, MediaWiki ParserOutput 변환과 그 표면에 필요한 확장 기능만 별도 계층으로 추가합니다.
+- 공통 수정은 `main`에 커밋한 뒤 `projection`에서 `main`을 병합합니다. 프로젝션 전용 코드는 독립된 디렉터리 경계에 두어 공통 변경과 섞이지 않게 관리합니다.
 
-- `vector-legacy` 스킨 변형은 `contracts/skin-variant-contract.json`이 선언하며, Vector chrome과 `projected` 본문의 색상·요소 규칙은 Vector Legacy의 LESS 변수와 MediaWiki 요소 원본만을 기준으로 생성합니다.
-- `native` 본문 모드는 더트리가 만든 본문 구조와 호스트·브라우저의 링크 표현 및 외부 링크 아이콘을 유지하는 기본값입니다. 스킨은 네이티브 링크에 색상을 투영하지 않으며 밑줄만 표시하지 않습니다.
-- `projected` 본문 모드는 더트리 본문을 MediaWiki ParserOutput surface로 변환하는 선택 기능입니다.
-- 밝게·어둡게 같은 색상 모드는 스킨 변형이나 본문 모드와 섞지 않고 DarkMode 계약으로 별도 처리합니다.
-
-따라서 Vector 2022를 추가할 때는 별도 스킨 변형 계약에 그 변형의 upstream 변수와 링크 규칙 원본을 연결하고, `native`/`projected` 본문 모드 경계와 더트리 링크 의미 계약은 그대로 재사용할 수 있습니다.
-
-## 선택적 본문 프로젝션
-
-Vector 크롬과 더트리 프론트엔드의 원본 본문 출력은 항상 유지됩니다. `lib/contentProjection/index.js`는 일반 문서의 store 변환, 동적 WikiContent 변환, ParserOutput fragment navigation, category surface를 소유하는 선택적 계층입니다.
-
-프로젝션을 끄면 MediaWiki 본문 surface와 이를 요구하는 Popups 런타임이 생성되지 않습니다. 크롬, 검색, 포틀릿과 DarkMode는 계속 동작합니다. 공통 런타임은 확장 이름을 하드코딩하지 않고 capability 요구사항으로 활성화 여부를 결정합니다.
-
-선택적 [thetree-plugin-vector](https://github.com/Bvextratest/thetree-plugin-vector)는 브라우저 선택값을 기존 `skinData` SSR 계약으로 전달합니다. 플러그인이나 유효한 SSR 계약이 없으면 기본 `native` 모드를 유지합니다. 기존 플러그인의 boolean wire 형식은 adapter 경계에서 `native`/`projected` 모드로 변환합니다.
+따라서 기본 스킨과 프로젝션 배포본은 같은 이력을 공유하고, 별도 저장소를 운영하지 않아도 공통 수정사항을 한 번만 작성할 수 있습니다.
 
 ## DarkMode
 
@@ -94,15 +83,12 @@ npm run bootstrap -- --release 1.47
 
 `contracts/resource-loader-origin-contract.json`은 SkinModule feature, page style queue, host surface와 CSS ownership을 선언합니다. 스킨별 LESS 변수와 요소 입력은 `contracts/skin-variant-contract.json`에서 파생하므로 생성기에 특정 변형의 색상값이나 경로를 중복 하드코딩하지 않습니다. 생성기는 잠긴 MediaWiki lifecycle과 `ClientHtml` 정렬 규칙에서 최종 page-style 순서를 파생합니다.
 
-더트리는 스킨 CSS를 단일 정적 entry로 선택하므로 현재 번들은 문서 종류와 런타임 동작을 포괄하는 `vector-legacy-maximal-page` profile을 사용합니다. `css/screen.css`는 계산된 origin bundle 뒤에 host adapter만 로드합니다.
+더트리는 스킨 CSS를 단일 정적 entry로 선택하므로 현재 번들은 `vector-legacy` profile을 사용합니다. `css/screen.css`는 계산된 origin bundle 뒤에 host adapter만 로드합니다.
 
 ## 저장소 구조
 
 - `layout.vue`, `components/SkinLegacy.vue`: Vector 크롬과 더트리 장착 경계
-- `lib/skinVariant.js`, `lib/contentMode.js`: 런타임 스킨 변형과 직교 본문 모드 식별자
-- `lib/linkSemantics.js`: 네이티브 CSS와 ParserOutput 프로젝션이 공유하는 더트리·MediaWiki 링크 의미 계약
-- `lib/contentProjection/`, `css/content-projection.css`: 제거 가능한 본문 프로젝션 계층
-- `lib/parserOutput/`, `css/content-projection/`: ParserOutput compiler와 전용 adapter
+- `lib/skinVariant.js`: 런타임 스킨 변형 식별자
 - `lib/adapters/`, `css/host-content/`: 더트리 host adapter
 - `lib/ports/`: 원본 실행 환경과의 차이 때문에 수정이 필요한 source port
 - `tools/`: bootstrap, 생성기와 계약 검사

@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import {
-  CONTENT_SURFACE_MAP,
+  CONTENT_VIEW_MAP,
   HOST_VIEW_INVENTORY,
   validateLegacyHostViewContract
 } from '../lib/legacySpecialPageContract.js';
@@ -510,7 +510,7 @@ export function validateHostViewSourceClosure({
   frontendSourceRoot,
   backendSourceRoots,
   inventory = HOST_VIEW_INVENTORY,
-  rows = CONTENT_SURFACE_MAP
+  rows = CONTENT_VIEW_MAP
 }) {
   validateLegacyHostViewContract();
   validateHostViewExtractorContract();
@@ -522,14 +522,14 @@ export function validateHostViewSourceClosure({
 
   const declared = new Set(inventory);
   for (const contentName of backend.names) {
-    if (!declared.has(contentName)) errors.push(`backend contentName lacks a projection contract: ${contentName}`);
+    if (!declared.has(contentName)) errors.push(`backend contentName lacks a host view contract: ${contentName}`);
   }
   for (const contentName of declared) {
-    if (!backend.names.has(contentName)) errors.push(`projection contract is not emitted by the locked backend: ${contentName}`);
+    if (!backend.names.has(contentName)) errors.push(`host view contract is not emitted by the locked backend: ${contentName}`);
     const row = rows[contentName];
     const expectedFrontendPath = `src/views/contents/${contentName}.vue`;
     if (normalizeRelativePath(row?.source?.frontendPath) !== expectedFrontendPath) {
-      errors.push(`projection contract frontend path mismatch: ${contentName}`);
+      errors.push(`host view contract frontend path mismatch: ${contentName}`);
     }
     const frontendFile = frontendContentFile(frontendCheckout, frontendSourceRoot, contentName);
     if (!fs.existsSync(frontendFile) || !fs.statSync(frontendFile).isFile()) {

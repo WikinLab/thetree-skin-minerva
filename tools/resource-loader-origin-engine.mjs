@@ -65,12 +65,14 @@ function adaptOwnership(css, ownership, shared) {
     output = rewriteResourceLoaderSelectorRoots(output, { [selector]: replacement });
   }
   if (policy.isolateHostContent) {
-    const projectedSurfaceName = policy.projectedSurface || 'parserOutput';
-    const projectedSurface = surfaces[projectedSurfaceName];
-    if (!projectedSurface) throw new Error(`Unknown ResourceLoader projected surface: ${projectedSurfaceName}`);
+    const admittedSurfaceName = policy.admittedSurface || null;
+    const admittedSurface = admittedSurfaceName ? surfaces[admittedSurfaceName] : '';
+    if (admittedSurfaceName && !admittedSurface) {
+      throw new Error(`Unknown ResourceLoader admitted surface: ${admittedSurfaceName}`);
+    }
     output = isolateResourceLoaderOutputCssFromHostContent(output, {
       hostContentSelector: surfaces.hostContent,
-      projectedSurfaceSelector: projectedSurface,
+      admittedSurfaceSelector: admittedSurface,
       preserveAncestorClassNames: policy.preserveAncestorClassNames || [],
       preserveAncestorIdNames: policy.preserveAncestorIdNames || []
     });

@@ -5,10 +5,8 @@
     :lang="legacyDocumentEnvironment.htmlAttributes.lang"
     :dir="legacyDocumentEnvironment.htmlAttributes.dir"
     :data-tt-skin-variant="skinVariantId"
-    :data-tt-content-profile="activeContentProfile ? activeContentProfile.id : null"
-    :data-tt-content-transform="activeContentProfile ? contentTransformSignature : null"
   >
-    <SkinLegacy :content-profile="activeContentProfile">
+    <SkinLegacy>
       <nuxt />
     </SkinLegacy>
   </div>
@@ -24,7 +22,6 @@ import { applyLegacyDocumentEnvironment, makeLegacyDocumentEnvironment } from '.
 import { makeTheTreeAdapterContext } from './lib/legacyTheTreeAdapter';
 import { makeLegacySkinVars, makeLegacyThemeColor } from './lib/legacySkinVars';
 import { SKIN_VARIANT_ID } from './lib/skinVariant.js';
-import skinProfile from './lib/skinProfile.js';
 
 export default {
   name: 'TheTreeVectorSkin',
@@ -33,15 +30,9 @@ export default {
   },
   data() {
     return {
-      contentStoreRuntime: null,
-      contentTransformSignature: 'source-content',
       legacyDocumentCleanup: null,
-      skinProfile,
       skinVariantId: SKIN_VARIANT_ID
     };
-  },
-  created() {
-    this.installContentStoreRuntime();
   },
   head() {
     return {
@@ -63,9 +54,6 @@ export default {
         storeState: this.$store.state,
         route: this.$route
       });
-    },
-    activeContentProfile() {
-      return this.skinProfile.isEnabled(this.adapterContext) ? this.skinProfile : null;
     },
     legacyDocumentEnvironment() {
       const config = this.$store.state.config || {};
@@ -105,29 +93,12 @@ export default {
     this.syncLegacyDocumentEnvironment();
   },
   beforeDestroy() {
-    this.teardownContentStoreRuntime();
     this.teardownLegacyDocumentEnvironment();
   },
   beforeUnmount() {
-    this.teardownContentStoreRuntime();
     this.teardownLegacyDocumentEnvironment();
   },
   methods: {
-    installContentStoreRuntime() {
-      const profile = this.activeContentProfile;
-      if (!profile || typeof profile.createStoreRuntime !== 'function' || this.contentStoreRuntime) return;
-      this.contentStoreRuntime = profile.createStoreRuntime({
-        store: this.$store,
-        onUpdate: (signature) => {
-          this.contentTransformSignature = signature;
-        }
-      });
-      this.contentStoreRuntime.init();
-    },
-    teardownContentStoreRuntime() {
-      if (this.contentStoreRuntime) this.contentStoreRuntime.destroy();
-      this.contentStoreRuntime = null;
-    },
     syncLegacyDocumentEnvironment() {
       this.teardownLegacyDocumentEnvironment();
       this.legacyDocumentCleanup = applyLegacyDocumentEnvironment(this.legacyDocumentEnvironment);

@@ -34,10 +34,7 @@
     <template #html-body-content>
       <div
         id="mw-content-text"
-        ref="contentText"
         key="mw-content-text"
-        :class="contentRootBinding.classList"
-        v-bind="contentRootBinding.attributes"
         data-tt-host-content="1"
         :data-tt-host-content-name="adapterContext.pageContract.hostContentName || null"
       >
@@ -46,28 +43,7 @@
     </template>
 
     <template #html-categories>
-      <RawHtmlFragment v-if="!contentProfile" :html="skinData['html-categories'] || ''" />
-      <div
-        v-else-if="profileCategoryData.hasCategories"
-        id="catlinks"
-        class="catlinks"
-        data-mw="interface"
-        data-tt-vector-category-slot="1"
-        data-tt-vector-catlinks-surface="1"
-      >
-        <div id="mw-normal-catlinks" class="mw-normal-catlinks">
-          <span class="mw-catlinks-label">{{ profileCategoryData.label }}</span>:
-          <ul>
-            <li
-              v-for="category in profileCategoryData.items"
-              :key="category.id"
-              :class="category.itemClasses"
-            >
-              <nuxt-link :to="category.to" :class="category.linkClasses">{{ category.text }}</nuxt-link>
-            </li>
-          </ul>
-        </div>
-      </div>
+      <RawHtmlFragment :html="skinData['html-categories'] || ''" />
     </template>
 
     <template #html-after-content>
@@ -82,23 +58,16 @@ import Alert from '~/components/alert';
 
 import SkinLegacyOrigin from './skin-legacy.vue';
 import RawHtmlFragment from '../lib/legacyRawHtmlFragment';
-import { getLegacyDocument, makeTheTreeAdapterContext, makeViewItems } from '../lib/legacyTheTreeAdapter';
+import { makeTheTreeAdapterContext } from '../lib/legacyTheTreeAdapter';
 import { makeSkinLegacyData } from '../lib/legacySkinData';
 import { buildLegacyTitleHeadingData } from '../lib/legacyTitleData';
 import { getSearchModeFromSubmitEvent, makeSearchSubmitTargetForContext } from '../lib/legacySearchSubmit';
 import { makeSkinLegacyAdapterState } from '../lib/legacySkinAdapter';
-import { createSkinRuntimeController } from '../lib/runtime/createSkinRuntimeController';
 import { isDarkModeToggleTarget, toggleTheTreeDarkMode } from '../lib/adapters/mediawiki-darkmode';
 
 export default {
   name: 'SkinLegacy',
   mixins: [Common],
-  props: {
-    contentProfile: {
-      type: Object,
-      default: null
-    }
-  },
   components: {
     Alert,
     RawHtmlFragment,
@@ -106,8 +75,7 @@ export default {
   },
   data() {
     return {
-      isShowACLMessage: true,
-      legacySkinRuntimeController: null
+      isShowACLMessage: true
     };
   },
   computed: {
@@ -134,35 +102,11 @@ export default {
     pageTitle() {
       return this.titleData['page-title'] || '';
     },
-    contentSurface() {
-      return this.contentProfile ? this.contentProfile.resolveSurface(this.adapterContext) : {};
-    },
-    contentRootBinding() {
-      return this.contentProfile
-        ? this.contentProfile.contentRootBinding(this.contentSurface, this.adapterContext)
-        : { classList: {}, attributes: {} };
-    },
-    profileCategoryData() {
-      return this.contentProfile
-        ? this.contentProfile.makeCategoryData(this.adapterContext)
-        : { hasCategories: false, label: '', items: [] };
-    },
     skinAdapter() {
       return makeSkinLegacyAdapterState(this.adapterContext);
     },
     siteNoticeHtml() {
       return this.skinAdapter.siteNoticeHtml;
-    },
-    document() {
-      return getLegacyDocument(this.adapterContext);
-    },
-    baseViewItems() {
-      return makeViewItems(this.adapterContext);
-    },
-    profileRuntimeData() {
-      return this.contentProfile
-        ? this.contentProfile.makeRuntimeData(this.makeProfileRuntimeContext())
-        : {};
     },
     hasUnreadUserDiscussion() {
       return this.skinAdapter.hasUnreadUserDiscussion;
@@ -183,26 +127,7 @@ export default {
   watch: {
     $route() {
       this.isShowACLMessage = true;
-      this.resetLegacySkinRuntime();
-    },
-    document() {
-      this.resetLegacySkinRuntime();
-    },
-    baseViewItems() {
-      this.resetLegacySkinRuntime();
-    },
-    contentProfile() {
-      this.resetLegacySkinRuntime();
     }
-  },
-  mounted() {
-    this.initLegacySkinRuntime();
-  },
-  beforeDestroy() {
-    this.teardownLegacySkinRuntime();
-  },
-  beforeUnmount() {
-    this.teardownLegacySkinRuntime();
   },
   methods: {
     onSkinClick(event) {
@@ -213,10 +138,6 @@ export default {
         toggleTheTreeDarkMode(this.$store.state);
         return;
       }
-      if (this.contentProfile && this.contentProfile.handleClick(event, {
-        adapterContext: this.adapterContext,
-        storeState: this.$store.state
-      })) return;
       this.onDynamicContentClick(event);
     },
     submitSearch(event) {
@@ -233,67 +154,6 @@ export default {
       const mode = getSearchModeFromSubmitEvent(event);
       const target = makeSearchSubmitTargetForContext(q, mode, this.adapterContext);
       this.$router.push(target);
-    },
-    ensureLegacySkinRuntimeController() {
-      if (this.legacySkinRuntimeController) return this.legacySkinRuntimeController;
-      const profile = this.contentProfile;
-      const getRuntimeContext = () => this.makeProfileRuntimeContext();
-      this.legacySkinRuntimeController = createSkinRuntimeController({
-        createContentRuntime: profile && typeof profile.createMountedRuntime === 'function'
-          ? (optionsSource) => profile.createMountedRuntime(optionsSource)
-          : null,
-        getContentRuntimeOptions: getRuntimeContext,
-        getMediaWikiRuntimeData: () => this.profileRuntimeData,
-        getMediaWikiRuntimeOptions: () => profile ? profile.makeRuntimeOptions(getRuntimeContext()) : {},
-        extensions: profile ? profile.createExtensions({
-          getData: () => this.profileRuntimeData,
-          getOptions: () => profile.makeRuntimeOptions(getRuntimeContext())
-        }) : [],
-        getCapabilities: () => profile ? profile.capabilities : [],
-        schedule: (callback) => this.$nextTick(callback)
-      });
-      return this.legacySkinRuntimeController;
-    },
-    requestTheTreePageData(path, { signal } = {}) {
-      return this.internalRequest(path, { signal, noProgress: true });
-    },
-    makeProfileRuntimeContext() {
-      const config = this.$store.state.config || {};
-      return {
-        adapterContext: this.adapterContext,
-        contentSurface: this.contentSurface,
-        getRoot: () => this.$refs.contentText || null,
-        lang: config.lang || config['wiki.lang'] || 'ko',
-        config,
-        messages: config.mediaWikiMessages || config.mediawikiMessages || config.messages || null,
-        hostCapabilities: {
-          requestPageData: (path, requestOptions) => this.requestTheTreePageData(path, requestOptions)
-        },
-        settings: {
-          getLocalConfig: () => {
-            const state = this.$store.state;
-            if (state.localConfigInitialized) return state.localConfig || {};
-            try {
-              return JSON.parse(window.localStorage.getItem('thetree_settings')) || {};
-            } catch (error) {
-              return state.localConfig || {};
-            }
-          },
-          setLocalConfigValue: (key, value) => this.$store.state.localConfigSetValue(key, value)
-        }
-      };
-    },
-    initLegacySkinRuntime() {
-      this.ensureLegacySkinRuntimeController().init();
-    },
-    teardownLegacySkinRuntime() {
-      if (this.legacySkinRuntimeController) {
-        this.legacySkinRuntimeController.destroy();
-      }
-      this.legacySkinRuntimeController = null;
-    },
-    resetLegacySkinRuntime() {
-      this.ensureLegacySkinRuntimeController().reset();
     }
   }
 };

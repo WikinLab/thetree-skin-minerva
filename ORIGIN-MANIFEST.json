@@ -828,11 +828,6 @@
         "hostDependency": "thetree"
       },
       {
-        "path": "css/profile.css",
-        "kind": "skin-integration",
-        "hostDependency": "none"
-      },
-      {
         "path": "css/screen.css",
         "kind": "skin-integration",
         "hostDependency": "thetree"
@@ -965,21 +960,6 @@
       {
         "path": "lib/mustacheVueRuntime.js",
         "kind": "origin-runtime",
-        "hostDependency": "none"
-      },
-      {
-        "path": "lib/runtime/createExtensionRuntimeHost.js",
-        "kind": "skin-integration",
-        "hostDependency": "none"
-      },
-      {
-        "path": "lib/runtime/createSkinRuntimeController.js",
-        "kind": "skin-integration",
-        "hostDependency": "thetree"
-      },
-      {
-        "path": "lib/skinProfile.js",
-        "kind": "skin-integration",
         "hostDependency": "none"
       },
       {
@@ -1451,8 +1431,7 @@
       "originBundle": "css/vendor/resource-loader/page-styles.css",
       "adapterImports": [
         "css/vector-adapter.css",
-        "css/host-content.css",
-        "css/profile.css"
+        "css/host-content.css"
       ],
       "resourceLoaderContract": "contracts/resource-loader-origin-contract.json",
       "hostLimitation": "thetree skin CSS is selected as one static entry. Vector chrome is loaded while the complete host content subtree remains under thetree ownership."

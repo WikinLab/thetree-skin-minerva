@@ -863,6 +863,11 @@
         "hostDependency": "thetree"
       },
       {
+        "path": "lib/adapters/thetree-watchstar.js",
+        "kind": "host-adapter",
+        "hostDependency": "thetree"
+      },
+      {
         "path": "lib/legacyComponentData.js",
         "kind": "host-adapter",
         "hostDependency": "thetree"
@@ -999,6 +1004,11 @@
       },
       {
         "path": "tools/host-content-contract-test.mjs",
+        "kind": "generation-contract",
+        "hostDependency": "none"
+      },
+      {
+        "path": "tools/watchstar-adapter-contract-test.mjs",
         "kind": "generation-contract",
         "hostDependency": "none"
       },

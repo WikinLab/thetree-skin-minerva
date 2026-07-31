@@ -22,7 +22,7 @@
       "hostContent": "#mw-content-text[data-tt-host-content=\"1\"]",
       "hostOwnedContent": ":where(#mw-content-text[data-tt-host-content=\"1\"]:not([data-tt-vector-surface=\"parser-output\"]))",
       "parserOutput": ":where([data-tt-vector-surface=\"parser-output\"])",
-      "contentLinks": ":where([data-tt-vector-surface=\"parser-output\"], [data-tt-vector-catlinks-surface=\"1\"])",
+      "contentLinks": ":where([data-tt-vector-parser-output=\"1\"], [data-tt-vector-catlinks-surface=\"1\"])",
       "interface": ":where([data-tt-vector-surface=\"interface\"])",
       "category": ":where([data-tt-vector-catlinks-surface=\"1\"])",
       "heading": ":where([data-tt-vector-surface=\"parser-output\"], #firstHeading)",

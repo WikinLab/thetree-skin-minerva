@@ -6,6 +6,12 @@ import { fileURLToPath } from 'node:url';
 import postcss from 'postcss';
 import selectorParser from 'postcss-selector-parser';
 import { resolveResourceLoaderOriginContract } from './resource-loader-contract.mjs';
+import { elementNode, getAttr, getClasses, serializeHtml, textNode } from '../lib/parserOutput/domAst.js';
+import {
+  COMPILER_ROOT_ATTRIBUTE,
+  COMPILER_ROOT_ATTRIBUTE_VALUE,
+  makeParserOutputRoot
+} from '../lib/parserOutput/root.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -93,23 +99,41 @@ assert.equal(resourceLoaderContract.hostElementProjection, undefined);
 assert.equal(resourceLoaderContract.shared.ownershipPolicies['host-content-elements'], undefined);
 assert.equal(fs.existsSync(path.join(root, 'css/vendor/resource-loader/host-content-elements.css')), false);
 
-assert.match(resourceLoaderContract.shared.hostSurfaces.contentLinks, /data-tt-vector-surface/);
-assert.match(resourceLoaderContract.shared.hostSurfaces.contentLinks, /data-tt-vector-catlinks-surface/);
+const contentLinksSurface = resourceLoaderContract.shared.hostSurfaces.contentLinks;
+assert.equal(
+  contentLinksSurface,
+  ':where([data-tt-vector-parser-output="1"], [data-tt-vector-catlinks-surface="1"])'
+);
+assert.doesNotMatch(contentLinksSurface, /data-tt-vector-surface/);
+assert.match(contentLinksSurface, /data-tt-vector-catlinks-surface/);
 assert.equal(
   resourceLoaderContract.skinModule.ownershipRules.find((rule) => rule.pattern === '^content-links$')?.ownership,
   'content-links'
 );
+
+const projectedExternalRoot = makeParserOutputRoot([
+  elementNode('a', [
+    { name: 'class', value: 'external text' },
+    { name: 'href', value: 'https://example.test/' }
+  ], [textNode('External')])
+]);
+assert.equal(getClasses(projectedExternalRoot).includes('mw-parser-output'), true);
+assert.equal(getAttr(projectedExternalRoot, COMPILER_ROOT_ATTRIBUTE), COMPILER_ROOT_ATTRIBUTE_VALUE);
 assert.match(
-  generatedVectorCss,
-  /:where\(\[data-tt-vector-surface="parser-output"\], \[data-tt-vector-catlinks-surface="1"\]\) a\.new\s*\{\s*color:\s*#ba0000;/
+  serializeHtml(projectedExternalRoot),
+  /^<div class="mw-parser-output" data-tt-vector-parser-output="1"><a class="external text"/
 );
 assert.match(
   generatedVectorCss,
-  /:where\(\[data-tt-vector-surface="parser-output"\], \[data-tt-vector-catlinks-surface="1"\]\) a\.new:visited\s*\{\s*color:\s*#a55858;/
+  /:where\(\[data-tt-vector-parser-output="1"\], \[data-tt-vector-catlinks-surface="1"\]\) a\.new\s*\{\s*color:\s*#ba0000;/
 );
 assert.match(
   generatedVectorCss,
-  /:where\(\[data-tt-vector-surface="parser-output"\], \[data-tt-vector-catlinks-surface="1"\]\)\.mw-parser-output a\.external\s*\{\s*color:\s*#36b;/
+  /:where\(\[data-tt-vector-parser-output="1"\], \[data-tt-vector-catlinks-surface="1"\]\) a\.new:visited\s*\{\s*color:\s*#a55858;/
+);
+assert.match(
+  generatedVectorCss,
+  /:where\(\[data-tt-vector-parser-output="1"\], \[data-tt-vector-catlinks-surface="1"\]\)\.mw-parser-output a\.external\s*\{\s*color:\s*#36b;/
 );
 
 console.log('checked native host ownership and projected Vector link contract');

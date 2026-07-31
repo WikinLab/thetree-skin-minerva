@@ -21,7 +21,7 @@ MediaWiki Vector legacy 구조를 더트리 스킨으로 이식한 GPL-2.0-or-la
 스킨의 정체성과 본문 처리 방식은 서로 독립된 축으로 관리합니다.
 
 - `vector-legacy` 스킨 변형은 `contracts/skin-variant-contract.json`이 선언하며, Vector chrome과 `projected` 본문의 색상·요소 규칙은 Vector Legacy의 LESS 변수와 MediaWiki 요소 원본만을 기준으로 생성합니다.
-- `native` 본문 모드는 더트리가 만든 본문 구조와 링크 팔레트 및 외부 링크 아이콘을 유지하는 기본값입니다. 스킨은 네이티브 링크에 색상을 투영하지 않으며 밑줄만 표시하지 않습니다.
+- `native` 본문 모드는 더트리가 만든 본문 구조와 호스트·브라우저의 링크 표현 및 외부 링크 아이콘을 유지하는 기본값입니다. 스킨은 네이티브 링크에 색상을 투영하지 않으며 밑줄만 표시하지 않습니다.
 - `projected` 본문 모드는 더트리 본문을 MediaWiki ParserOutput surface로 변환하는 선택 기능입니다.
 - 밝게·어둡게 같은 색상 모드는 스킨 변형이나 본문 모드와 섞지 않고 DarkMode 계약으로 별도 처리합니다.
 

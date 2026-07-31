@@ -8,8 +8,7 @@ MediaWiki Vector legacy 구조를 더트리 스킨으로 이식한 GPL-2.0-or-la
 
 이 프로젝트는 [Semantic Versioning](https://semver.org/)을 사용합니다. 현재 버전은 `package.json`을 기준으로 하며 릴리스 이력은 Git 태그와 GitHub Releases에서 관리합니다.
 
-- `vX.Y.Z`: `main` 기본 배포
-- `projection-vX.Y.Z`: 같은 버전의 `projection` 배포
+- `vX.Y.Z`: 배포 태그
 
 ## 원본과 호스트 경계
 
@@ -18,14 +17,6 @@ MediaWiki Vector legacy 구조를 더트리 스킨으로 이식한 GPL-2.0-or-la
 - 수정하지 않은 upstream 런타임 자산과 생성 결과는 저장소에 중복 보관하지 않고 bootstrap 과정에서 물질화합니다.
 - 더트리 전용 차이는 `lib/adapters/`와 `css/host-content/`에서만 소유합니다.
 - 페이지별 시각 보정이나 생성된 원본 파일의 직접 수정은 허용하지 않습니다.
-
-## 브랜치 역할
-
-- `main`은 Vector 크롬만 제공하는 기본 배포 브랜치입니다. 더트리가 생성한 본문 구조와 표현은 그대로 유지합니다.
-- `projection`은 항상 `main`을 기반으로 하며, MediaWiki ParserOutput 변환과 그 표면에 필요한 확장 기능만 별도 계층으로 추가합니다.
-- 공통 수정은 `main`에 커밋한 뒤 `projection`에서 `main`을 병합합니다. 프로젝션 전용 코드는 독립된 디렉터리 경계에 두어 공통 변경과 섞이지 않게 관리합니다.
-
-따라서 기본 스킨과 프로젝션 배포본은 같은 이력을 공유하고, 별도 저장소를 운영하지 않아도 공통 수정사항을 한 번만 작성할 수 있습니다.
 
 ## DarkMode
 

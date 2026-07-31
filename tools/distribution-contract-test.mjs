@@ -34,8 +34,7 @@ const tracked = spawnSync('git', ['ls-files', '-z'], { cwd: root, encoding: 'utf
 if (tracked.status !== 0) throw new Error(tracked.stderr || 'Unable to enumerate tracked files');
 const forbidden = tracked.stdout.split('\0').filter(Boolean).filter((file) =>
   file.startsWith('.upstream/') || file.startsWith('vendor/') || file.startsWith('node_modules/') ||
-  file.startsWith('css/vendor/') || file.startsWith('lib/generated/') ||
-  file.startsWith('projection/lib/generated/')
+  file.startsWith('css/vendor/') || file.startsWith('lib/generated/')
 );
 assert.deepEqual(forbidden, [], `Materialized files are tracked: ${forbidden.join(', ')}`);
 

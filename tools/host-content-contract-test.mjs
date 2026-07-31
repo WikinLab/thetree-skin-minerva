@@ -45,8 +45,17 @@ const foundationRules = rules('css/host-content/foundation.css');
 assert.ok(foundationRules.length > 0);
 for (const rule of foundationRules) assert.match(rule.selector, /\[data-tt-host-content="1"\]/);
 assert.match(foundationSource, /box-sizing:\s*border-box/);
+const floatContainmentRule = foundationRules.find(
+  (rule) => rule.selector === ':where(#mw-content-text[data-tt-host-content="1"])::after'
+);
+assert.ok(floatContainmentRule);
+assert.deepEqual(
+  Object.fromEntries(floatContainmentRule.nodes.map((node) => [node.prop, node.value])),
+  { clear: 'both', content: '""', display: 'block' }
+);
 assert.doesNotMatch(foundationSource, /!important/);
 assert.doesNotMatch(foundationSource, /data-tt-vector/);
+assert.doesNotMatch(foundationSource, /submit-button|discussion|thread/);
 
 const linksSource = read('css/host-content/links.css');
 const linkRules = rules('css/host-content/links.css');

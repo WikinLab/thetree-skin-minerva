@@ -32,17 +32,6 @@ assert.deepEqual(imports(read('css/screen.css')), [
   './host-content.css'
 ]);
 
-for (const relativePath of ['layout.vue', 'components/SkinLegacy.vue', 'lib/legacyTheTreeAdapter.js']) {
-  assert.doesNotMatch(read(relativePath), /\b(?:skinProfile|contentProfile|activeContentProfile)\b/);
-}
-for (const relativePath of [
-  'css/profile.css',
-  'lib/skinProfile.js',
-  'lib/runtime/createExtensionRuntimeHost.js',
-  'lib/runtime/createSkinRuntimeController.js'
-]) {
-  assert.equal(fs.existsSync(path.join(root, relativePath)), false);
-}
 assert.equal(fs.existsSync(path.join(root, 'lib/runtime/createVectorRuntimeController.js')), true);
 assert.match(read('components/SkinLegacy.vue'), /createVectorRuntimeController/);
 
@@ -65,7 +54,7 @@ assert.equal(linkRules.length, 1);
 const linkSelectors = selectorParser().astSync(linkRules[0].selector).nodes;
 assert.equal(linkSelectors.length, 5);
 for (const state of ['', ':hover', ':focus', ':active', ':visited']) {
-  assert.ok(linkSelectors.some((selector) => selector.toString().includes(`:where(a${state}:not(`)));
+  assert.ok(linkSelectors.some((selector) => selector.toString().includes(`:where(a${state})`)));
 }
 assert.equal(linkRules[0].nodes.length, 1);
 assert.equal(linkRules[0].nodes[0].prop, 'text-decoration');

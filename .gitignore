@@ -6,8 +6,6 @@
 /images/
 /css/vendor/
 /lib/generated/
-/lib/ports/mediawiki-cite/
-/lib/ports/mediawiki-popups/src/wait.js
 /components/BottomDock.vue
 /components/Button.vue
 /components/Footer.vue

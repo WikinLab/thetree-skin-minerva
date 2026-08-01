@@ -18,7 +18,7 @@
       ,"mediawiki.skin.codex-design-tokens/theme-wikimedia-ui-mixin-light.less": "vendor/wikimedia-codex/packages/codex-design-tokens/dist/theme-wikimedia-ui-mixin-light.less"
     },
     "lessPreludeEntries": [
-      "vendor/wikimedia-codex/packages/codex-design-tokens/dist/theme-wikimedia-ui.less"
+      "vendor/mediawiki-minerva/resources/mediawiki.less/mediawiki.skin.variables.less"
     ],
     "runtimeAssetDirectory": "images",
     "hostSurfaces": {

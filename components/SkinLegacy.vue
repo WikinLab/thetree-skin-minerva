@@ -25,6 +25,12 @@
     <template #html-user-message>
       <div v-if="hasUnreadUserDiscussion" class="usermessage">
         현재 진행 중인 <nuxt-link :to="userDiscussionTarget">사용자 토론</nuxt-link>이 있습니다.
+        <button
+          type="button"
+          class="tt-usermessage-close"
+          aria-label="사용자 토론 알림 닫기"
+          @click="dismissUserDiscussion"
+        >×</button>
       </div>
 
       <alert v-if="isShowACLMessage && editAclMessageHtml" error closable @close="isShowACLMessage = false">
@@ -60,12 +66,15 @@ import Alert from '~/components/alert';
 
 import SkinLegacyOrigin from './skin-legacy.vue';
 import RawHtmlFragment from '../lib/legacyRawHtmlFragment';
+import VectorSettingModal from './VectorSettingModal';
 import { getLegacyDocument, makeTheTreeAdapterContext, makeViewItems } from '../lib/legacyTheTreeAdapter';
 import { makeSkinLegacyData } from '../lib/legacySkinData';
 import { buildLegacyTitleHeadingData } from '../lib/legacyTitleData';
 import { getSearchModeFromSubmitEvent, makeSearchSubmitTargetForContext } from '../lib/legacySearchSubmit';
 import { makeSkinLegacyAdapterState } from '../lib/legacySkinAdapter';
 import { isDarkModeToggleTarget, toggleTheTreeDarkMode } from '../lib/adapters/mediawiki-darkmode';
+import { createTheTreeSearchSuggestRuntime } from '../lib/adapters/thetree-search-suggest';
+import { isSettingsToggleTarget } from '../lib/adapters/thetree-settings';
 import { createVectorRuntimeController } from '../lib/runtime/createVectorRuntimeController.js';
 
 export default {
@@ -88,8 +97,8 @@ export default {
         storeState: this.$store.state,
         route: this.$route,
         linkBuilders: {
-          documentAction: (document, action) => this.doc_action_link(document, action),
-          userDocument: (name) => this.user_doc(name),
+          documentAction: (document, action, query) => this.doc_action_link(document, action, query),
+          userDocument: (name, type) => this.user_doc(name, type),
           contribution: (uuid) => this.contribution_link(uuid)
         }
       });
@@ -164,7 +173,26 @@ export default {
         toggleTheTreeDarkMode(this.$store.state);
         return;
       }
+      const settingsToggle = isSettingsToggleTarget(event && event.target);
+      if (settingsToggle) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.$vfm.show({ component: VectorSettingModal });
+        return;
+      }
       this.onDynamicContentClick(event);
+    },
+    dismissUserDiscussion() {
+      const value = this.skinAdapter.userDiscussionKey;
+      if (!value) return;
+      if (typeof this.$store.commit === 'function') {
+        this.$store.commit('localConfigSetValue', {
+          key: 'wiki.hide_user_document_discuss',
+          value
+        });
+      } else if (typeof this.$store.state.localConfigSetValue === 'function') {
+        this.$store.state.localConfigSetValue('wiki.hide_user_document_discuss', value);
+      }
     },
     submitSearch(event) {
       const form = event && event.target;
@@ -184,6 +212,23 @@ export default {
     ensureVectorRuntimeController() {
       if (this.vectorRuntimeController) return this.vectorRuntimeController;
       this.vectorRuntimeController = createVectorRuntimeController({
+        getVectorRuntimeOptions: () => ({
+          pageReady: {
+            loadSearchModule: (moduleName) => {
+              if (moduleName !== 'mediawiki.searchSuggest') return null;
+              const runtime = createTheTreeSearchSuggestRuntime({
+                requestSuggestions: (query, signal) => this.internalRequest(
+                  `/Complete?q=${encodeURIComponent(query)}`,
+                  { signal, noProgress: true }
+                ),
+                navigateDocument: (title) => this.$router.push(this.doc_action_link(title, 'w')),
+                navigateSearch: (query) => this.$router.push({ path: '/Search', query: { q: query } })
+              });
+              runtime.init();
+              return runtime;
+            }
+          }
+        }),
         schedule: (callback) => this.$nextTick(callback)
       });
       return this.vectorRuntimeController;

@@ -43,3 +43,86 @@
 .vector-menu-heading {
   word-break: normal;
 }
+
+/* the tree state adapters applied to unchanged Vector chrome slots. */
+#pt-notifications a {
+  font-weight: 600;
+}
+
+.vector-menu-tabs-legacy li.tt-discuss-progress {
+  background-image: linear-gradient(to top, #14866d 0, #d5f3ea 1px, #fff 100%);
+}
+
+.skin-theme-clientpref-night .vector-menu-tabs-legacy li.tt-discuss-progress {
+  background-image: linear-gradient(to top, #54b399 0, #173b34 1px, #101418 100%);
+}
+
+.usermessage .tt-usermessage-close {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  float: right;
+  font: inherit;
+  font-weight: 700;
+  line-height: 1;
+  margin-left: 1em;
+  padding: 0;
+}
+
+#simpleSearch {
+  position: relative;
+}
+
+#simpleSearch .tt-vector-search-suggestions {
+  background: #fff;
+  border: 1px solid #a2a9b1;
+  box-sizing: border-box;
+  color: #202122;
+  left: -1px;
+  position: absolute;
+  right: -1px;
+  top: 100%;
+  z-index: 100;
+}
+
+#simpleSearch .tt-vector-search-suggestions[hidden] {
+  display: none;
+}
+
+#simpleSearch .suggestions-result,
+#simpleSearch .suggestions-special-item {
+  cursor: pointer;
+  line-height: 1.5;
+  overflow: hidden;
+  padding: 0.35em 0.7em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#simpleSearch .suggestions-result:hover,
+#simpleSearch .suggestions-result-current,
+#simpleSearch .suggestions-special-item:hover {
+  background: #eaecf0;
+}
+
+#simpleSearch .suggestions-special {
+  border-top: 1px solid #c8ccd1;
+  color: #36c;
+}
+
+.theseed-dark-mode #simpleSearch .tt-vector-search-suggestions,
+.skin-theme-clientpref-night #simpleSearch .tt-vector-search-suggestions {
+  background: #202122;
+  border-color: #54595d;
+  color: #eaecf0;
+}
+
+.theseed-dark-mode #simpleSearch .suggestions-result:hover,
+.theseed-dark-mode #simpleSearch .suggestions-result-current,
+.theseed-dark-mode #simpleSearch .suggestions-special-item:hover,
+.skin-theme-clientpref-night #simpleSearch .suggestions-result:hover,
+.skin-theme-clientpref-night #simpleSearch .suggestions-result-current,
+.skin-theme-clientpref-night #simpleSearch .suggestions-special-item:hover {
+  background: #404244;
+}

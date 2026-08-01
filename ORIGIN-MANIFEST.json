@@ -793,6 +793,11 @@
         "hostDependency": "thetree"
       },
       {
+        "path": "components/VectorSettingModal.vue",
+        "kind": "host-adapter",
+        "hostDependency": "thetree"
+      },
+      {
         "path": "contracts/resource-loader-origin-contract.json",
         "kind": "generation-contract",
         "hostDependency": "none"
@@ -849,6 +854,16 @@
       },
       {
         "path": "lib/adapters/thetree-mediawiki/runtime.js",
+        "kind": "host-adapter",
+        "hostDependency": "thetree"
+      },
+      {
+        "path": "lib/adapters/thetree-search-suggest.js",
+        "kind": "host-adapter",
+        "hostDependency": "thetree-browser-dom"
+      },
+      {
+        "path": "lib/adapters/thetree-settings.js",
         "kind": "host-adapter",
         "hostDependency": "thetree"
       },
@@ -999,6 +1014,11 @@
       },
       {
         "path": "tools/distribution-contract-test.mjs",
+        "kind": "generation-contract",
+        "hostDependency": "none"
+      },
+      {
+        "path": "tools/host-adapter-feature-contract-test.mjs",
         "kind": "generation-contract",
         "hostDependency": "none"
       },

@@ -32,8 +32,13 @@ assert.deepEqual(imports(read('css/screen.css')), [
   './host-content.css'
 ]);
 
+const skinLegacySource = read('components/SkinLegacy.vue');
 assert.equal(fs.existsSync(path.join(root, 'lib/runtime/createVectorRuntimeController.js')), true);
-assert.match(read('components/SkinLegacy.vue'), /createVectorRuntimeController/);
+assert.match(skinLegacySource, /createVectorRuntimeController/);
+assert.match(skinLegacySource, /<div v-if="siteNoticeHtml" id="siteNotice">/);
+assert.match(skinLegacySource, /<div id="localNotice" data-nosnippet>/);
+assert.match(skinLegacySource, /<div class="sitenotice">\s*<p v-html="siteNoticeHtml"><\/p>/);
+assert.doesNotMatch(skinLegacySource, /id="siteNotice"[^>]*\bmw-body-content\b/);
 
 assert.deepEqual(imports(read('css/host-content.css')), [
   './host-content/foundation.css',

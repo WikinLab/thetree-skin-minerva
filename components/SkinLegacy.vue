@@ -6,9 +6,11 @@
     @click="onSkinClick($event)"
   >
     <template #html-site-notice>
-      <div v-if="siteNoticeHtml" id="siteNotice" class="mw-body-content">
-        <div id="localNotice">
-          <span v-html="siteNoticeHtml"></span>
+      <div v-if="siteNoticeHtml" id="siteNotice">
+        <div id="localNotice" data-nosnippet>
+          <div class="sitenotice">
+            <p v-html="siteNoticeHtml"></p>
+          </div>
         </div>
       </div>
     </template>

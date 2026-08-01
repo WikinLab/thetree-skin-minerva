@@ -25,7 +25,15 @@ function readJson(root, rel) {
 }
 
 function moduleMap(document, rootKey) {
-  return rootKey ? document[rootKey] || {} : document;
+  if (!rootKey) return document;
+  let value = document;
+  for (const segment of String(rootKey).split('.').filter(Boolean)) value = value?.[segment];
+  return value || {};
+}
+
+function normalizeModuleDefinition(value) {
+  if (typeof value === 'string' || Array.isArray(value)) return { styles: value };
+  return value;
 }
 
 function normalizeStyles(styles) {
@@ -320,7 +328,7 @@ async function compileEntry(root, contract, moduleName, output, entry, lessMessa
 async function compileModule(root, contract, record) {
   const metadata = readJson(root, record.metadata);
   const modules = moduleMap(metadata, record.metadataRoot);
-  const module = modules[record.name] || (metadata.module === record.name ? metadata : null);
+  const module = normalizeModuleDefinition(modules[record.name] || (metadata.module === record.name ? metadata : null));
   if (!module) throw new Error(`ResourceLoader module ${record.name} is absent from ${record.metadata}`);
 
   const entries = [];
@@ -348,6 +356,12 @@ async function compileModule(root, contract, record) {
   const parts = [];
   const codexCss = resolveCodexCss(root, module, contract);
   if (codexCss) parts.push(codexCss);
+  if (String(module.class || '').endsWith('OOUIIconPackModule')) {
+    parts.push(await compileIconPackModule(root, contract, record, module));
+  }
+  if (String(module.class || '').endsWith('ImageModule')) {
+    parts.push(compileImageModule(root, record, module));
+  }
   for (const entry of uniqueEntries(entries)) {
     const compiled = await compileEntry(root, contract, record.name, record.output, entry, lessMessages);
     parts.push(compiled.css);
@@ -359,6 +373,77 @@ async function compileModule(root, contract, record) {
     }),
     lessMessages
   };
+}
+
+function codexIconVariable(root, contract, icon) {
+  const iconPaths = contract.shared.importAliases?.['@wikimedia/codex-icons/codex-icon-paths.less'];
+  if (typeof iconPaths !== 'string') {
+    throw new Error('OOUIIconPackModule generation requires a single Codex icon-paths import alias.');
+  }
+  const source = fs.readFileSync(path.join(root, iconPaths), 'utf8');
+  const available = new Set([...source.matchAll(/^@cdx-icon-([a-z0-9-]+)\s*:/gm)].map((match) => match[1]));
+  const kebab = String(icon).replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
+  const candidates = [kebab, String(icon).toLowerCase(), kebab.replaceAll('-', '')];
+  const resolved = candidates.find((candidate) => available.has(candidate));
+  if (!resolved) throw new Error(`Codex has no deterministic icon-path mapping for OOUI icon ${icon}.`);
+  return `@cdx-icon-${resolved}`;
+}
+
+async function compileIconPackModule(root, contract, record, module) {
+  const selectorPattern = module.selectorWithoutVariant;
+  if (typeof selectorPattern !== 'string' || !selectorPattern.includes('{name}')) {
+    throw new Error(`OOUIIconPackModule ${record.name} lacks selectorWithoutVariant.`);
+  }
+  const icons = asArray(module.icons).filter((icon) => typeof icon === 'string');
+  if (!icons.length) throw new Error(`OOUIIconPackModule ${record.name} contains no icons.`);
+  const color = module.defaultColor || '@color-base';
+  const append = [...new Set(icons)].map((icon) => {
+    const selector = selectorPattern.replaceAll('{name}', icon);
+    return `${selector} {\n  .cdx-mixin-css-icon( ${codexIconVariable(root, contract, icon)}, ${color}, @param-is-button-icon: true );\n}`;
+  }).join('\n\n');
+  return compileResourceLoaderStyleModuleCss({
+    root,
+    moduleName: `${record.name}.icon-pack`,
+    entrypoints: ['vendor/mediawiki-core/resources/src/mediawiki.less/mediawiki.skin.codex/mixins/codex-public-mixins.less'],
+    preludeEntries: [
+      ...contract.shared.lessPreludeEntries,
+      contract.shared.importAliases['@wikimedia/codex-icons/codex-icon-paths.less']
+    ],
+    importPaths: contract.shared.importPaths,
+    importAliases: contract.shared.importAliases,
+    append
+  });
+}
+
+function imageFileEntries(value) {
+  if (typeof value === 'string') return [{ direction: null, file: value }];
+  if (!value || typeof value !== 'object') return [];
+  const file = value.file ?? value;
+  if (typeof file === 'string') return [{ direction: null, file }];
+  return Object.entries(file || {})
+    .filter(([, pathname]) => typeof pathname === 'string')
+    .map(([direction, pathname]) => ({ direction, file: pathname }));
+}
+
+function compileImageModule(root, record, module) {
+  if (!record.imageOutputDirectory) {
+    throw new Error(`ImageModule ${record.name} requires imageOutputDirectory.`);
+  }
+  const selectorPattern = module.selectorWithoutVariant || '{name}';
+  const lines = [];
+  for (const [name, value] of Object.entries(module.images || {})) {
+    const selector = selectorPattern.replaceAll('{name}', name);
+    for (const entry of imageFileEntries(value)) {
+      const output = path.posix.join(record.imageOutputDirectory, path.posix.basename(entry.file));
+      const relative = posix(path.relative(path.dirname(path.join(root, record.output)), path.join(root, output)));
+      const directionalSelector = entry.direction === 'ltr' || entry.direction === 'rtl'
+        ? selector.split(',').map((part) => `[dir="${entry.direction}"] ${part.trim()}`).join(', ')
+        : selector;
+      lines.push(`${directionalSelector} {\n  background-image: url("${relative}");\n}`);
+    }
+  }
+  if (!lines.length) throw new Error(`ImageModule ${record.name} contains no images.`);
+  return lines.join('\n\n');
 }
 
 function lexicalStringLiterals(source) {
@@ -501,7 +586,7 @@ function moduleDefinition(root, record) {
   if (!record?.metadata || !record?.name) return null;
   const metadata = readJson(root, record.metadata);
   const modules = moduleMap(metadata, record.metadataRoot);
-  return modules[record.name] || (metadata.module === record.name ? metadata : null);
+  return normalizeModuleDefinition(modules[record.name] || (metadata.module === record.name ? metadata : null));
 }
 
 function resourceOutputRecords(contract) {
@@ -514,6 +599,11 @@ function resourceOutputRecords(contract) {
 
 function modulesFromQueueSource(root, source) {
   if (source.kind === 'generated-output') return [source.name];
+  if (source.kind === 'declared-modules') {
+    const modules = asArray(source.modules).filter((item) => typeof item === 'string');
+    if (!modules.length) throw new Error('declared-modules page style source contains no modules.');
+    return modules;
+  }
   if (source.kind === 'skin-option-styles') {
     const metadata = readJson(root, source.metadata);
     const args = metadata.ValidSkinNames?.[source.skin]?.args;
@@ -529,6 +619,16 @@ function modulesFromQueueSource(root, source) {
     const method = phpMethodBody(text, source.method, file);
     const modules = callStringArguments(method, 'addModuleStyles', file);
     if (modules.length === 0) throw new Error(`No addModuleStyles modules found in ${file}::${source.method}`);
+    return modules;
+  }
+  if (source.kind === 'php-array-append-modules') {
+    const file = source.file;
+    const text = fs.readFileSync(path.join(root, file), 'utf8');
+    const method = phpMethodBody(text, source.method, file);
+    const variable = String(source.variable || 'styles').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const pattern = new RegExp(`\\$${variable}\\s*\\[\\s*\\]\\s*=\\s*(['\"])([^'\"]+)\\1`, 'g');
+    const modules = [...method.matchAll(pattern)].map((match) => match[2]);
+    if (!modules.length) throw new Error(`No $${source.variable || 'styles'}[] modules found in ${file}::${source.method}`);
     return modules;
   }
   if (source.kind === 'extension-attribute-modules') {

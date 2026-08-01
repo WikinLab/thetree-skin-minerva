@@ -2,13 +2,13 @@
   <div
     :class="rootClassList"
     :style="skinVars"
-    :lang="legacyDocumentEnvironment.htmlAttributes.lang"
-    :dir="legacyDocumentEnvironment.htmlAttributes.dir"
+    :lang="minervaDocumentEnvironment.htmlAttributes.lang"
+    :dir="minervaDocumentEnvironment.htmlAttributes.dir"
     :data-tt-skin-variant="skinVariantId"
   >
-    <SkinLegacy>
+    <SkinMinerva>
       <nuxt />
-    </SkinLegacy>
+    </SkinMinerva>
   </div>
 </template>
 
@@ -17,31 +17,31 @@
 </style>
 
 <script>
-import SkinLegacy from './components/SkinLegacy';
-import { applyLegacyDocumentEnvironment, makeLegacyDocumentEnvironment } from './lib/legacyDocumentEnvironment';
+import SkinMinerva from './components/SkinMinerva';
+import { applyMinervaDocumentEnvironment, makeMinervaDocumentEnvironment } from './lib/minervaDocumentEnvironment';
 import { makeTheTreeAdapterContext } from './lib/legacyTheTreeAdapter';
-import { makeLegacySkinVars, makeLegacyThemeColor } from './lib/legacySkinVars';
+import { makeMinervaSkinVars, makeMinervaThemeColor } from './lib/minervaSkinVars';
 import { SKIN_VARIANT_ID } from './lib/skinVariant.js';
 
 export default {
-  name: 'TheTreeVectorSkin',
+  name: 'TheTreeMinervaSkin',
   components: {
-    SkinLegacy
+    SkinMinerva
   },
   data() {
     return {
-      legacyDocumentCleanup: null,
+      minervaDocumentCleanup: null,
       skinVariantId: SKIN_VARIANT_ID
     };
   },
   head() {
     return {
       htmlAttrs: {
-        ...this.legacyDocumentEnvironment.htmlAttributes,
-        class: this.legacyDocumentEnvironment.htmlClasses.join(' ')
+        ...this.minervaDocumentEnvironment.htmlAttributes,
+        class: this.minervaDocumentEnvironment.htmlClasses.join(' ')
       },
       bodyAttrs: {
-        class: this.legacyDocumentEnvironment.bodyClasses.join(' ')
+        class: this.minervaDocumentEnvironment.bodyClasses.join(' ')
       },
       meta: [
         { name: 'theme-color', content: this.themeColor }
@@ -55,10 +55,10 @@ export default {
         route: this.$route
       });
     },
-    legacyDocumentEnvironment() {
+    minervaDocumentEnvironment() {
       const config = this.$store.state.config || {};
       const pageContract = this.adapterContext.pageContract;
-      return makeLegacyDocumentEnvironment({
+      return makeMinervaDocumentEnvironment({
         lang: config.lang || config['wiki.lang'] || 'ko',
         dir: config.dir || config['wiki.dir'] || 'ltr',
         namespace: pageContract.namespaceId,
@@ -68,45 +68,45 @@ export default {
     },
     rootClassList() {
       return {
-        ...Object.fromEntries(this.legacyDocumentEnvironment.rootClasses.map((className) => [className, true]))
+        ...Object.fromEntries(this.minervaDocumentEnvironment.rootClasses.map((className) => [className, true]))
       };
     },
     themeColor() {
-      return makeLegacyThemeColor(this.$store.state.config || {}, this.$store.state.currentTheme);
+      return makeMinervaThemeColor(this.$store.state.config || {}, this.$store.state.currentTheme);
     },
     skinVars() {
-      return makeLegacySkinVars({
+      return makeMinervaSkinVars({
         config: this.$store.state.config || {},
-        documentEnvironment: this.legacyDocumentEnvironment
+        documentEnvironment: this.minervaDocumentEnvironment
       });
     },
   },
   watch: {
-    legacyDocumentEnvironment: {
+    minervaDocumentEnvironment: {
       deep: true,
       handler() {
-        this.syncLegacyDocumentEnvironment();
+        this.syncMinervaDocumentEnvironment();
       }
     }
   },
   mounted() {
-    this.syncLegacyDocumentEnvironment();
+    this.syncMinervaDocumentEnvironment();
   },
   beforeDestroy() {
-    this.teardownLegacyDocumentEnvironment();
+    this.teardownMinervaDocumentEnvironment();
   },
   beforeUnmount() {
-    this.teardownLegacyDocumentEnvironment();
+    this.teardownMinervaDocumentEnvironment();
   },
   methods: {
-    syncLegacyDocumentEnvironment() {
-      this.teardownLegacyDocumentEnvironment();
-      this.legacyDocumentCleanup = applyLegacyDocumentEnvironment(this.legacyDocumentEnvironment);
+    syncMinervaDocumentEnvironment() {
+      this.teardownMinervaDocumentEnvironment();
+      this.minervaDocumentCleanup = applyMinervaDocumentEnvironment(this.minervaDocumentEnvironment);
     },
-    teardownLegacyDocumentEnvironment() {
-      if (this.legacyDocumentCleanup) {
-        this.legacyDocumentCleanup();
-        this.legacyDocumentCleanup = null;
+    teardownMinervaDocumentEnvironment() {
+      if (this.minervaDocumentCleanup) {
+        this.minervaDocumentCleanup();
+        this.minervaDocumentCleanup = null;
       }
     }
   }

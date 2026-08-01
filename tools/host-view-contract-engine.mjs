@@ -422,7 +422,10 @@ export function validateHostViewExtractorContract() {
 }
 
 function gitHead(checkout) {
-  const result = spawnSync(process.platform === 'win32' ? 'git.exe' : 'git', ['-C', checkout, 'rev-parse', 'HEAD'], {
+  const result = spawnSync(process.platform === 'win32' ? 'git.exe' : 'git', [
+    '-c', `safe.directory=${path.resolve(checkout).replaceAll('\\', '/')}`,
+    '-C', checkout, 'rev-parse', 'HEAD'
+  ], {
     stdio: ['ignore', 'pipe', 'pipe'],
     encoding: 'utf8',
     windowsHide: true

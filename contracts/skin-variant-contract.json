@@ -1,10 +1,10 @@
 {
   "schema": 1,
-  "family": "vector",
-  "id": "vector-legacy",
-  "upstreamSkinName": "vector",
+  "family": "minerva",
+  "id": "minerva-standalone",
+  "upstreamSkinName": "minerva",
   "upstream": {
-    "lessVariables": "vendor/mediawiki-vector-legacy/resources/mediawiki.less/vector/mediawiki.skin.variables.less",
+    "lessVariables": "vendor/mediawiki-minerva/resources/mediawiki.less/mediawiki.skin.variables.less",
     "elementsSource": "vendor/mediawiki-core/resources/src/mediawiki.skinning/elements.less",
     "contentLinksSource": "vendor/mediawiki-core/resources/src/mediawiki.skinning/content.links.less"
   }

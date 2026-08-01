@@ -1,88 +1,51 @@
-# thetree-skin-vector
+# thetree-skin-minerva
 
-the tree용 MediaWiki Vector 레거시 스킨입니다.
+the tree용 MediaWiki MinervaNeue 단독 스킨입니다. Minerva의 반응형 DOM과 스타일을 그대로 사용하므로 모바일과 데스크톱을 한 스킨으로 지원합니다.
 
-> [!WARNING]
-> 현재 모바일 환경은 지원하지 않습니다. 데스크톱 환경에서 사용해 주세요.
+현재 목표는 Vector/레거시와 합치기 전, Minerva 자체를 독립적으로 완성하고 검증하는 것입니다.
 
-## 주요 기능
+## 원본과 생성 방식
 
-- MediaWiki Vector 레거시 디자인
-- 데스크톱 화면 지원
-- 밝은 화면과 어두운 화면 전환
-- the tree의 문서 도구, 검색과 사용자 메뉴 지원
-- 로그인 사용자의 문서 주시 및 해제
+- MinervaNeue `REL1_46` commit `80301ab22e4fd51d72c0b511ea1d8dc33007a5fb`
+- MediaWiki core `REL1_46` commit `94b1bc0df0d57a470404266bed914f8584ead52f`
+- Wikimedia Codex `v2.3.1` commit `451588b3ed4e610a50b9b656ef528898e049bb2f`
+- Mustache 템플릿은 `components/`의 Vue 컴포넌트로 기계 변환
+- ResourceLoader LESS, Codex 컴포넌트 CSS, ImageModule 및 아이콘 팩은 `css/vendor/`로 기계 생성
+- Minerva의 조건부 스타일 목록은 `SkinMinerva.php`의 `$styles[]` 선언에서 자동 추출
+- upstream checkout, vendor 및 생성 결과는 배포 소스에 포함하지 않고 `npm run bootstrap`으로 재현
+
+the tree 고유의 라우트, 세션, ACL, 검색, 설정 및 테마 상태는 `lib/`의 호스트 어댑터에서만 변환합니다. Minerva가 소유하는 DOM을 어댑터에서 다시 작성하지 않습니다.
 
 ## 요구 사항
 
-- the tree 관리자 계정의 `developer` 권한
-- Node.js 20.19.1 이상과 npm 10.8.2 이상
-- Git이 설치되어 있고 GitHub에 접속할 수 있는 서버
-- the tree가 설치된 서버의 명령줄 접근 권한
+- Node.js 20.19.1 이상
+- npm 10.8.2 이상
+- Git 및 GitHub 네트워크 접근
+- the tree 스킨 빌드 환경
 
-## 설치
+## 준비와 검증
 
-1. the tree에서 **관리자 → 개발자 설정**으로 이동합니다.
-2. **스킨** 항목에 다음 내용을 입력합니다.
-   - 이름: `vector`
-   - URL: `https://github.com/Lumina0306/thetree-skin-vector`
-3. **추가**를 누릅니다.
-4. 스킨 설치 디렉터리에서 다음 명령을 실행합니다.
+```bash
+npm run bootstrap
+npm run check
+```
 
-   ```bash
-   npm run bootstrap
-   ```
-
-5. **관리자 → 개발자 설정 → 스킨 → vector**로 돌아가 **빌드**를 누릅니다.
-6. 관리자 설정에서 기본 스킨을 `vector`로 지정하거나, 사용자 설정에서 `vector`를 선택합니다.
-
-## 설정
-
-기본 설정으로 바로 사용할 수 있습니다. 로고와 문구를 바꾸려면 the tree 설정에 다음 값을 지정합니다.
-
-| 설정 키 | 설명 | 기본값 |
-| --- | --- | --- |
-| `skin.vector.logo_image` | 왼쪽 위 로고의 CSS 배경 이미지 | `wiki.logo_url` |
-| `skin.vector.logo_title` | 로고에 마우스를 올렸을 때 표시할 문구 | 위키 이름 |
-| `skin.vector.footer_html` | 푸터에 표시할 HTML | `wiki.footer_text` |
-| `skin.vector.search_placeholder` | 검색창에 표시할 안내 문구 | `검색` |
-| `skin.vector.navigation_heading` | 사이드바 첫 메뉴의 제목 | `둘러보기` |
-| `skin.vector.theme_color` | 밝은 화면에서 사용할 테마 색상 | `#eaecf0` |
-| `skin.vector.tagline` | 문서 제목 아래에 표시할 문구 | `From 위키 이름` |
-
-## 업데이트
-
-1. **관리자 → 개발자 설정 → 스킨 → vector**에서 **업데이트**를 누릅니다.
-2. 스킨 설치 디렉터리에서 다음 명령을 실행합니다.
-
-   ```bash
-   npm run bootstrap
-   ```
-
-3. 같은 화면에서 **빌드**를 누릅니다.
-
-## 문제 해결
-
-빌드 중 생성 파일이나 원본 파일에 관한 오류가 나오면 다음 명령으로 필요한 파일을 처음부터 다시 준비한 뒤 관리자 화면에서 다시 빌드합니다.
+완전한 콜드 재생성은 다음과 같습니다.
 
 ```bash
 npm run bootstrap -- --clean
 ```
 
-원본을 내려받는 과정에서 멈춘 경우에는 서버에서 GitHub에 연결할 수 있는지 확인합니다.
+기본 bootstrap은 `UPSTREAM-LOCK.json`의 exact commit만 사용합니다. 움직이는 `REL1_46` 헤드를 반영하려면 명시적으로 `--refresh`를 사용해야 합니다.
 
-## 면책
+```bash
+npm run bootstrap -- --refresh
+```
 
-이 스킨을 사용하면서 발생하는 문제에 대해서는 책임지지 않습니다.
+## 통합 방향
 
-## 개발 도구
+이 브랜치는 Minerva 단독 배포 단위입니다. 이후 레거시/Vector와 합칠 때도 생성된 Minerva DOM과 CSS는 그대로 유지하고, 어느 스킨을 활성화할지 결정하는 선택 계층만 상위에 추가하는 것을 원칙으로 합니다.
 
-이 프로젝트의 개발에는 OpenAI ChatGPT가 사용되었습니다.
+## 라이선스
 
-## 버전과 라이선스
-
-현재 버전은 `package.json`에서 확인할 수 있으며, 릴리스 태그는 `vX.Y.Z` 형식을 사용합니다.
-
-이 프로젝트는 GPL-2.0-or-later로 배포됩니다. 원본 소스의 저작권과 라이선스는 `NOTICE`, `THIRD_PARTY_NOTICES.md`와 각 원본의 라이선스를 따릅니다.
-
-이 스킨은 MediaWiki의 Vector 스킨과 DarkMode 확장 기능을 바탕으로 제작되었습니다.
+GPL-2.0-or-later. 자세한 원본 및 제3자 고지는 `NOTICE`, `THIRD_PARTY_NOTICES.md`, `ORIGIN-MANIFEST.json`을 참고하세요.

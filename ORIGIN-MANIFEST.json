@@ -1,6 +1,6 @@
 {
-  "schema": 30,
-  "title": "thetree Vector legacy bootstrap source manifest",
+  "schema": 31,
+  "title": "thetree MinervaNeue standalone bootstrap source manifest",
   "upstreamLockFile": "UPSTREAM-LOCK.json",
   "hostLock": {
     "schema": 2,
@@ -33,7 +33,7 @@
   },
   "distribution": {
     "mode": "bootstrap-source-only",
-    "snapshotDate": "2026-07-14",
+    "snapshotDate": "2026-08-01",
     "releaseLine": "REL1_46",
     "vendorIncluded": false,
     "generatedOutputsIncluded": false,
@@ -44,7 +44,7 @@
     "upstreamBuildOutputsIncluded": false
   },
   "sourceInventory": {
-    "schema": 20,
+    "schema": 21,
     "sourceCoverage": {
       "schema": 1,
       "root": ".",
@@ -123,6 +123,12 @@
     },
     "vendorFiles": [
       {
+        "path": "vendor/mediawiki-core/includes/config-schema.php",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "includes/config-schema.php"
+      },
+      {
         "path": "vendor/mediawiki-core/includes/Output/OutputPage.php",
         "status": "mirrored",
         "repository": "mediawiki",
@@ -147,12 +153,6 @@
         "upstreamPath": "includes/ResourceLoader/SkinModule.php"
       },
       {
-        "path": "vendor/mediawiki-core/includes/config-schema.php",
-        "status": "mirrored",
-        "repository": "mediawiki",
-        "upstreamPath": "includes/config-schema.php"
-      },
-      {
         "path": "vendor/mediawiki-core/languages/i18n/en.json",
         "status": "mirrored",
         "repository": "mediawiki",
@@ -163,12 +163,6 @@
         "status": "mirrored",
         "repository": "mediawiki",
         "upstreamPath": "languages/i18n/ko.json"
-      },
-      {
-        "path": "vendor/mediawiki-core/resources/Resources.php",
-        "status": "mirrored",
-        "repository": "mediawiki",
-        "upstreamPath": "resources/Resources.php"
       },
       {
         "path": "vendor/mediawiki-core/resources/lib/codex/modules/CdxButton.css",
@@ -189,6 +183,54 @@
         "upstreamPath": "resources/lib/codex/modules/CdxLabel.css"
       },
       {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/CdxMenu.css",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/CdxMenu.css"
+      },
+      {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/CdxMenuItem.css",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/CdxMenuItem.css"
+      },
+      {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/CdxProgressBar.css",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/CdxProgressBar.css"
+      },
+      {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/CdxSearchInput.css",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/CdxSearchInput.css"
+      },
+      {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/CdxSearchResultTitle.css",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/CdxSearchResultTitle.css"
+      },
+      {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/CdxTextInput.css",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/CdxTextInput.css"
+      },
+      {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/CdxThumbnail.css",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/CdxThumbnail.css"
+      },
+      {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/CdxTypeaheadSearch.css",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/CdxTypeaheadSearch.css"
+      },
+      {
         "path": "vendor/mediawiki-core/resources/lib/codex/modules/Icon.css",
         "status": "mirrored",
         "repository": "mediawiki",
@@ -199,6 +241,12 @@
         "status": "mirrored",
         "repository": "mediawiki",
         "upstreamPath": "resources/lib/codex/modules/manifest.json"
+      },
+      {
+        "path": "vendor/mediawiki-core/resources/Resources.php",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/Resources.php"
       },
       {
         "path": "vendor/mediawiki-core/resources/src/mediawiki.less/mediawiki.mixins.less",
@@ -265,6 +313,12 @@
         "status": "mirrored",
         "repository": "mediawiki",
         "upstreamPath": "resources/src/mediawiki.skinning/content.media-common.less"
+      },
+      {
+        "path": "vendor/mediawiki-core/resources/src/mediawiki.skinning/content.media-dark.less",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/src/mediawiki.skinning/content.media-dark.less"
       },
       {
         "path": "vendor/mediawiki-core/resources/src/mediawiki.skinning/content.media-screen.less",
@@ -369,268 +423,250 @@
         "upstreamPath": "resources/src/mediawiki.skinning/toc/screen.less"
       },
       {
-        "path": "vendor/mediawiki-darkmode/extension.json",
+        "path": "vendor/mediawiki-minerva/includes/Skins/banners.mustache",
         "status": "mirrored",
-        "repository": "mediawiki-extensions-DarkMode",
-        "upstreamPath": "extension.json"
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "includes/Skins/banners.mustache"
       },
       {
-        "path": "vendor/mediawiki-darkmode/i18n/en.json",
+        "path": "vendor/mediawiki-minerva/includes/Skins/BottomDock.mustache",
         "status": "mirrored",
-        "repository": "mediawiki-extensions-DarkMode",
-        "upstreamPath": "i18n/en.json"
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "includes/Skins/BottomDock.mustache"
       },
       {
-        "path": "vendor/mediawiki-darkmode/i18n/ko.json",
+        "path": "vendor/mediawiki-minerva/includes/Skins/Button.mustache",
         "status": "mirrored",
-        "repository": "mediawiki-extensions-DarkMode",
-        "upstreamPath": "i18n/ko.json"
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "includes/Skins/Button.mustache"
       },
       {
-        "path": "vendor/mediawiki-darkmode/includes/Hooks.php",
+        "path": "vendor/mediawiki-minerva/includes/Skins/DonateBanner.mustache",
         "status": "mirrored",
-        "repository": "mediawiki-extensions-DarkMode",
-        "upstreamPath": "includes/Hooks.php"
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "includes/Skins/DonateBanner.mustache"
       },
       {
-        "path": "vendor/mediawiki-darkmode/resources/ext.DarkMode.js",
+        "path": "vendor/mediawiki-minerva/includes/Skins/footer.mustache",
         "status": "mirrored",
-        "repository": "mediawiki-extensions-DarkMode",
-        "upstreamPath": "resources/ext.DarkMode.js"
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "includes/Skins/footer.mustache"
       },
       {
-        "path": "vendor/mediawiki-darkmode/resources/ext.DarkMode.less",
+        "path": "vendor/mediawiki-minerva/includes/Skins/footerIconList.mustache",
         "status": "mirrored",
-        "repository": "mediawiki-extensions-DarkMode",
-        "upstreamPath": "resources/ext.DarkMode.less"
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "includes/Skins/footerIconList.mustache"
       },
       {
-        "path": "vendor/mediawiki-vector-legacy/includes/templates/BottomDock.mustache",
+        "path": "vendor/mediawiki-minerva/includes/Skins/footerItemList.mustache",
         "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "includes/templates/BottomDock.mustache"
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "includes/Skins/footerItemList.mustache"
       },
       {
-        "path": "vendor/mediawiki-vector-legacy/includes/templates/Button.mustache",
+        "path": "vendor/mediawiki-minerva/includes/Skins/Header.mustache",
         "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "includes/templates/Button.mustache"
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "includes/Skins/Header.mustache"
       },
       {
-        "path": "vendor/mediawiki-vector-legacy/includes/templates/Footer.mustache",
+        "path": "vendor/mediawiki-minerva/includes/Skins/history.mustache",
         "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "includes/templates/Footer.mustache"
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "includes/Skins/history.mustache"
       },
       {
-        "path": "vendor/mediawiki-vector-legacy/includes/templates/Footer__row.mustache",
+        "path": "vendor/mediawiki-minerva/includes/Skins/Icon.mustache",
         "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "includes/templates/Footer__row.mustache"
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "includes/Skins/Icon.mustache"
       },
       {
-        "path": "vendor/mediawiki-vector-legacy/includes/templates/Icon.mustache",
+        "path": "vendor/mediawiki-minerva/includes/Skins/IconButtonLink.mustache",
         "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "includes/templates/Icon.mustache"
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "includes/Skins/IconButtonLink.mustache"
       },
       {
-        "path": "vendor/mediawiki-vector-legacy/includes/templates/Indicators.mustache",
+        "path": "vendor/mediawiki-minerva/includes/Skins/LanguageSection.mustache",
         "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "includes/templates/Indicators.mustache"
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "includes/Skins/LanguageSection.mustache"
       },
       {
-        "path": "vendor/mediawiki-vector-legacy/includes/templates/LegacyFooter.mustache",
+        "path": "vendor/mediawiki-minerva/includes/Skins/Logo.mustache",
         "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "includes/templates/LegacyFooter.mustache"
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "includes/Skins/Logo.mustache"
       },
       {
-        "path": "vendor/mediawiki-vector-legacy/includes/templates/LegacyMenu.mustache",
+        "path": "vendor/mediawiki-minerva/includes/Skins/menu.mustache",
         "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "includes/templates/LegacyMenu.mustache"
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "includes/Skins/menu.mustache"
       },
       {
-        "path": "vendor/mediawiki-vector-legacy/includes/templates/LegacySearchBox.mustache",
+        "path": "vendor/mediawiki-minerva/includes/Skins/menuGroup.mustache",
         "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "includes/templates/LegacySearchBox.mustache"
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "includes/Skins/menuGroup.mustache"
       },
       {
-        "path": "vendor/mediawiki-vector-legacy/includes/templates/LegacySidebar.mustache",
+        "path": "vendor/mediawiki-minerva/includes/Skins/PageActionsMenu.mustache",
         "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "includes/templates/LegacySidebar.mustache"
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "includes/Skins/PageActionsMenu.mustache"
       },
       {
-        "path": "vendor/mediawiki-vector-legacy/includes/templates/LegacyUserLinks.mustache",
+        "path": "vendor/mediawiki-minerva/includes/Skins/PageActionsMenu/PageActionsMenu.mustache",
         "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "includes/templates/LegacyUserLinks.mustache"
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "includes/Skins/PageActionsMenu/PageActionsMenu.mustache"
       },
       {
-        "path": "vendor/mediawiki-vector-legacy/includes/templates/Link.mustache",
+        "path": "vendor/mediawiki-minerva/includes/Skins/SearchBox.mustache",
         "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "includes/templates/Link.mustache"
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "includes/Skins/SearchBox.mustache"
       },
       {
-        "path": "vendor/mediawiki-vector-legacy/includes/templates/MenuContents.mustache",
+        "path": "vendor/mediawiki-minerva/includes/Skins/SectionLinks.mustache",
         "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "includes/templates/MenuContents.mustache"
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "includes/Skins/SectionLinks.mustache"
       },
       {
-        "path": "vendor/mediawiki-vector-legacy/includes/templates/MenuListItem.mustache",
+        "path": "vendor/mediawiki-minerva/includes/Skins/skin.mustache",
         "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "includes/templates/MenuListItem.mustache"
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "includes/Skins/skin.mustache"
       },
       {
-        "path": "vendor/mediawiki-vector-legacy/includes/templates/skin-legacy.mustache",
+        "path": "vendor/mediawiki-minerva/includes/Skins/SkinMinerva.php",
         "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "includes/templates/skin-legacy.mustache"
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "includes/Skins/SkinMinerva.php"
       },
       {
-        "path": "vendor/mediawiki-vector-legacy/resources/mediawiki.less/vector/mediawiki.skin.variables.less",
+        "path": "vendor/mediawiki-minerva/includes/Skins/ToggleList.mustache",
         "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "resources/mediawiki.less/vector/mediawiki.skin.variables.less"
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "includes/Skins/ToggleList.mustache"
       },
       {
-        "path": "vendor/mediawiki-vector-legacy/resources/skins.vector.legacy.js/collapsibleTabs.js",
+        "path": "vendor/mediawiki-minerva/includes/Skins/ToggleList/ToggleList.mustache",
         "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "resources/skins.vector.legacy.js/collapsibleTabs.js"
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "includes/Skins/ToggleList/ToggleList.mustache"
       },
       {
-        "path": "vendor/mediawiki-vector-legacy/resources/skins.vector.legacy.js/portlets.js",
+        "path": "vendor/mediawiki-minerva/includes/Skins/ToggleList/ToggleListItem.mustache",
         "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "resources/skins.vector.legacy.js/portlets.js"
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "includes/Skins/ToggleList/ToggleListItem.mustache"
       },
       {
-        "path": "vendor/mediawiki-vector-legacy/resources/skins.vector.legacy.js/skin-legacy.js",
+        "path": "vendor/mediawiki-minerva/minerva.less/minerva.variables.less",
         "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "resources/skins.vector.legacy.js/skin-legacy.js"
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "minerva.less/minerva.variables.less"
       },
       {
-        "path": "vendor/mediawiki-vector-legacy/resources/skins.vector.legacy.js/vector.js",
+        "path": "vendor/mediawiki-minerva/resources/mediawiki.less/mediawiki.skin.variables.less",
         "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "resources/skins.vector.legacy.js/vector.js"
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "resources/mediawiki.less/mediawiki.skin.variables.less"
       },
       {
-        "path": "vendor/mediawiki-vector-legacy/resources/skins.vector.styles.legacy/components/Footer.less",
+        "path": "vendor/mediawiki-minerva/resources/skins.minerva.amc.styles/index.less",
         "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "resources/skins.vector.styles.legacy/components/Footer.less"
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "resources/skins.minerva.amc.styles/index.less"
       },
       {
-        "path": "vendor/mediawiki-vector-legacy/resources/skins.vector.styles.legacy/components/Indicators.less",
+        "path": "vendor/mediawiki-minerva/resources/skins.minerva.content.styles.images/error.svg",
         "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "resources/skins.vector.styles.legacy/components/Indicators.less"
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "resources/skins.minerva.content.styles.images/error.svg"
       },
       {
-        "path": "vendor/mediawiki-vector-legacy/resources/skins.vector.styles.legacy/components/LegacySidebar.less",
+        "path": "vendor/mediawiki-minerva/resources/skins.minerva.content.styles.images/link-external-ltr.svg",
         "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "resources/skins.vector.styles.legacy/components/LegacySidebar.less"
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "resources/skins.minerva.content.styles.images/link-external-ltr.svg"
       },
       {
-        "path": "vendor/mediawiki-vector-legacy/resources/skins.vector.styles.legacy/components/Menu.less",
+        "path": "vendor/mediawiki-minerva/resources/skins.minerva.content.styles.images/link-external-rtl.svg",
         "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "resources/skins.vector.styles.legacy/components/Menu.less"
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "resources/skins.minerva.content.styles.images/link-external-rtl.svg"
       },
       {
-        "path": "vendor/mediawiki-vector-legacy/resources/skins.vector.styles.legacy/components/MenuDropdown.less",
+        "path": "vendor/mediawiki-minerva/resources/skins.minerva.loggedin.styles/styles.less",
         "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "resources/skins.vector.styles.legacy/components/MenuDropdown.less"
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "resources/skins.minerva.loggedin.styles/styles.less"
       },
       {
-        "path": "vendor/mediawiki-vector-legacy/resources/skins.vector.styles.legacy/components/MenuTabs.less",
+        "path": "vendor/mediawiki-minerva/resources/skins.minerva.mainPage.styles/common.less",
         "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "resources/skins.vector.styles.legacy/components/MenuTabs.less"
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "resources/skins.minerva.mainPage.styles/common.less"
       },
       {
-        "path": "vendor/mediawiki-vector-legacy/resources/skins.vector.styles.legacy/components/SearchBox.less",
+        "path": "vendor/mediawiki-minerva/resources/skins.minerva.search/styles.less",
         "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "resources/skins.vector.styles.legacy/components/SearchBox.less"
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "resources/skins.minerva.search/styles.less"
       },
       {
-        "path": "vendor/mediawiki-vector-legacy/resources/skins.vector.styles.legacy/components/SidebarLogo.less",
+        "path": "vendor/mediawiki-minerva/resources/skins.minerva.styles/CSSCustomProperties.less",
         "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "resources/skins.vector.styles.legacy/components/SidebarLogo.less"
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "resources/skins.minerva.styles/CSSCustomProperties.less"
       },
       {
-        "path": "vendor/mediawiki-vector-legacy/resources/skins.vector.styles.legacy/components/SiteNotice.less",
+        "path": "vendor/mediawiki-minerva/resources/skins.minerva.styles/index.less",
         "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "resources/skins.vector.styles.legacy/components/SiteNotice.less"
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "resources/skins.minerva.styles/index.less"
       },
       {
-        "path": "vendor/mediawiki-vector-legacy/resources/skins.vector.styles.legacy/components/TabWatchstarLink.less",
+        "path": "vendor/mediawiki-minerva/resources/skins.minerva.styles/skin.less",
         "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "resources/skins.vector.styles.legacy/components/TabWatchstarLink.less"
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "resources/skins.minerva.styles/skin.less"
       },
       {
-        "path": "vendor/mediawiki-vector-legacy/resources/skins.vector.styles.legacy/components/UserLinks.less",
+        "path": "vendor/mediawiki-minerva/resources/skins.minerva.userpage.styles/userpage.less",
         "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "resources/skins.vector.styles.legacy/components/UserLinks.less"
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "resources/skins.minerva.userpage.styles/userpage.less"
       },
       {
-        "path": "vendor/mediawiki-vector-legacy/resources/skins.vector.styles.legacy/layouts/screen.less",
+        "path": "vendor/mediawiki-minerva/skin.json",
         "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "resources/skins.vector.styles.legacy/layouts/screen.less"
-      },
-      {
-        "path": "vendor/mediawiki-vector-legacy/resources/skins.vector.styles.legacy/mixins.less",
-        "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "resources/skins.vector.styles.legacy/mixins.less"
-      },
-      {
-        "path": "vendor/mediawiki-vector-legacy/resources/skins.vector.styles.legacy/normalize.less",
-        "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "resources/skins.vector.styles.legacy/normalize.less"
-      },
-      {
-        "path": "vendor/mediawiki-vector-legacy/resources/skins.vector.styles.legacy/skin-legacy.less",
-        "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "resources/skins.vector.styles.legacy/skin-legacy.less"
-      },
-      {
-        "path": "vendor/mediawiki-vector-legacy/resources/skins.vector.styles.legacy/typography.less",
-        "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "resources/skins.vector.styles.legacy/typography.less"
-      },
-      {
-        "path": "vendor/mediawiki-vector-legacy/resources/skins.vector.styles.legacy/variables.less",
-        "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "resources/skins.vector.styles.legacy/variables.less"
-      },
-      {
-        "path": "vendor/mediawiki-vector-legacy/skin.json",
-        "status": "mirrored",
-        "repository": "mediawiki-skins-Vector",
+        "repository": "mediawiki-skins-MinervaNeue",
         "upstreamPath": "skin.json"
+      },
+      {
+        "path": "vendor/mediawiki-minerva/skinStyles/mediawiki.hlist/minerva.less",
+        "status": "mirrored",
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "skinStyles/mediawiki.hlist/minerva.less"
+      },
+      {
+        "path": "vendor/wikimedia-codex/packages/codex-design-tokens/dist/theme-wikimedia-ui-mixin-dark.less",
+        "status": "built",
+        "repository": "design-codex",
+        "buildPath": "packages/codex-design-tokens/dist/theme-wikimedia-ui-mixin-dark.less"
+      },
+      {
+        "path": "vendor/wikimedia-codex/packages/codex-design-tokens/dist/theme-wikimedia-ui-mixin-light.less",
+        "status": "built",
+        "repository": "design-codex",
+        "buildPath": "packages/codex-design-tokens/dist/theme-wikimedia-ui-mixin-light.less"
       },
       {
         "path": "vendor/wikimedia-codex/packages/codex-design-tokens/dist/theme-wikimedia-ui-root.css",
@@ -675,75 +711,15 @@
         "upstreamPath": "packages/codex/package.json"
       }
     ],
-    "portedFiles": [
-      {
-        "path": "lib/ports/mediawiki-vector-legacy/resources/skins.vector.legacy.js/collapsibleTabs.js",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "resources/skins.vector.legacy.js/collapsibleTabs.js",
-        "kind": "source-port",
-        "relation": "one-upstream-file-to-one-local-port",
-        "hostDependency": "mediawiki-browser-contract",
-        "automationStatus": "adapter-required",
-        "license": "GPL-2.0-or-later",
-        "modifiedDates": [
-          "2026-07-29",
-          "2026-07-30"
-        ],
-        "differenceClasses": [
-          "jquery-to-dom-runtime",
-          "spa-lifecycle"
-        ],
-        "originInputs": [
-          "vendor/mediawiki-vector-legacy/resources/skins.vector.legacy.js/collapsibleTabs.js"
-        ]
-      },
-      {
-        "path": "lib/ports/mediawiki-vector-legacy/resources/skins.vector.legacy.js/skin-legacy.js",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "resources/skins.vector.legacy.js/skin-legacy.js",
-        "kind": "source-port",
-        "relation": "one-upstream-file-to-one-local-port",
-        "hostDependency": "mediawiki-browser-contract",
-        "automationStatus": "adapter-required",
-        "license": "GPL-2.0-or-later",
-        "modifiedDates": [
-          "2026-07-29",
-          "2026-07-30"
-        ],
-        "differenceClasses": [
-          "module-composition",
-          "host-page-ready",
-          "spa-lifecycle"
-        ],
-        "originInputs": [
-          "vendor/mediawiki-vector-legacy/resources/skins.vector.legacy.js/skin-legacy.js"
-        ]
-      },
-      {
-        "path": "lib/ports/mediawiki-vector-legacy/resources/skins.vector.legacy.js/vector.js",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "resources/skins.vector.legacy.js/vector.js",
-        "kind": "source-port",
-        "relation": "one-upstream-file-to-one-local-port",
-        "hostDependency": "mediawiki-browser-contract",
-        "automationStatus": "adapter-required",
-        "license": "GPL-2.0-or-later",
-        "modifiedDates": [
-          "2026-07-29",
-          "2026-07-30"
-        ],
-        "differenceClasses": [
-          "jquery-to-dom-runtime",
-          "spa-lifecycle"
-        ],
-        "originInputs": [
-          "vendor/mediawiki-vector-legacy/resources/skins.vector.legacy.js/vector.js"
-        ]
-      }
-    ],
+    "portedFiles": [],
     "localFiles": [
       {
         "path": ".gitattributes",
+        "kind": "package-metadata",
+        "hostDependency": "none"
+      },
+      {
+        "path": ".github/workflows/check.yml",
         "kind": "package-metadata",
         "hostDependency": "none"
       },
@@ -753,7 +729,7 @@
         "hostDependency": "none"
       },
       {
-        "path": ".github/workflows/check.yml",
+        "path": "DEVELOPMENT-PRINCIPLES.md",
         "kind": "package-metadata",
         "hostDependency": "none"
       },
@@ -768,11 +744,6 @@
         "hostDependency": "none"
       },
       {
-        "path": "THIRD_PARTY_NOTICES.md",
-        "kind": "package-metadata",
-        "hostDependency": "none"
-      },
-      {
         "path": "ORIGIN-MANIFEST.json",
         "kind": "package-metadata",
         "hostDependency": "none"
@@ -783,17 +754,22 @@
         "hostDependency": "none"
       },
       {
+        "path": "THIRD_PARTY_NOTICES.md",
+        "kind": "package-metadata",
+        "hostDependency": "none"
+      },
+      {
         "path": "UPSTREAM-LOCK.json",
         "kind": "package-metadata",
         "hostDependency": "none"
       },
       {
-        "path": "components/SkinLegacy.vue",
-        "kind": "skin-integration",
+        "path": "components/MinervaSettingModal.vue",
+        "kind": "host-adapter",
         "hostDependency": "thetree"
       },
       {
-        "path": "components/VectorSettingModal.vue",
+        "path": "components/SkinMinerva.vue",
         "kind": "host-adapter",
         "hostDependency": "thetree"
       },
@@ -824,17 +800,22 @@
       },
       {
         "path": "css/host-content/foundation.css",
-        "kind": "host-adapter",
+        "kind": "skin-integration",
         "hostDependency": "thetree"
       },
       {
         "path": "css/host-content/links.css",
-        "kind": "host-adapter",
+        "kind": "skin-integration",
         "hostDependency": "thetree"
       },
       {
         "path": "css/host-modal.css",
-        "kind": "host-adapter",
+        "kind": "skin-integration",
+        "hostDependency": "thetree"
+      },
+      {
+        "path": "css/minerva-adapter.css",
+        "kind": "skin-integration",
         "hostDependency": "thetree"
       },
       {
@@ -843,29 +824,19 @@
         "hostDependency": "thetree"
       },
       {
-        "path": "css/vector-adapter.css",
-        "kind": "host-adapter",
-        "hostDependency": "thetree"
-      },
-      {
         "path": "layout.vue",
         "kind": "skin-integration",
         "hostDependency": "thetree"
       },
       {
-        "path": "lib/adapters/mediawiki-darkmode.js",
-        "kind": "host-adapter",
-        "hostDependency": "thetree"
-      },
-      {
-        "path": "lib/adapters/thetree-mediawiki/runtime.js",
+        "path": "lib/adapters/minerva-theme.js",
         "kind": "host-adapter",
         "hostDependency": "thetree"
       },
       {
         "path": "lib/adapters/thetree-search-suggest.js",
         "kind": "host-adapter",
-        "hostDependency": "thetree-browser-dom"
+        "hostDependency": "thetree"
       },
       {
         "path": "lib/adapters/thetree-settings.js",
@@ -873,27 +844,7 @@
         "hostDependency": "thetree"
       },
       {
-        "path": "lib/adapters/thetree-vector/portlets.js",
-        "kind": "host-adapter",
-        "hostDependency": "thetree"
-      },
-      {
-        "path": "lib/adapters/thetree-vector/skin-legacy.js",
-        "kind": "host-adapter",
-        "hostDependency": "thetree"
-      },
-      {
         "path": "lib/adapters/thetree-watchstar.js",
-        "kind": "host-adapter",
-        "hostDependency": "thetree"
-      },
-      {
-        "path": "lib/legacyComponentData.js",
-        "kind": "host-adapter",
-        "hostDependency": "thetree"
-      },
-      {
-        "path": "lib/legacyDocumentEnvironment.js",
         "kind": "host-adapter",
         "hostDependency": "thetree"
       },
@@ -908,17 +859,7 @@
         "hostDependency": "thetree"
       },
       {
-        "path": "lib/legacyLogoAdapter.js",
-        "kind": "host-adapter",
-        "hostDependency": "thetree"
-      },
-      {
         "path": "lib/legacyMediaWikiMessages.js",
-        "kind": "host-adapter",
-        "hostDependency": "thetree"
-      },
-      {
-        "path": "lib/legacyNavigationData.js",
         "kind": "host-adapter",
         "hostDependency": "thetree"
       },
@@ -928,42 +869,12 @@
         "hostDependency": "thetree"
       },
       {
-        "path": "lib/legacyPortletData.js",
-        "kind": "host-adapter",
-        "hostDependency": "thetree"
-      },
-      {
         "path": "lib/legacyRawHtmlFragment.js",
-        "kind": "host-adapter",
-        "hostDependency": "thetree-browser-dom"
-      },
-      {
-        "path": "lib/legacySearchBoxData.js",
-        "kind": "host-adapter",
-        "hostDependency": "thetree"
-      },
-      {
-        "path": "lib/legacySearchSubmit.js",
-        "kind": "host-adapter",
-        "hostDependency": "thetree"
-      },
-      {
-        "path": "lib/legacySidebarData.js",
         "kind": "host-adapter",
         "hostDependency": "thetree"
       },
       {
         "path": "lib/legacySkinAdapter.js",
-        "kind": "host-adapter",
-        "hostDependency": "thetree"
-      },
-      {
-        "path": "lib/legacySkinData.js",
-        "kind": "host-adapter",
-        "hostDependency": "thetree"
-      },
-      {
-        "path": "lib/legacySkinVars.js",
         "kind": "host-adapter",
         "hostDependency": "thetree"
       },
@@ -983,19 +894,34 @@
         "hostDependency": "thetree"
       },
       {
-        "path": "lib/mustacheVueRuntime.js",
-        "kind": "origin-runtime",
-        "hostDependency": "none"
+        "path": "lib/minervaDocumentEnvironment.js",
+        "kind": "host-adapter",
+        "hostDependency": "thetree"
       },
       {
-        "path": "lib/runtime/createVectorRuntimeController.js",
-        "kind": "skin-integration",
+        "path": "lib/minervaSkinData.js",
+        "kind": "host-adapter",
+        "hostDependency": "thetree"
+      },
+      {
+        "path": "lib/minervaSkinVars.js",
+        "kind": "host-adapter",
+        "hostDependency": "thetree"
+      },
+      {
+        "path": "lib/mustacheVueRuntime.js",
+        "kind": "origin-runtime",
+        "hostDependency": "thetree"
+      },
+      {
+        "path": "lib/runtime/createMinervaRuntimeController.js",
+        "kind": "host-adapter",
         "hostDependency": "thetree"
       },
       {
         "path": "lib/skinVariant.js",
-        "kind": "skin-integration",
-        "hostDependency": "none"
+        "kind": "host-adapter",
+        "hostDependency": "thetree"
       },
       {
         "path": "package-lock.json",
@@ -1008,33 +934,18 @@
         "hostDependency": "none"
       },
       {
+        "path": "tools/bootstrap-checkout-contract-test.mjs",
+        "kind": "generation-tool",
+        "hostDependency": "none"
+      },
+      {
         "path": "tools/bootstrap-upstream.mjs",
         "kind": "generation-tool",
         "hostDependency": "none"
       },
       {
-        "path": "tools/bootstrap-checkout-contract-test.mjs",
-        "kind": "generation-contract",
-        "hostDependency": "none"
-      },
-      {
         "path": "tools/distribution-contract-test.mjs",
-        "kind": "generation-contract",
-        "hostDependency": "none"
-      },
-      {
-        "path": "tools/host-adapter-feature-contract-test.mjs",
-        "kind": "generation-contract",
-        "hostDependency": "none"
-      },
-      {
-        "path": "tools/host-content-contract-test.mjs",
-        "kind": "generation-contract",
-        "hostDependency": "none"
-      },
-      {
-        "path": "tools/watchstar-adapter-contract-test.mjs",
-        "kind": "generation-contract",
+        "kind": "generation-tool",
         "hostDependency": "none"
       },
       {
@@ -1043,14 +954,29 @@
         "hostDependency": "none"
       },
       {
+        "path": "tools/host-adapter-feature-contract-test.mjs",
+        "kind": "generation-tool",
+        "hostDependency": "none"
+      },
+      {
+        "path": "tools/host-content-contract-test.mjs",
+        "kind": "generation-tool",
+        "hostDependency": "none"
+      },
+      {
         "path": "tools/host-view-contract-engine.mjs",
         "kind": "generation-tool",
-        "hostDependency": "locked-thetree-source"
+        "hostDependency": "none"
       },
       {
         "path": "tools/javascript-port-origin-engine.mjs",
         "kind": "generation-tool",
-        "hostDependency": "node-build-runtime"
+        "hostDependency": "none"
+      },
+      {
+        "path": "tools/mustache-origin-contract-test.mjs",
+        "kind": "generation-tool",
+        "hostDependency": "none"
       },
       {
         "path": "tools/mustache-vue-origin-engine.mjs",
@@ -1058,12 +984,17 @@
         "hostDependency": "none"
       },
       {
-        "path": "tools/mustache-origin-contract-test.mjs",
-        "kind": "generation-contract",
+        "path": "tools/php-array-literal.mjs",
+        "kind": "generation-tool",
         "hostDependency": "none"
       },
       {
-        "path": "tools/php-array-literal.mjs",
+        "path": "tools/resource-loader-contract.mjs",
+        "kind": "generation-tool",
+        "hostDependency": "none"
+      },
+      {
+        "path": "tools/resource-loader-custom-properties.mjs",
         "kind": "generation-tool",
         "hostDependency": "none"
       },
@@ -1073,22 +1004,12 @@
         "hostDependency": "none"
       },
       {
-        "path": "tools/resource-loader-origin-schema.mjs",
-        "kind": "generation-contract",
-        "hostDependency": "none"
-      },
-      {
-        "path": "tools/resource-loader-contract.mjs",
-        "kind": "generation-tool",
-        "hostDependency": "none"
-      },
-      {
         "path": "tools/resource-loader-origin-engine.mjs",
         "kind": "generation-tool",
         "hostDependency": "none"
       },
       {
-        "path": "tools/resource-loader-custom-properties.mjs",
+        "path": "tools/resource-loader-origin-schema.mjs",
         "kind": "generation-tool",
         "hostDependency": "none"
       },
@@ -1116,130 +1037,207 @@
         "path": "tools/shared/git-blobs.mjs",
         "kind": "generation-tool",
         "hostDependency": "none"
+      },
+      {
+        "path": "tools/sync-origin-manifest.mjs",
+        "kind": "generation-tool",
+        "hostDependency": "none"
       }
     ],
     "generatedFiles": [
       {
+        "path": "components/banners.vue",
+        "originNode": "mustache-components",
+        "input": "vendor/mediawiki-minerva/includes/Skins/banners.mustache",
+        "partialDependencies": []
+      },
+      {
         "path": "components/BottomDock.vue",
         "originNode": "mustache-components",
-        "input": "vendor/mediawiki-vector-legacy/includes/templates/BottomDock.mustache",
+        "input": "vendor/mediawiki-minerva/includes/Skins/BottomDock.mustache",
         "partialDependencies": []
       },
       {
         "path": "components/Button.vue",
         "originNode": "mustache-components",
-        "input": "vendor/mediawiki-vector-legacy/includes/templates/Button.mustache",
+        "input": "vendor/mediawiki-minerva/includes/Skins/Button.mustache",
         "partialDependencies": [
-          "vendor/mediawiki-vector-legacy/includes/templates/Icon.mustache"
+          "vendor/mediawiki-minerva/includes/Skins/Icon.mustache"
         ]
       },
       {
-        "path": "components/Footer.vue",
+        "path": "components/DonateBanner.vue",
         "originNode": "mustache-components",
-        "input": "vendor/mediawiki-vector-legacy/includes/templates/Footer.mustache",
-        "partialDependencies": [
-          "vendor/mediawiki-vector-legacy/includes/templates/Footer__row.mustache"
-        ]
-      },
-      {
-        "path": "components/Footer__row.vue",
-        "originNode": "mustache-components",
-        "input": "vendor/mediawiki-vector-legacy/includes/templates/Footer__row.mustache",
+        "input": "vendor/mediawiki-minerva/includes/Skins/DonateBanner.mustache",
         "partialDependencies": []
+      },
+      {
+        "path": "components/footer.vue",
+        "originNode": "mustache-components",
+        "input": "vendor/mediawiki-minerva/includes/Skins/footer.mustache",
+        "partialDependencies": [
+          "vendor/mediawiki-minerva/includes/Skins/LanguageSection.mustache",
+          "vendor/mediawiki-minerva/includes/Skins/Logo.mustache",
+          "vendor/mediawiki-minerva/includes/Skins/footerIconList.mustache",
+          "vendor/mediawiki-minerva/includes/Skins/footerItemList.mustache",
+          "vendor/mediawiki-minerva/includes/Skins/history.mustache"
+        ]
+      },
+      {
+        "path": "components/footerIconList.vue",
+        "originNode": "mustache-components",
+        "input": "vendor/mediawiki-minerva/includes/Skins/footerIconList.mustache",
+        "partialDependencies": []
+      },
+      {
+        "path": "components/footerItemList.vue",
+        "originNode": "mustache-components",
+        "input": "vendor/mediawiki-minerva/includes/Skins/footerItemList.mustache",
+        "partialDependencies": []
+      },
+      {
+        "path": "components/Header.vue",
+        "originNode": "mustache-components",
+        "input": "vendor/mediawiki-minerva/includes/Skins/Header.mustache",
+        "partialDependencies": [
+          "vendor/mediawiki-minerva/includes/Skins/Button.mustache",
+          "vendor/mediawiki-minerva/includes/Skins/Logo.mustache",
+          "vendor/mediawiki-minerva/includes/Skins/SearchBox.mustache",
+          "vendor/mediawiki-minerva/includes/Skins/menu.mustache"
+        ]
+      },
+      {
+        "path": "components/history.vue",
+        "originNode": "mustache-components",
+        "input": "vendor/mediawiki-minerva/includes/Skins/history.mustache",
+        "partialDependencies": [
+          "vendor/mediawiki-minerva/includes/Skins/Icon.mustache"
+        ]
       },
       {
         "path": "components/Icon.vue",
         "originNode": "mustache-components",
-        "input": "vendor/mediawiki-vector-legacy/includes/templates/Icon.mustache",
+        "input": "vendor/mediawiki-minerva/includes/Skins/Icon.mustache",
         "partialDependencies": []
       },
       {
-        "path": "components/Indicators.vue",
+        "path": "components/IconButtonLink.vue",
         "originNode": "mustache-components",
-        "input": "vendor/mediawiki-vector-legacy/includes/templates/Indicators.mustache",
+        "input": "vendor/mediawiki-minerva/includes/Skins/IconButtonLink.mustache",
+        "partialDependencies": [
+          "vendor/mediawiki-minerva/includes/Skins/Icon.mustache"
+        ]
+      },
+      {
+        "path": "components/LanguageSection.vue",
+        "originNode": "mustache-components",
+        "input": "vendor/mediawiki-minerva/includes/Skins/LanguageSection.mustache",
         "partialDependencies": []
       },
       {
-        "path": "components/LegacyFooter.vue",
+        "path": "components/Logo.vue",
         "originNode": "mustache-components",
-        "input": "vendor/mediawiki-vector-legacy/includes/templates/LegacyFooter.mustache",
+        "input": "vendor/mediawiki-minerva/includes/Skins/Logo.mustache",
         "partialDependencies": []
       },
       {
-        "path": "components/LegacyMenu.vue",
+        "path": "components/menu.vue",
         "originNode": "mustache-components",
-        "input": "vendor/mediawiki-vector-legacy/includes/templates/LegacyMenu.mustache",
+        "input": "vendor/mediawiki-minerva/includes/Skins/menu.mustache",
         "partialDependencies": [
-          "vendor/mediawiki-vector-legacy/includes/templates/MenuContents.mustache"
+          "vendor/mediawiki-minerva/includes/Skins/DonateBanner.mustache",
+          "vendor/mediawiki-minerva/includes/Skins/menuGroup.mustache"
         ]
       },
       {
-        "path": "components/LegacySearchBox.vue",
+        "path": "components/menuGroup.vue",
         "originNode": "mustache-components",
-        "input": "vendor/mediawiki-vector-legacy/includes/templates/LegacySearchBox.mustache",
-        "partialDependencies": []
-      },
-      {
-        "path": "components/LegacySidebar.vue",
-        "originNode": "mustache-components",
-        "input": "vendor/mediawiki-vector-legacy/includes/templates/LegacySidebar.mustache",
+        "input": "vendor/mediawiki-minerva/includes/Skins/menuGroup.mustache",
         "partialDependencies": [
-          "vendor/mediawiki-vector-legacy/includes/templates/LegacyMenu.mustache"
+          "vendor/mediawiki-minerva/includes/Skins/Icon.mustache"
         ]
       },
       {
-        "path": "components/LegacyUserLinks.vue",
+        "path": "components/PageActionsMenu.vue",
         "originNode": "mustache-components",
-        "input": "vendor/mediawiki-vector-legacy/includes/templates/LegacyUserLinks.mustache",
+        "input": "vendor/mediawiki-minerva/includes/Skins/PageActionsMenu.mustache",
         "partialDependencies": [
-          "vendor/mediawiki-vector-legacy/includes/templates/LegacyMenu.mustache"
+          "vendor/mediawiki-minerva/includes/Skins/PageActionsMenu/PageActionsMenu.mustache"
         ]
       },
       {
-        "path": "components/Link.vue",
+        "path": "components/PageActionsMenu/PageActionsMenu.vue",
         "originNode": "mustache-components",
-        "input": "vendor/mediawiki-vector-legacy/includes/templates/Link.mustache",
+        "input": "vendor/mediawiki-minerva/includes/Skins/PageActionsMenu/PageActionsMenu.mustache",
         "partialDependencies": [
-          "vendor/mediawiki-vector-legacy/includes/templates/Icon.mustache"
+          "vendor/mediawiki-minerva/includes/Skins/Button.mustache",
+          "vendor/mediawiki-minerva/includes/Skins/ToggleList/ToggleList.mustache"
         ]
       },
       {
-        "path": "components/MenuContents.vue",
+        "path": "components/SearchBox.vue",
         "originNode": "mustache-components",
-        "input": "vendor/mediawiki-vector-legacy/includes/templates/MenuContents.mustache",
+        "input": "vendor/mediawiki-minerva/includes/Skins/SearchBox.mustache",
         "partialDependencies": [
-          "vendor/mediawiki-vector-legacy/includes/templates/MenuListItem.mustache"
+          "vendor/mediawiki-minerva/includes/Skins/Button.mustache"
         ]
       },
       {
-        "path": "components/MenuListItem.vue",
+        "path": "components/SectionLinks.vue",
         "originNode": "mustache-components",
-        "input": "vendor/mediawiki-vector-legacy/includes/templates/MenuListItem.mustache",
+        "input": "vendor/mediawiki-minerva/includes/Skins/SectionLinks.mustache",
         "partialDependencies": [
-          "vendor/mediawiki-vector-legacy/includes/templates/Button.mustache",
-          "vendor/mediawiki-vector-legacy/includes/templates/Link.mustache"
+          "vendor/mediawiki-minerva/includes/Skins/IconButtonLink.mustache"
         ]
       },
       {
-        "path": "components/skin-legacy.vue",
+        "path": "components/skin.vue",
         "originNode": "mustache-components",
-        "input": "vendor/mediawiki-vector-legacy/includes/templates/skin-legacy.mustache",
+        "input": "vendor/mediawiki-minerva/includes/Skins/skin.mustache",
         "partialDependencies": [
-          "vendor/mediawiki-vector-legacy/includes/templates/BottomDock.mustache",
-          "vendor/mediawiki-vector-legacy/includes/templates/Indicators.mustache",
-          "vendor/mediawiki-vector-legacy/includes/templates/LegacyFooter.mustache",
-          "vendor/mediawiki-vector-legacy/includes/templates/LegacyMenu.mustache",
-          "vendor/mediawiki-vector-legacy/includes/templates/LegacySearchBox.mustache",
-          "vendor/mediawiki-vector-legacy/includes/templates/LegacySidebar.mustache",
-          "vendor/mediawiki-vector-legacy/includes/templates/LegacyUserLinks.mustache"
+          "vendor/mediawiki-minerva/includes/Skins/BottomDock.mustache",
+          "vendor/mediawiki-minerva/includes/Skins/Button.mustache",
+          "vendor/mediawiki-minerva/includes/Skins/Header.mustache",
+          "vendor/mediawiki-minerva/includes/Skins/PageActionsMenu.mustache",
+          "vendor/mediawiki-minerva/includes/Skins/banners.mustache",
+          "vendor/mediawiki-minerva/includes/Skins/footer.mustache"
         ]
       },
       {
-        "path": "css/vendor/resource-loader/codex-styles.css",
+        "path": "components/ToggleList.vue",
+        "originNode": "mustache-components",
+        "input": "vendor/mediawiki-minerva/includes/Skins/ToggleList.mustache",
+        "partialDependencies": [
+          "vendor/mediawiki-minerva/includes/Skins/ToggleList/ToggleList.mustache"
+        ]
+      },
+      {
+        "path": "components/ToggleList/ToggleList.vue",
+        "originNode": "mustache-components",
+        "input": "vendor/mediawiki-minerva/includes/Skins/ToggleList/ToggleList.mustache",
+        "partialDependencies": [
+          "vendor/mediawiki-minerva/includes/Skins/Button.mustache",
+          "vendor/mediawiki-minerva/includes/Skins/ToggleList/ToggleListItem.mustache"
+        ]
+      },
+      {
+        "path": "components/ToggleList/ToggleListItem.vue",
+        "originNode": "mustache-components",
+        "input": "vendor/mediawiki-minerva/includes/Skins/ToggleList/ToggleListItem.mustache",
+        "partialDependencies": [
+          "vendor/mediawiki-minerva/includes/Skins/Icon.mustache"
+        ]
+      },
+      {
+        "path": "css/vendor/images/minerva-content/error.svg",
         "originNode": "resource-loader-css"
       },
       {
-        "path": "css/vendor/resource-loader/ext.DarkMode.styles.css",
+        "path": "css/vendor/images/minerva-content/link-external-ltr.svg",
+        "originNode": "resource-loader-css"
+      },
+      {
+        "path": "css/vendor/images/minerva-content/link-external-rtl.svg",
         "originNode": "resource-loader-css"
       },
       {
@@ -1247,172 +1245,81 @@
         "originNode": "resource-loader-css"
       },
       {
+        "path": "css/vendor/resource-loader/mediawiki.hlist.css",
+        "originNode": "resource-loader-css"
+      },
+      {
         "path": "css/vendor/resource-loader/page-styles.css",
         "originNode": "resource-loader-css"
       },
       {
-        "path": "css/vendor/resource-loader/skins.vector.styles.legacy.css",
+        "path": "css/vendor/resource-loader/skins.minerva.amc.styles.css",
+        "originNode": "resource-loader-css"
+      },
+      {
+        "path": "css/vendor/resource-loader/skins.minerva.categories.styles.css",
+        "originNode": "resource-loader-css"
+      },
+      {
+        "path": "css/vendor/resource-loader/skins.minerva.codex.styles.css",
+        "originNode": "resource-loader-css"
+      },
+      {
+        "path": "css/vendor/resource-loader/skins.minerva.content.styles.images.css",
+        "originNode": "resource-loader-css"
+      },
+      {
+        "path": "css/vendor/resource-loader/skins.minerva.icons.css",
+        "originNode": "resource-loader-css"
+      },
+      {
+        "path": "css/vendor/resource-loader/skins.minerva.loggedin.styles.css",
+        "originNode": "resource-loader-css"
+      },
+      {
+        "path": "css/vendor/resource-loader/skins.minerva.mainMenu.advanced.icons.css",
+        "originNode": "resource-loader-css"
+      },
+      {
+        "path": "css/vendor/resource-loader/skins.minerva.mainPage.styles.css",
+        "originNode": "resource-loader-css"
+      },
+      {
+        "path": "css/vendor/resource-loader/skins.minerva.overflow.icons.css",
+        "originNode": "resource-loader-css"
+      },
+      {
+        "path": "css/vendor/resource-loader/skins.minerva.personalMenu.icons.css",
+        "originNode": "resource-loader-css"
+      },
+      {
+        "path": "css/vendor/resource-loader/skins.minerva.search.css",
+        "originNode": "resource-loader-css"
+      },
+      {
+        "path": "css/vendor/resource-loader/skins.minerva.styles.css",
+        "originNode": "resource-loader-css"
+      },
+      {
+        "path": "css/vendor/resource-loader/skins.minerva.userpage.styles.css",
         "originNode": "resource-loader-css"
       },
       {
         "path": "lib/generated/mediawiki-less-messages.json",
         "originNode": "resource-loader-css"
-      },
-      {
-        "path": "lib/generated/mediawiki-vector-legacy/resources/skins.vector.legacy.js/portlets.js",
-        "originNode": "javascript-ports",
-        "input": "vendor/mediawiki-vector-legacy/resources/skins.vector.legacy.js/portlets.js",
-        "dependencies": [],
-        "transform": {
-          "kind": "commonjs-object-exports",
-          "exportNames": [
-            "main",
-            "addPortletHandler"
-          ]
-        }
       }
     ],
-    "materializedRuntimeAssets": [
-      {
-        "path": "images/magnify-clip-ltr.svg",
-        "status": "materialized-runtime-asset",
-        "repository": "mediawiki",
-        "upstreamPath": "resources/src/mediawiki.skinning/images/magnify-clip-ltr.svg",
-        "sha256": "78f5ef3e585b3073c58b955ace7c662e51ee29bb2ff4ef4b0769bc46e8d7110c",
-        "originNode": "runtime-assets"
-      },
-      {
-        "path": "images/magnify-clip-rtl.svg",
-        "status": "materialized-runtime-asset",
-        "repository": "mediawiki",
-        "upstreamPath": "resources/src/mediawiki.skinning/images/magnify-clip-rtl.svg",
-        "sha256": "d4325f0834c822c64efacd2b1ec096331587a6ecba5913776cbf5c600b83747f",
-        "originNode": "runtime-assets"
-      },
-      {
-        "path": "images/arrow-down.svg",
-        "status": "materialized-runtime-asset",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "resources/skins.vector.styles.legacy/images/arrow-down.svg",
-        "sha256": "4ba7cca33f4c3079aed44613246e43c5fac1f2bde1260ef67338b6013351c977",
-        "originNode": "runtime-assets"
-      },
-      {
-        "path": "images/bullet-icon.svg",
-        "status": "materialized-runtime-asset",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "resources/skins.vector.styles.legacy/images/bullet-icon.svg",
-        "sha256": "6b2ae95e88a82be06108353d7174b1f9c18dd629e3aba1d149afcb39795335a4",
-        "originNode": "runtime-assets"
-      },
-      {
-        "path": "images/link-external-small-ltr-progressive.svg",
-        "status": "materialized-runtime-asset",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "resources/skins.vector.styles.legacy/images/link-external-small-ltr-progressive.svg",
-        "sha256": "b324430a72a978ffc29853c1dbb95679833c58b30e5b5d10e5063f96f98c5ba2",
-        "originNode": "runtime-assets"
-      },
-      {
-        "path": "images/search.svg",
-        "status": "materialized-runtime-asset",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "resources/skins.vector.styles.legacy/images/search.svg",
-        "sha256": "c0ae4f598074ae9b13c00020c4f6a8929a4c8069f629087b659d74e79526c25d",
-        "originNode": "runtime-assets"
-      },
-      {
-        "path": "images/user-avatar.svg",
-        "status": "materialized-runtime-asset",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "resources/skins.vector.styles.legacy/images/user-avatar.svg",
-        "sha256": "7407b58f99baf2fd87c34a5fca1ca4e13a1a3dfe343e3eca3c63f974807eca68",
-        "originNode": "runtime-assets"
-      },
-      {
-        "path": "images/user-temporary.svg",
-        "status": "materialized-runtime-asset",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "resources/skins.vector.styles.legacy/images/user-temporary.svg",
-        "sha256": "cdd1b024caf427af351f827a90ce4b29ed2d42888fb1199304425db8ec3fefa6",
-        "originNode": "runtime-assets"
-      },
-      {
-        "path": "images/watch-icon.svg",
-        "status": "materialized-runtime-asset",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "resources/skins.vector.styles.legacy/images/watch-icon.svg",
-        "sha256": "ee9e07a7d98e7d6f2313ffc9e444a66b330a203060e2b4c5018f3db33ed789a5",
-        "originNode": "runtime-assets"
-      },
-      {
-        "path": "images/watch-icon-hl.svg",
-        "status": "materialized-runtime-asset",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "resources/skins.vector.styles.legacy/images/watch-icon-hl.svg",
-        "sha256": "04a57971450721f4be1e9a7b48ae3cc46f0abb733601fdd778b28b954b4c7868",
-        "originNode": "runtime-assets"
-      },
-      {
-        "path": "images/unwatch-icon.svg",
-        "status": "materialized-runtime-asset",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "resources/skins.vector.styles.legacy/images/unwatch-icon.svg",
-        "sha256": "c39d035e0eaf30ddd811215b6bc023bc91defc8f0fb16fb4dbe65ef731ac8309",
-        "originNode": "runtime-assets"
-      },
-      {
-        "path": "images/unwatch-icon-hl.svg",
-        "status": "materialized-runtime-asset",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "resources/skins.vector.styles.legacy/images/unwatch-icon-hl.svg",
-        "sha256": "f87a93a308a7c95b70dbdce50734dfefd678c028ef2abb8cd22dbfca6c744d80",
-        "originNode": "runtime-assets"
-      },
-      {
-        "path": "images/unwatch-temp-icon.svg",
-        "status": "materialized-runtime-asset",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "resources/skins.vector.styles.legacy/images/unwatch-temp-icon.svg",
-        "sha256": "5ead3b167231d6f875a772be29fa41ccfdadd68fa5991b0aeec0cc191d80a71e",
-        "originNode": "runtime-assets"
-      },
-      {
-        "path": "images/unwatch-temp-icon-hl.svg",
-        "status": "materialized-runtime-asset",
-        "repository": "mediawiki-skins-Vector",
-        "upstreamPath": "resources/skins.vector.styles.legacy/images/unwatch-temp-icon-hl.svg",
-        "sha256": "be449554ce3d136790f4d0693dafdcec1e24d39d02b9e11b6f355ccf207e3322",
-        "originNode": "runtime-assets"
-      }
-    ]
+    "materializedRuntimeAssets": []
   },
   "generation": {
     "schema": 1,
     "entrypoint": "tools/generate-origin.mjs",
     "nodes": [
       {
-        "id": "runtime-assets",
-        "kind": "runtime-assets",
-        "dependsOn": [],
-        "inventory": "sourceInventory.materializedRuntimeAssets",
-        "outputInventory": "sourceInventory.materializedRuntimeAssets"
-      },
-      {
-        "id": "javascript-ports",
-        "kind": "javascript-ports",
-        "dependsOn": [],
-        "outputInventory": "sourceInventory.generatedFiles",
-        "outputRelationContract": {
-          "inputField": "input",
-          "dependenciesField": "dependencies"
-        }
-      },
-      {
         "id": "mustache-components",
         "kind": "mustache-vue-directory",
         "dependsOn": [],
-        "inputRoot": "vendor/mediawiki-vector-legacy/includes/templates",
+        "inputRoot": "vendor/mediawiki-minerva/includes/Skins",
         "outputRoot": "components",
         "inputExtension": ".mustache",
         "outputExtension": ".vue",
@@ -1427,9 +1334,7 @@
       {
         "id": "resource-loader-css",
         "kind": "resource-loader-origin",
-        "dependsOn": [
-          "runtime-assets"
-        ],
+        "dependsOn": [],
         "contract": "contracts/resource-loader-origin-contract.json",
         "outputInventory": "sourceInventory.generatedFiles"
       }
@@ -1466,16 +1371,16 @@
       "schema": 1,
       "mode": "single-static-entry",
       "selection": "build-time-static",
-      "profile": "vector-legacy",
+      "profile": "minerva",
       "entry": "css/screen.css",
       "originBundle": "css/vendor/resource-loader/page-styles.css",
       "adapterImports": [
-        "css/vector-adapter.css",
+        "css/minerva-adapter.css",
         "css/host-content.css",
         "css/host-modal.css"
       ],
       "resourceLoaderContract": "contracts/resource-loader-origin-contract.json",
-      "hostLimitation": "thetree skin CSS is selected as one static entry. Vector chrome is loaded while the complete host content subtree remains under thetree ownership."
+      "hostLimitation": "thetree supplies one static skin entry; Minerva owns responsive chrome while host content remains isolated under thetree ownership."
     }
   }
 }

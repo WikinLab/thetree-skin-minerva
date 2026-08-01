@@ -1,4 +1,5 @@
 import { spawnSync } from 'node:child_process';
+import path from 'node:path';
 import process from 'node:process';
 
 const gitExecutable = process.platform === 'win32' ? 'git.exe' : 'git';
@@ -13,7 +14,10 @@ export function readGitBlobs(checkout, objectSpecs) {
   const specs = [...new Set(objectSpecs.map(String))];
   if (specs.length === 0) return new Map();
 
-  const result = spawnSync(gitExecutable, ['-C', checkout, 'cat-file', '--batch'], {
+  const result = spawnSync(gitExecutable, [
+    '-c', `safe.directory=${path.resolve(checkout).replaceAll('\\', '/')}`,
+    '-C', checkout, 'cat-file', '--batch'
+  ], {
     input: `${specs.join('\n')}\n`,
     stdio: ['pipe', 'pipe', 'pipe'],
     encoding: null,

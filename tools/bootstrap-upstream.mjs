@@ -363,26 +363,20 @@ async function checkoutRepositories(lock, manifest) {
   console.log(`[checkout] ${repositories.length} repositories ready in ${((Date.now() - startedAt) / 1000).toFixed(1)}s (max ${checkoutConcurrency} concurrent).`);
 }
 
-function readVectorCodexVersions(lock) {
-  const vector = repositoryByName(lock, 'mediawiki-skins-Vector');
-  const packageLockPath = path.join(repositoryCheckout(vector.name), 'package-lock.json');
-  const packageLock = readJson(packageLockPath);
-  const dependencies = packageLock.packages?.['']?.devDependencies || {};
-  const codex = dependencies['@wikimedia/codex'];
-  const icons = dependencies['@wikimedia/codex-icons'];
-  for (const [name, version] of Object.entries({ '@wikimedia/codex': codex, '@wikimedia/codex-icons': icons })) {
-    if (!version || !/^\d+\.\d+\.\d+$/.test(version)) {
-      fail(`Unable to resolve exact ${name} version from Vector package-lock.json.`);
-    }
+function readCodexVersionContract(lock) {
+  const repository = repositoryByName(lock, 'design-codex');
+  const version = repository.versionContract?.packageVersion;
+  if (!version || !/^\d+\.\d+\.\d+$/.test(version)) {
+    fail('Locked design-codex repository requires versionContract.packageVersion.');
   }
-  return { codex, icons };
+  if (repository.ref !== `v${version}`) {
+    fail(`Design-codex ref ${repository.ref} disagrees with version contract ${version}.`);
+  }
+  return version;
 }
 
 function assertDesignCodexVersionAlignment(lock) {
-  const expected = readVectorCodexVersions(lock);
-  if (expected.codex !== expected.icons) {
-    fail(`Vector requires different Codex package versions (${expected.codex} and ${expected.icons}); one design-codex Git tag cannot represent both.`);
-  }
+  const expected = readCodexVersionContract(lock);
   const checkout = repositoryCheckout('design-codex');
   const packageVersions = {
     '@wikimedia/codex': readJson(path.join(checkout, 'packages/codex/package.json')).version,
@@ -390,8 +384,8 @@ function assertDesignCodexVersionAlignment(lock) {
     '@wikimedia/codex-icons': readJson(path.join(checkout, 'packages/codex-icons/package.json')).version
   };
   for (const [name, version] of Object.entries(packageVersions)) {
-    if (version !== expected.codex) {
-      fail(`Locked design-codex checkout version mismatch for ${name}: expected ${expected.codex}, got ${version}.`);
+    if (version !== expected) {
+      fail(`Locked design-codex checkout version mismatch for ${name}: expected ${expected}, got ${version}.`);
     }
   }
   const repository = repositoryByName(lock, 'design-codex');
@@ -402,8 +396,8 @@ function assertDesignCodexVersionAlignment(lock) {
     toolchain.packageFile || 'package.json'
   );
   const toolchainVersion = readJson(toolchainPackagePath).version;
-  if (toolchainVersion !== expected.codex) {
-    fail(`Design-codex build toolchain version mismatch: expected ${expected.codex}, got ${toolchainVersion || 'missing'}.`);
+  if (toolchainVersion !== expected) {
+    fail(`Design-codex build toolchain version mismatch: expected ${expected}, got ${toolchainVersion || 'missing'}.`);
   }
 }
 
@@ -413,7 +407,7 @@ async function resolveReleaseCandidate(baseLock, releaseVersion) {
   candidate.snapshotDate = new Date().toISOString().slice(0, 10);
   candidate.mediaWikiRelease = releaseVersion;
   candidate.releaseLine = ref;
-  candidate.policy = `MediaWiki core, Vector, and DarkMode use exact commits resolved from ${ref}; Codex styles, design tokens, mixins, and icon-path variables are built from the exact design-codex tag required by that Vector snapshot.`;
+  candidate.policy = `MediaWiki core and MinervaNeue use exact commits resolved from ${ref}; Codex styles, design tokens, mixins, and icon-path variables use the separately declared exact design-codex version contract.`;
 
   for (const repository of candidate.repositories) {
     if (repository.name === 'design-codex') continue;
@@ -421,15 +415,7 @@ async function resolveReleaseCandidate(baseLock, releaseVersion) {
     repository.commit = lsRemote(repository.repository, `refs/heads/${ref}`);
   }
 
-  const manifest = readJson(manifestPath);
-  await checkoutRepository(repositoryByName(candidate, 'mediawiki-skins-Vector'), manifest);
-  const versions = readVectorCodexVersions(candidate);
-  if (versions.codex !== versions.icons) {
-    fail(`Vector resolves Codex ${versions.codex} but Codex Icons ${versions.icons}; one design-codex Git tag cannot represent both.`);
-  }
-  const codexRepository = repositoryByName(candidate, 'design-codex');
-  codexRepository.ref = `v${versions.codex}`;
-  codexRepository.commit = resolveTagCommit(codexRepository.repository, codexRepository.ref);
+  readCodexVersionContract(candidate);
   return candidate;
 }
 

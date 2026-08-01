@@ -1,5 +1,5 @@
 {
-  "schema": 11,
+  "schema": 12,
   "skinVariantContract": "contracts/skin-variant-contract.json",
   "shared": {
     "importPaths": [
@@ -9,10 +9,13 @@
     "importAliases": {
       "mediawiki.skin.defaults.less": "vendor/mediawiki-core/resources/src/mediawiki.less/mediawiki.skin.defaults.less",
       "mediawiki.skin.default.less": "vendor/mediawiki-core/resources/src/mediawiki.less/mediawiki.skin.defaults.less",
+      "mediawiki.skin.variables.less": "vendor/mediawiki-minerva/resources/mediawiki.less/mediawiki.skin.variables.less",
       "mediawiki.mixins.less": "vendor/mediawiki-core/resources/src/mediawiki.less/mediawiki.mixins.less",
       "mediawiki.skin.codex/mixins/codex-public-mixins.less": "vendor/mediawiki-core/resources/src/mediawiki.less/mediawiki.skin.codex/mixins/codex-public-mixins.less",
       "@wikimedia/codex-icons/codex-icon-paths.less": "vendor/wikimedia-codex/packages/codex-icons/codex-icon-paths.less",
       "mediawiki.skin.codex-design-tokens/theme-wikimedia-ui.less": "vendor/wikimedia-codex/packages/codex-design-tokens/dist/theme-wikimedia-ui.less"
+      ,"mediawiki.skin.codex-design-tokens/theme-wikimedia-ui-mixin-dark.less": "vendor/wikimedia-codex/packages/codex-design-tokens/dist/theme-wikimedia-ui-mixin-dark.less"
+      ,"mediawiki.skin.codex-design-tokens/theme-wikimedia-ui-mixin-light.less": "vendor/wikimedia-codex/packages/codex-design-tokens/dist/theme-wikimedia-ui-mixin-light.less"
     },
     "lessPreludeEntries": [
       "vendor/wikimedia-codex/packages/codex-design-tokens/dist/theme-wikimedia-ui.less"
@@ -26,63 +29,141 @@
       "global": {},
       "skin": {
         "isolateHostContent": true,
-        "excludedSurfaces": [
-          "hostModal"
-        ]
+        "excludedSurfaces": ["hostModal"]
       }
     },
     "codexManifest": "vendor/mediawiki-core/resources/lib/codex/modules/manifest.json",
     "codexModuleRoot": "vendor/mediawiki-core/resources/lib/codex/modules",
-    "activeMedia": [
-      "all",
-      "screen"
-    ]
+    "activeMedia": ["all", "screen"]
   },
   "modules": [
     {
-      "name": "skins.vector.styles.legacy",
-      "metadata": "vendor/mediawiki-vector-legacy/skin.json",
+      "name": "skins.minerva.styles",
+      "metadata": "vendor/mediawiki-minerva/skin.json",
       "metadataRoot": "ResourceModules",
-      "sourceBase": "vendor/mediawiki-vector-legacy",
-      "output": "css/vendor/resource-loader/skins.vector.styles.legacy.css",
+      "sourceBase": "vendor/mediawiki-minerva",
+      "output": "css/vendor/resource-loader/skins.minerva.styles.css",
       "ownership": "skin"
     },
     {
-      "name": "ext.DarkMode.styles",
-      "metadata": "vendor/mediawiki-darkmode/extension.json",
+      "name": "skins.minerva.content.styles.images",
+      "metadata": "vendor/mediawiki-minerva/skin.json",
       "metadataRoot": "ResourceModules",
-      "sourceBase": "vendor/mediawiki-darkmode/resources",
-      "output": "css/vendor/resource-loader/ext.DarkMode.styles.css",
-      "ownership": "global"
-    }
-  ],
-  "bundles": [
+      "sourceBase": "vendor/mediawiki-minerva",
+      "output": "css/vendor/resource-loader/skins.minerva.content.styles.images.css",
+      "ownership": "skin",
+      "imageOutputDirectory": "css/vendor/images/minerva-content",
+      "assets": [
+        {
+          "source": "vendor/mediawiki-minerva/resources/skins.minerva.content.styles.images",
+          "output": "css/vendor/images/minerva-content"
+        }
+      ]
+    },
     {
-      "name": "codex-styles",
-      "sources": [
-        "vendor/wikimedia-codex/packages/codex-design-tokens/dist/theme-wikimedia-ui-root.css",
-        "vendor/wikimedia-codex/packages/codex/dist/codex.style.css"
-      ],
-      "output": "css/vendor/resource-loader/codex-styles.css"
+      "name": "mediawiki.hlist",
+      "metadata": "vendor/mediawiki-minerva/skin.json",
+      "metadataRoot": "ResourceModuleSkinStyles.minerva",
+      "sourceBase": "vendor/mediawiki-minerva",
+      "output": "css/vendor/resource-loader/mediawiki.hlist.css",
+      "ownership": "skin"
+    },
+    {
+      "name": "skins.minerva.codex.styles",
+      "metadata": "vendor/mediawiki-minerva/skin.json",
+      "metadataRoot": "ResourceModules",
+      "sourceBase": "vendor/mediawiki-minerva",
+      "output": "css/vendor/resource-loader/skins.minerva.codex.styles.css",
+      "ownership": "skin"
+    },
+    {
+      "name": "skins.minerva.icons",
+      "metadata": "vendor/mediawiki-minerva/skin.json",
+      "metadataRoot": "ResourceModules",
+      "sourceBase": "vendor/mediawiki-minerva",
+      "output": "css/vendor/resource-loader/skins.minerva.icons.css",
+      "ownership": "skin"
+    },
+    {
+      "name": "skins.minerva.amc.styles",
+      "metadata": "vendor/mediawiki-minerva/skin.json",
+      "metadataRoot": "ResourceModules",
+      "sourceBase": "vendor/mediawiki-minerva",
+      "output": "css/vendor/resource-loader/skins.minerva.amc.styles.css",
+      "ownership": "skin"
+    },
+    {
+      "name": "skins.minerva.mainPage.styles",
+      "metadata": "vendor/mediawiki-minerva/skin.json",
+      "metadataRoot": "ResourceModules",
+      "sourceBase": "vendor/mediawiki-minerva",
+      "output": "css/vendor/resource-loader/skins.minerva.mainPage.styles.css",
+      "ownership": "skin"
+    },
+    {
+      "name": "skins.minerva.userpage.styles",
+      "metadata": "vendor/mediawiki-minerva/skin.json",
+      "metadataRoot": "ResourceModules",
+      "sourceBase": "vendor/mediawiki-minerva",
+      "output": "css/vendor/resource-loader/skins.minerva.userpage.styles.css",
+      "ownership": "skin"
+    },
+    {
+      "name": "skins.minerva.loggedin.styles",
+      "metadata": "vendor/mediawiki-minerva/skin.json",
+      "metadataRoot": "ResourceModules",
+      "sourceBase": "vendor/mediawiki-minerva",
+      "output": "css/vendor/resource-loader/skins.minerva.loggedin.styles.css",
+      "ownership": "skin"
+    },
+    {
+      "name": "skins.minerva.categories.styles",
+      "metadata": "vendor/mediawiki-minerva/skin.json",
+      "metadataRoot": "ResourceModules",
+      "sourceBase": "vendor/mediawiki-minerva",
+      "output": "css/vendor/resource-loader/skins.minerva.categories.styles.css",
+      "ownership": "skin"
+    },
+    {
+      "name": "skins.minerva.personalMenu.icons",
+      "metadata": "vendor/mediawiki-minerva/skin.json",
+      "metadataRoot": "ResourceModules",
+      "sourceBase": "vendor/mediawiki-minerva",
+      "output": "css/vendor/resource-loader/skins.minerva.personalMenu.icons.css",
+      "ownership": "skin"
+    },
+    {
+      "name": "skins.minerva.mainMenu.advanced.icons",
+      "metadata": "vendor/mediawiki-minerva/skin.json",
+      "metadataRoot": "ResourceModules",
+      "sourceBase": "vendor/mediawiki-minerva",
+      "output": "css/vendor/resource-loader/skins.minerva.mainMenu.advanced.icons.css",
+      "ownership": "skin"
+    },
+    {
+      "name": "skins.minerva.overflow.icons",
+      "metadata": "vendor/mediawiki-minerva/skin.json",
+      "metadataRoot": "ResourceModules",
+      "sourceBase": "vendor/mediawiki-minerva",
+      "output": "css/vendor/resource-loader/skins.minerva.overflow.icons.css",
+      "ownership": "skin"
+    },
+    {
+      "name": "skins.minerva.search",
+      "metadata": "vendor/mediawiki-minerva/skin.json",
+      "metadataRoot": "ResourceModules",
+      "sourceBase": "vendor/mediawiki-minerva",
+      "output": "css/vendor/resource-loader/skins.minerva.search.css",
+      "ownership": "skin"
     }
   ],
+  "bundles": [],
   "skinModule": {
     "source": "vendor/mediawiki-core/includes/ResourceLoader/SkinModule.php",
     "coreSourceBase": "vendor/mediawiki-core",
-    "disabledFeatures": [
-      "logo",
-      "content-media",
-      "content-links",
-      "interface-category",
-      "content-tables",
-      "i18n-ordered-lists",
-      "i18n-headings"
-    ],
+    "disabledFeatures": ["logo", "content-media", "content-links"],
     "ownershipRules": [
-      {
-        "pattern": ".*",
-        "ownership": "skin"
-      }
+      { "pattern": ".*", "ownership": "skin" }
     ],
     "configSchema": "vendor/mediawiki-core/includes/config-schema.php",
     "compatibilityMethod": "protected static function applyFeaturesCompatibility",
@@ -91,124 +172,63 @@
   "generatedRoot": "css/vendor",
   "pageStyleQueue": {
     "schema": 2,
-    "profile": "vector-legacy",
+    "profile": "minerva",
     "output": "css/vendor/resource-loader/page-styles.css",
     "phases": [
       {
         "id": "host-prelude",
-        "sources": [
-          {
-            "kind": "generated-output",
-            "name": "mediawiki-variable-shim"
-          }
-        ]
+        "sources": [{ "kind": "generated-output", "name": "mediawiki-variable-shim" }]
       },
       {
         "id": "skin-output-module-styles",
         "sources": [
           {
             "kind": "skin-option-styles",
-            "metadata": "vendor/mediawiki-vector-legacy/skin.json",
-            "skin": "vector"
+            "metadata": "vendor/mediawiki-minerva/skin.json",
+            "skin": "minerva"
           }
         ]
       },
       {
-        "id": "before-page-display-module-styles",
+        "id": "page-specific-module-styles",
         "sources": [
           {
-            "kind": "php-add-module-styles",
-            "file": "vendor/mediawiki-darkmode/includes/Hooks.php",
-            "method": "onBeforePageDisplay"
+            "kind": "php-array-append-modules",
+            "file": "vendor/mediawiki-minerva/includes/Skins/SkinMinerva.php",
+            "method": "getPageSpecificStyles",
+            "variable": "styles"
+          },
+          {
+            "kind": "php-array-append-modules",
+            "file": "vendor/mediawiki-minerva/includes/Skins/SkinMinerva.php",
+            "method": "getFeatureSpecificStyles",
+            "variable": "styles"
           }
         ]
       },
       {
-        "id": "runtime-on-demand-module-styles",
+        "id": "host-enhancement-styles",
         "sources": [
-          {
-            "kind": "php-module-definition",
-            "file": "vendor/mediawiki-core/resources/Resources.php",
-            "module": "codex-styles"
-          }
+          { "kind": "declared-modules", "modules": ["skins.minerva.search"] }
         ]
       }
     ],
-    "lifecycleAssertions": [
-      {
-        "kind": "php-method-call-order",
-        "file": "vendor/mediawiki-core/includes/Output/OutputPage.php",
-        "method": "output",
-        "calls": [
-          {
-            "call": "loadSkinModules",
-            "phase": "skin-output-module-styles"
-          },
-          {
-            "call": "onBeforePageDisplay",
-            "phase": "before-page-display-module-styles"
-          },
-          {
-            "call": "outputPageFinal"
-          }
-        ]
-      },
-      {
-        "kind": "php-method-call-order",
-        "file": "vendor/mediawiki-core/includes/ResourceLoader/ClientHtml.php",
-        "method": "makeLoad",
-        "calls": [
-          {
-            "call": "sort( $modules )"
-          },
-          {
-            "call": "$sortedModules = []"
-          },
-          {
-            "call": "foreach ( $modules as $name )"
-          }
-        ]
-      }
-    ],
-    "clientHtml": {
-      "defaultSource": "local",
-      "defaultGroup": ""
-    },
+    "lifecycleAssertions": [],
+    "clientHtml": { "defaultSource": "local", "defaultGroup": "" },
     "batches": [
+      { "id": "host-prelude", "ordering": "preserve", "phases": ["host-prelude"] },
       {
-        "id": "host-prelude",
-        "ordering": "preserve",
-        "phases": [
-          "host-prelude"
-        ]
-      },
-      {
-        "id": "head-only-styles",
+        "id": "minerva-head-styles",
         "ordering": "mediawiki-clienthtml-make-load",
-        "phases": [
-          "skin-output-module-styles",
-          "before-page-display-module-styles"
-        ]
-      },
-      {
-        "id": "runtime-on-demand",
-        "ordering": "dependency-topological",
-        "phases": [
-          "runtime-on-demand-module-styles"
-        ]
+        "phases": ["skin-output-module-styles", "page-specific-module-styles", "host-enhancement-styles"]
       }
     ]
   },
   "customPropertyClosure": {
     "name": "mediawiki-variable-shim",
     "output": "css/vendor/resource-loader/mediawiki-variable-shim.css",
-    "localConsumerRoots": [
-      "css"
-    ],
-    "hostProvidedPrefixes": [
-      "--mw-msg-",
-      "--tt-"
-    ],
+    "localConsumerRoots": ["css"],
+    "hostProvidedPrefixes": ["--mw-msg-", "--tt-"],
     "domCompositions": [],
     "localPublishedLessTokenEntrypoints": [
       "vendor/wikimedia-codex/packages/codex-design-tokens/dist/theme-wikimedia-ui.less"
@@ -217,13 +237,8 @@
   "messageCatalog": {
     "output": "lib/generated/mediawiki-less-messages.json",
     "languages": {
-      "en": {
-        "source": "vendor/mediawiki-core/languages/i18n/en.json"
-      },
-      "ko": {
-        "source": "vendor/mediawiki-core/languages/i18n/ko.json",
-        "fallback": "en"
-      }
+      "en": { "source": "vendor/mediawiki-core/languages/i18n/en.json" },
+      "ko": { "source": "vendor/mediawiki-core/languages/i18n/ko.json", "fallback": "en" }
     }
   }
 }

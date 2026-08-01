@@ -77,13 +77,16 @@ function entriesAtInventories(manifest, inventoryPaths, label) {
 function listSourceCoverageFiles(contract) {
   const relativeRoot = normalizeRelativePath(contract.root || '.').replace(/\/$/, '');
   if (fs.existsSync(path.join(root, '.git'))) {
-    const args = ['ls-files', '--cached', '--others', '--exclude-standard', '-z', '--'];
+    const args = ['-c', `safe.directory=${root.replaceAll('\\', '/')}`, 'ls-files', '--cached', '--others', '--exclude-standard', '-z', '--'];
     if (relativeRoot && relativeRoot !== '.') args.push(relativeRoot);
     const result = spawnSync('git', args, { cwd: root, encoding: 'utf8', windowsHide: true });
     if (result.error || result.status !== 0) {
       throw new Error(`Unable to enumerate Git-visible source files: ${result.error?.message || result.stderr || result.stdout}`);
     }
-    return result.stdout.split('\0').filter(Boolean).map(normalizeRelativePath);
+    return result.stdout.split('\0')
+      .filter(Boolean)
+      .map(normalizeRelativePath)
+      .filter((pathname) => fs.existsSync(path.join(root, pathname)));
   }
 
   const coverageRoot = path.join(root, relativeRoot || '.');

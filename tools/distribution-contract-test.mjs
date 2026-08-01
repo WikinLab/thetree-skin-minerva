@@ -30,7 +30,10 @@ for (const dependency of Object.keys(packageLock.packages?.['']?.dependencies ||
   assert.match(thirdParty, new RegExp(metadata.license.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
 }
 
-const tracked = spawnSync('git', ['ls-files', '-z'], { cwd: root, encoding: 'utf8', windowsHide: true });
+const tracked = spawnSync('git', [
+  '-c', `safe.directory=${root.replaceAll('\\', '/')}`,
+  'ls-files', '-z'
+], { cwd: root, encoding: 'utf8', windowsHide: true });
 if (tracked.status !== 0) throw new Error(tracked.stderr || 'Unable to enumerate tracked files');
 const forbidden = tracked.stdout.split('\0').filter(Boolean).filter((file) =>
   file.startsWith('.upstream/') || file.startsWith('vendor/') || file.startsWith('node_modules/') ||

@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import Mustache from 'mustache';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const templateRoot = path.join(root, 'vendor', 'mediawiki-vector-legacy', 'includes', 'templates');
+const templateRoot = path.join(root, 'vendor', 'mediawiki-minerva', 'includes', 'Skins');
 
 function walk(directory) {
   return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -30,7 +30,7 @@ assert.equal(
 
 if (fs.existsSync(templateRoot)) {
   const templates = walk(templateRoot).filter((file) => file.endsWith('.mustache'));
-  assert.ok(templates.length > 0, 'No materialized Vector Mustache templates were found');
+  assert.ok(templates.length > 0, 'No materialized Minerva Mustache templates were found');
   for (const template of templates) Mustache.parse(fs.readFileSync(template, 'utf8'));
 }
 

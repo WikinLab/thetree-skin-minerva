@@ -537,7 +537,7 @@ function appendSubjectFilter(selector, filterSelector) {
 }
 
 /*
- * The Vector chrome and the tree/Nuxt UI share one document. Generated skin CSS
+ * The Minerva chrome and the tree/Nuxt UI share one document. Generated skin CSS
  * therefore remains authoritative outside explicit host-owned surfaces, while
  * thetree content and global overlays are excluded from the generated cascade.
  *

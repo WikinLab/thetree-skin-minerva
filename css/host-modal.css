@@ -2,7 +2,7 @@
  * Structural baseline for thetree-owned global modals.
  *
  * thetree modal components assume the border-box reset supplied by the other
- * supported skin frameworks. Vector deliberately retains the browser's
+ * supported skin frameworks. Minerva deliberately retains the browser's
  * content-box default, so restore that host invariant only inside the modal
  * ownership boundary. :where() keeps the bridge weaker than component-scoped
  * declarations.

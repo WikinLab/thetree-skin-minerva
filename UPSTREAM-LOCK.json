@@ -3,19 +3,18 @@
   "snapshotDate": "2026-07-14",
   "mediaWikiRelease": "1.46",
   "releaseLine": "REL1_46",
-  "policy": "The default bootstrap reproduces the exact 2026-07-14 MediaWiki 1.46 distribution-line snapshot. Every upstream input is obtained from an exact Git commit. MediaWiki core, Vector, and DarkMode use exact REL1_46 commits; Codex styles, design tokens, mixins, and icon-path variables are built from the exact matching design-codex Git tag. Upstream movement occurs only through an explicit bootstrap refresh or release option. The final stylesheet cascade is generated from source-derived MediaWiki queue events and the locked ClientHtml::makeLoad module sorting/source-group partition algorithm rather than a hand-authored CSS import list.",
+  "policy": "The default bootstrap reproduces an exact MediaWiki 1.46 and MinervaNeue snapshot. Every upstream input is obtained from an exact Git commit. Codex styles, design tokens, mixins, and icon-path variables use a separately declared exact version contract. Upstream movement occurs only through an explicit bootstrap refresh or release option. The final stylesheet cascade is generated from Minerva skin options and PHP style-queue declarations rather than a hand-authored upstream CSS import list.",
   "repositories": [
     {
-      "name": "mediawiki-skins-Vector",
-      "repository": "wikimedia/mediawiki-skins-Vector",
+      "name": "mediawiki-skins-MinervaNeue",
+      "repository": "wikimedia/mediawiki-skins-MinervaNeue",
       "ref": "REL1_46",
-      "commit": "ccdb96450f920bd927e958c43f4f3be0458ce9f7",
+      "commit": "80301ab22e4fd51d72c0b511ea1d8dc33007a5fb",
       "license": "GPL-2.0-or-later",
       "licenseFile": "COPYING",
-      "scope": "Vector legacy templates, PHP data contracts, LESS, and JavaScript behavior sources",
+      "scope": "MinervaNeue templates, PHP data contracts, responsive LESS, icons, and interaction behavior sources",
       "bootstrapPaths": [
-        "package.json",
-        "package-lock.json"
+        "skin.json"
       ]
     },
     {
@@ -28,20 +27,6 @@
       "scope": "MediaWiki core skinning LESS, ResourceLoader SkinModule and core module registry sources, default variables, and core Codex module CSS sources"
     },
     {
-      "name": "mediawiki-extensions-DarkMode",
-      "repository": "wikimedia/mediawiki-extensions-DarkMode",
-      "ref": "REL1_46",
-      "commit": "ccccb2f21445c31ceb4c4f8226da765d5de709fb",
-      "license": "MIT",
-      "licenseFile": "extension.json:license-name",
-      "scope": "DarkMode extension hook, message, client behavior, and ext.DarkMode.styles ResourceLoader sources",
-      "bootstrapPaths": [
-        "extension.json",
-        "i18n/en.json",
-        "i18n/ko.json"
-      ]
-    },
-    {
       "name": "design-codex",
       "repository": "wikimedia/design-codex",
       "ref": "v2.3.1",
@@ -49,6 +34,9 @@
       "license": "GPL-2.0-or-later",
       "licenseFile": "LICENSE",
       "scope": "Complete locked Codex workspace source used by the upstream build, plus selected generated CSS, token, mixin, icon-path, and SVG vendor outputs",
+      "versionContract": {
+        "packageVersion": "2.3.1"
+      },
       "build": {
         "steps": [
           {
@@ -91,6 +79,8 @@
         "outputs": [
           "packages/codex-design-tokens/dist/theme-wikimedia-ui-root.css",
           "packages/codex-design-tokens/dist/theme-wikimedia-ui.less",
+          "packages/codex-design-tokens/dist/theme-wikimedia-ui-mixin-dark.less",
+          "packages/codex-design-tokens/dist/theme-wikimedia-ui-mixin-light.less",
           "packages/codex-icons/dist/codex-icon-paths.less",
           "packages/codex/dist/codex.style.css"
         ],
@@ -151,10 +141,10 @@
     "Default bootstrap reuses fingerprint-matched dependencies and upstream build outputs, stages vendor materialization before atomic replacement, and keeps the last usable state on failure. --clean requests a cold rebuild.",
     "Repositories without upstream build steps use sparse checkout from the declared source inventory. Build-bearing repositories may set sparseCheckout to false so the exact upstream build receives its complete source workspace instead of a guessed file subset.",
     "The design-codex repository is checked out completely at its locked commit, linked to the pinned project-owned build toolchain, and built through its own workspace scripts.",
-    "The DarkMode extension is locked to the same MediaWiki release line. Its ResourceLoader style module is generated from upstream LESS; the thetree theme state is only adapted to the extension-owned html class contract.",
-    "The final page stylesheet imports are generated from locked skin-option, BeforePageDisplay, and on-demand module sources. OutputPage enqueue order and ClientHtml::makeLoad sorting/source-group partitioning are both verified against the locked MediaWiki core source; css/screen.css does not hand-order upstream ResourceLoader modules."
+    "Minerva native skin-theme-clientpref-day/night classes are driven by the thetree theme adapter; no external DarkMode extension is involved.",
+    "The final page stylesheet imports are generated from locked Minerva skin options and the conditional style declarations in SkinMinerva.php; css/screen.css does not hand-order upstream ResourceLoader modules."
   ],
   "invariants": [
-    "The final page stylesheet imports are generated from locked skin-option, BeforePageDisplay, and on-demand module sources. OutputPage enqueue order is verified, then head style modules are serialized by the locked ClientHtml::makeLoad sort and source/group partition algorithm; css/screen.css does not hand-order upstream ResourceLoader modules."
+    "The final page stylesheet imports are generated from locked Minerva skin options and SkinMinerva.php conditional style declarations, then serialized using the locked ClientHtml::makeLoad ordering contract."
   ]
 }

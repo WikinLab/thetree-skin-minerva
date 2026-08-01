@@ -1,9 +1,8 @@
 /*
- * thetree-skin-vector desktop stylesheet entry.
- * The upstream ResourceLoader cascade is generated from the locked page module queue.
- * Host-only adapters remain separate and load after the origin page-style bundle.
+ * thetree-skin-minerva static stylesheet entry.
+ * Upstream ResourceLoader order is generated from the locked Minerva queue.
  */
 @import "./vendor/resource-loader/page-styles.css";
-@import "./vector-adapter.css";
+@import "./minerva-adapter.css";
 @import "./host-content.css";
 @import "./host-modal.css";

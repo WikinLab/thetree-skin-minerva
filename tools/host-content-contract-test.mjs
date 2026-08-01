@@ -29,7 +29,8 @@ function rules(relativePath) {
 assert.deepEqual(imports(read('css/screen.css')), [
   './vendor/resource-loader/page-styles.css',
   './vector-adapter.css',
-  './host-content.css'
+  './host-content.css',
+  './host-modal.css'
 ]);
 
 const skinLegacySource = read('components/SkinLegacy.vue');
@@ -75,6 +76,20 @@ assert.equal(linkRules[0].nodes[0].prop, 'text-decoration');
 assert.equal(linkRules[0].nodes[0].value, 'none');
 assert.doesNotMatch(linksSource, /\bcolor\s*:|background|content\s*:|!important/);
 assert.doesNotMatch(linksSource, /data-tt-vector/);
+
+const hostModalSource = read('css/host-modal.css');
+const hostModalRules = rules('css/host-modal.css');
+assert.equal(hostModalRules.length, 1);
+const hostModalSelectors = selectorParser().astSync(hostModalRules[0].selector).nodes;
+assert.equal(hostModalSelectors.length, 4);
+for (const selector of hostModalSelectors) {
+  assert.match(selector.toString(), /\.thetree-modal-container/);
+}
+assert.equal(hostModalRules[0].nodes.length, 1);
+assert.equal(hostModalRules[0].nodes[0].prop, 'box-sizing');
+assert.equal(hostModalRules[0].nodes[0].value, 'border-box');
+assert.doesNotMatch(hostModalSource, /!important/);
+assert.doesNotMatch(hostModalSource, /setting-block|\bheader\b|\bul\b/);
 
 const rawResourceLoaderContract = JSON.parse(read('contracts/resource-loader-origin-contract.json'));
 const resourceLoaderContract = resolveResourceLoaderOriginContract(root, rawResourceLoaderContract);

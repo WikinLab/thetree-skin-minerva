@@ -6,3 +6,4 @@
 @import "./vendor/resource-loader/page-styles.css";
 @import "./vector-adapter.css";
 @import "./host-content.css";
+@import "./host-modal.css";

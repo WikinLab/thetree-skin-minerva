@@ -833,6 +833,11 @@
         "hostDependency": "thetree"
       },
       {
+        "path": "css/host-modal.css",
+        "kind": "host-adapter",
+        "hostDependency": "thetree"
+      },
+      {
         "path": "css/screen.css",
         "kind": "skin-integration",
         "hostDependency": "thetree"
@@ -1466,7 +1471,8 @@
       "originBundle": "css/vendor/resource-loader/page-styles.css",
       "adapterImports": [
         "css/vector-adapter.css",
-        "css/host-content.css"
+        "css/host-content.css",
+        "css/host-modal.css"
       ],
       "resourceLoaderContract": "contracts/resource-loader-origin-contract.json",
       "hostLimitation": "thetree skin CSS is selected as one static entry. Vector chrome is loaded while the complete host content subtree remains under thetree ownership."

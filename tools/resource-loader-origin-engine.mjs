@@ -70,9 +70,15 @@ function adaptOwnership(css, ownership, shared) {
     if (admittedSurfaceName && !admittedSurface) {
       throw new Error(`Unknown ResourceLoader admitted surface: ${admittedSurfaceName}`);
     }
+    const excludedSurfaceSelectors = asArray(policy.excludedSurfaces).map((surfaceName) => {
+      const selector = surfaces[surfaceName];
+      if (!selector) throw new Error(`Unknown ResourceLoader excluded surface: ${surfaceName}`);
+      return selector;
+    });
     output = isolateResourceLoaderOutputCssFromHostContent(output, {
       hostContentSelector: surfaces.hostContent,
       admittedSurfaceSelector: admittedSurface,
+      excludedSurfaceSelectors,
       preserveAncestorClassNames: policy.preserveAncestorClassNames || [],
       preserveAncestorIdNames: policy.preserveAncestorIdNames || []
     });

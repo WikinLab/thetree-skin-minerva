@@ -1,5 +1,5 @@
 {
-  "schema": 10,
+  "schema": 11,
   "skinVariantContract": "contracts/skin-variant-contract.json",
   "shared": {
     "importPaths": [
@@ -19,12 +19,16 @@
     ],
     "runtimeAssetDirectory": "images",
     "hostSurfaces": {
-      "hostContent": "#mw-content-text[data-tt-host-content=\"1\"]"
+      "hostContent": "#mw-content-text[data-tt-host-content=\"1\"]",
+      "hostModal": ".thetree-modal-container"
     },
     "ownershipPolicies": {
       "global": {},
       "skin": {
-        "isolateHostContent": true
+        "isolateHostContent": true,
+        "excludedSurfaces": [
+          "hostModal"
+        ]
       }
     },
     "codexManifest": "vendor/mediawiki-core/resources/lib/codex/modules/manifest.json",

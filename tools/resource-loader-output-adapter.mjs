@@ -537,9 +537,9 @@ function appendSubjectFilter(selector, filterSelector) {
 }
 
 /*
- * The Vector chrome and the tree/Nuxt content share one document. Generated
- * skin CSS therefore remains authoritative outside the immutable host-content
- * root, while thetree content is excluded from the generated cascade.
+ * The Vector chrome and the tree/Nuxt UI share one document. Generated skin CSS
+ * therefore remains authoritative outside explicit host-owned surfaces, while
+ * thetree content and global overlays are excluded from the generated cascade.
  *
  * The zero-specificity subject filter preserves the original selector and
  * cascade weight. An optional admitted surface is supported by the generator,
@@ -549,11 +549,15 @@ function appendSubjectFilter(selector, filterSelector) {
 export function isolateResourceLoaderOutputCssFromHostContent(css, {
   hostContentSelector,
   admittedSurfaceSelector = '',
+  excludedSurfaceSelectors = [],
   preserveAncestorClassNames = [],
   preserveAncestorIdNames = []
 } = {}) {
   const hostContent = String(hostContentSelector || '').trim();
   const admittedSurface = String(admittedSurfaceSelector || '').trim();
+  const excludedSurfaces = (excludedSurfaceSelectors || [])
+    .map((selector) => String(selector || '').trim())
+    .filter(Boolean);
   if (!hostContent) throw new Error('ResourceLoader host-content selector is required');
 
   const preservedClasses = new Set(preserveAncestorClassNames || []);
@@ -567,7 +571,12 @@ export function isolateResourceLoaderOutputCssFromHostContent(css, {
   const excludedDescendant = admittedSurface
     ? `${hostContent} :not(${admittedSurface}, ${admittedSurface} *)`
     : `${hostContent} *`;
-  const subjectFilter = `:where(:not(${excludedRoot}, ${excludedDescendant}))`;
+  const excludedRoots = [excludedRoot, ...excludedSurfaces];
+  const excludedDescendants = [
+    excludedDescendant,
+    ...excludedSurfaces.map((selector) => `${selector} *`)
+  ];
+  const subjectFilter = `:where(:not(${[...excludedRoots, ...excludedDescendants].join(', ')}))`;
   const root = postcss.parse(css);
   root.walkRules((rule) => {
     if (isInsideKeyframes(rule)) return;

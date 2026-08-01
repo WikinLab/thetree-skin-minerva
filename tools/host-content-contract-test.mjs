@@ -83,15 +83,38 @@ const generatedVectorCss = read('css/vendor/resource-loader/skins.vector.styles.
 
 assert.equal(skinVariantContract.id, 'vector-legacy');
 assert.deepEqual(resourceLoaderContract.shared.hostSurfaces, {
-  hostContent: '#mw-content-text[data-tt-host-content="1"]'
+  hostContent: '#mw-content-text[data-tt-host-content="1"]',
+  hostModal: '.thetree-modal-container'
 });
 assert.deepEqual(resourceLoaderContract.shared.ownershipPolicies.skin, {
-  isolateHostContent: true
+  isolateHostContent: true,
+  excludedSurfaces: ['hostModal']
 });
 assert.equal(resourceLoaderContract.pageStyleQueue.profile, 'vector-legacy');
 assert.match(
   generatedVectorCss,
-  /:where\(:not\(#mw-content-text\[data-tt-host-content="1"\], #mw-content-text\[data-tt-host-content="1"\] \*\)\)/
+  /:where\(:not\(#mw-content-text\[data-tt-host-content="1"\], \.thetree-modal-container, #mw-content-text\[data-tt-host-content="1"\] \*, \.thetree-modal-container \*\)\)/
 );
 
-console.log('checked host ownership and Vector chrome contract');
+const generatedRules = rules('css/vendor/resource-loader/skins.vector.styles.legacy.css');
+const documentTitleRule = generatedRules.find((rule) => (
+  rule.selector.includes('h1:where(')
+  && rule.nodes.some((node) => node.type === 'decl' && node.prop === 'border-bottom')
+));
+assert.ok(documentTitleRule, 'Vector document title border rule must remain generated');
+assert.match(documentTitleRule.selector, /\.thetree-modal-container/);
+assert.doesNotMatch(documentTitleRule.selector, /\.tt-vector/);
+
+const listIndentRule = generatedRules.find((rule) => (
+  rule.selector.startsWith('ul:where(')
+  && rule.nodes.some((node) => node.type === 'decl' && node.prop === 'margin-inline-start')
+));
+assert.ok(listIndentRule, 'Vector list indentation must remain generated for owned chrome');
+assert.match(listIndentRule.selector, /\.thetree-modal-container/);
+
+assert.doesNotMatch(
+  read('css/vendor/resource-loader/ext.DarkMode.styles.css'),
+  /\.thetree-modal-container/
+);
+
+console.log('checked host content, modal ownership, and Vector chrome contract');

@@ -4,17 +4,8 @@ the tree용 MediaWiki MinervaNeue 단독 스킨입니다. Minerva의 반응형 D
 
 현재 목표는 Vector/레거시와 합치기 전, Minerva 자체를 독립적으로 완성하고 검증하는 것입니다.
 
-## 원본과 생성 방식
-
-- MinervaNeue `REL1_46` commit `80301ab22e4fd51d72c0b511ea1d8dc33007a5fb`
-- MediaWiki core `REL1_46` commit `94b1bc0df0d57a470404266bed914f8584ead52f`
-- Wikimedia Codex `v2.3.1` commit `451588b3ed4e610a50b9b656ef528898e049bb2f`
-- Mustache 템플릿은 `components/`의 Vue 컴포넌트로 기계 변환
-- ResourceLoader LESS, Codex 컴포넌트 CSS, ImageModule 및 아이콘 팩은 `css/vendor/`로 기계 생성
-- Minerva의 조건부 스타일 목록은 `SkinMinerva.php`의 `$styles[]` 선언에서 자동 추출
-- upstream checkout, vendor 및 생성 결과는 배포 소스에 포함하지 않고 `npm run bootstrap`으로 재현
-
-the tree 고유의 라우트, 세션, ACL, 검색, 설정 및 테마 상태는 `lib/`의 호스트 어댑터에서만 변환합니다. Minerva가 소유하는 DOM을 어댑터에서 다시 작성하지 않습니다.
+> [!WARNING]
+> 아직 미완성이므로 사용을 권장하지 않습니다.
 
 ## 요구 사항
 

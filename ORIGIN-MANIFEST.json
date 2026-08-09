@@ -729,11 +729,6 @@
         "hostDependency": "none"
       },
       {
-        "path": "DEVELOPMENT-PRINCIPLES.md",
-        "kind": "package-metadata",
-        "hostDependency": "none"
-      },
-      {
         "path": "LICENSE",
         "kind": "package-metadata",
         "hostDependency": "none"

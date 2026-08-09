@@ -3,6 +3,7 @@
   "family": "minerva",
   "id": "minerva-standalone",
   "upstreamSkinName": "minerva",
+  "composableEntry": "components/MinervaVariantLayout.vue",
   "upstream": {
     "lessVariables": "vendor/mediawiki-minerva/resources/mediawiki.less/mediawiki.skin.variables.less",
     "elementsSource": "vendor/mediawiki-core/resources/src/mediawiki.skinning/elements.less",

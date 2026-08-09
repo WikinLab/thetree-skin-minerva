@@ -764,6 +764,11 @@
         "hostDependency": "thetree"
       },
       {
+        "path": "components/MinervaVariantLayout.vue",
+        "kind": "skin-integration",
+        "hostDependency": "thetree"
+      },
+      {
         "path": "components/SkinMinerva.vue",
         "kind": "host-adapter",
         "hostDependency": "thetree"
@@ -1011,6 +1016,11 @@
       {
         "path": "tools/minerva-parity-contract-test.mjs",
         "kind": "generation-tool",
+        "hostDependency": "none"
+      },
+      {
+        "path": "tools/skin-variant-contract-test.mjs",
+        "kind": "generation-contract",
         "hostDependency": "none"
       },
       {
@@ -1386,7 +1396,7 @@
       "schema": 1,
       "contract": "contracts/skin-variant-contract.json",
       "runtimeModule": "lib/skinVariant.js",
-      "consumer": "layout.vue",
+      "consumer": "components/MinervaVariantLayout.vue",
       "activationAttribute": "data-tt-skin-variant"
     },
     "moduleGraph": {

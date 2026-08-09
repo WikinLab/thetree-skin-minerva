@@ -2,7 +2,7 @@
 
 the tree용 MediaWiki MinervaNeue 단독 스킨입니다. Minerva의 반응형 DOM과 스타일을 그대로 사용하므로 모바일과 데스크톱을 한 스킨으로 지원합니다.
 
-현재 목표는 Vector/레거시와 합치기 전, Minerva 자체를 독립적으로 완성하고 검증하는 것입니다.
+이 저장소는 독립 `minerva` 스킨으로 직접 설치할 수 있으며, `thetree-skin-vector`의 기본 bootstrap이 잠긴 커밋을 내려받아 내부 모바일 변형으로 조합할 수도 있습니다. 어느 방식이든 Minerva 자체 bootstrap과 검증 절차는 이 저장소가 소유합니다.
 
 > [!WARNING]
 > 아직 미완성이므로 사용을 권장하지 않습니다.
@@ -35,7 +35,9 @@ npm run bootstrap -- --refresh
 
 ## 통합 방향
 
-이 저장소는 Minerva 단독 배포 단위입니다. 이후 레거시/Vector와 합칠 때도 생성된 Minerva DOM과 CSS는 그대로 유지하고, 어느 스킨을 활성화할지 결정하는 선택 계층만 상위에 추가하는 것을 원칙으로 합니다.
+이 저장소는 Minerva 단독 배포 단위입니다. 최상위 `layout.vue`는 단독 스킨 진입점이고, `components/MinervaVariantLayout.vue`는 다른 스킨이 조합할 수 있는 진입점입니다. Vector 통합본은 이 저장소의 잠긴 커밋을 자체 생성 디렉터리에 체크아웃한 다음 여기의 `npm run bootstrap`을 실행하므로, Minerva 소스나 생성 결과를 Vector 저장소에 직접 복사하지 않습니다.
+
+통합 여부와 기기 선택은 Vector의 상위 선택 계층이 담당합니다. Minerva DOM과 CSS, 호스트 어댑터 및 독립 `minerva` 스킨 등록은 그대로 유지됩니다.
 
 호스트 연결은 세 경계로 나뉩니다.
 

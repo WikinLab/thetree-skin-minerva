@@ -7,4 +7,4 @@
 5. Generated components, CSS, vendor mirrors, runtime assets and upstream checkouts are never hand-edited or distributed as tracked source.
 6. Fix source contracts or generators instead of patching generated output.
 7. `npm run bootstrap -- --clean` followed by `npm run check` is the reproducibility boundary.
-8. This `minerva` branch remains a standalone skin. A later Vector/legacy integration adds activation policy above the skins rather than mixing their DOM ownership.
+8. This repository remains a standalone skin. Its local `minerva` worktree branch tracks `WikinLab/thetree-skin-minerva` `main`; a later Vector/legacy integration adds activation policy above the skins rather than mixing their DOM ownership.

@@ -10,8 +10,9 @@
     </template>
 
     <template #html-title-heading>
-      <h1 id="firstHeading" class="firstHeading mw-first-heading">
-        <span class="mw-page-title-main">{{ pageTitle }}</span>
+      <h1 id="firstHeading" :class="headingClassList">
+        <template v-if="adapterContext.pageContract.canUseUserHeading">{{ headingText }}</template>
+        <span v-else class="mw-page-title-main">{{ headingText }}</span>
       </h1>
     </template>
 
@@ -61,9 +62,9 @@ import SkinOrigin from './skin.vue';
 import ToggleListOrigin from './ToggleList/ToggleList.vue';
 import RawHtmlFragment from '../lib/legacyRawHtmlFragment';
 import MinervaSettingModal from './MinervaSettingModal';
-import { makeTheTreeAdapterContext } from '../lib/legacyTheTreeAdapter';
+import { makeMinervaAdapterContext } from '../lib/minervaTheTreeAdapter';
 import { makeMinervaSkinData } from '../lib/minervaSkinData';
-import { makeSkinLegacyAdapterState } from '../lib/legacySkinAdapter';
+import { makeMinervaHostState } from '../lib/minervaHostState';
 import { isMinervaThemeToggleTarget, toggleTheTreeMinervaTheme } from '../lib/adapters/minerva-theme';
 import { createTheTreeSearchSuggestRuntime } from '../lib/adapters/thetree-search-suggest';
 import { isSettingsToggleTarget } from '../lib/adapters/thetree-settings';
@@ -86,7 +87,7 @@ export default {
   },
   computed: {
     adapterContext() {
-      return makeTheTreeAdapterContext({
+      return makeMinervaAdapterContext({
         storeState: this.$store.state,
         route: this.$route,
         linkBuilders: {
@@ -106,8 +107,21 @@ export default {
     pageTitle() {
       return this.skinData['page-title'] || '';
     },
+    headingText() {
+      if (this.adapterContext.pageContract.canUseUserHeading) {
+        return this.adapterContext.pageData.document?.title || this.pageTitle;
+      }
+      return this.pageTitle;
+    },
+    headingClassList() {
+      return {
+        firstHeading: true,
+        'mw-first-heading': true,
+        'mw-minerva-user-heading': this.adapterContext.pageContract.isUserPage
+      };
+    },
     skinAdapter() {
-      return makeSkinLegacyAdapterState(this.adapterContext);
+      return makeMinervaHostState(this.adapterContext);
     },
     hasUnreadUserDiscussion() {
       return this.skinAdapter.hasUnreadUserDiscussion;
@@ -167,6 +181,7 @@ export default {
         this.$vfm.show({ component: MinervaSettingModal });
         return;
       }
+      if (event?.defaultPrevented) return;
       this.onDynamicContentClick(event);
     },
     dismissUserDiscussion() {
@@ -202,6 +217,7 @@ export default {
           navigateDocument: (title) => this.$router.push(this.doc_action_link(title, 'w')),
           navigateSearch: (query) => this.$router.push({ path: '/Search', query: { q: query } })
         }),
+        toggleWatchstar: (href, watched) => this.toggleWatchstar(href, watched),
         schedule: (callback) => this.$nextTick(callback)
       });
       return this.minervaRuntimeController;
@@ -215,6 +231,17 @@ export default {
     },
     resetMinervaRuntime() {
       this.ensureMinervaRuntimeController().reset();
+    },
+    async toggleWatchstar(href, watched) {
+      const response = await fetch(href, {
+        method: 'GET',
+        credentials: 'same-origin',
+        redirect: 'follow',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      });
+      if (!response.ok) throw new Error(`Watchstar request failed: ${response.status}`);
+      const pageData = this.$store.state.page?.data;
+      if (pageData && typeof pageData.starred === 'boolean') pageData.starred = watched;
     }
   }
 };

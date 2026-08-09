@@ -899,12 +899,42 @@
         "hostDependency": "thetree"
       },
       {
+        "path": "lib/minervaFooterData.js",
+        "kind": "host-adapter",
+        "hostDependency": "thetree"
+      },
+      {
+        "path": "lib/minervaHostConfig.js",
+        "kind": "host-adapter",
+        "hostDependency": "thetree"
+      },
+      {
+        "path": "lib/minervaHostState.js",
+        "kind": "host-adapter",
+        "hostDependency": "thetree"
+      },
+      {
+        "path": "lib/minervaPageContract.js",
+        "kind": "host-adapter",
+        "hostDependency": "thetree"
+      },
+      {
         "path": "lib/minervaSkinData.js",
         "kind": "host-adapter",
         "hostDependency": "thetree"
       },
       {
         "path": "lib/minervaSkinVars.js",
+        "kind": "host-adapter",
+        "hostDependency": "thetree"
+      },
+      {
+        "path": "lib/minervaTheTreeAdapter.js",
+        "kind": "host-adapter",
+        "hostDependency": "thetree"
+      },
+      {
+        "path": "lib/minervaTitleData.js",
         "kind": "host-adapter",
         "hostDependency": "thetree"
       },
@@ -970,6 +1000,11 @@
       },
       {
         "path": "tools/javascript-port-origin-engine.mjs",
+        "kind": "generation-tool",
+        "hostDependency": "none"
+      },
+      {
+        "path": "tools/minerva-parity-contract-test.mjs",
         "kind": "generation-tool",
         "hostDependency": "none"
       },

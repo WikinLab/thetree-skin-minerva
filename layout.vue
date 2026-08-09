@@ -19,7 +19,7 @@
 <script>
 import SkinMinerva from './components/SkinMinerva';
 import { applyMinervaDocumentEnvironment, makeMinervaDocumentEnvironment } from './lib/minervaDocumentEnvironment';
-import { makeTheTreeAdapterContext } from './lib/legacyTheTreeAdapter';
+import { makeMinervaAdapterContext } from './lib/minervaTheTreeAdapter';
 import { makeMinervaSkinVars, makeMinervaThemeColor } from './lib/minervaSkinVars';
 import { SKIN_VARIANT_ID } from './lib/skinVariant.js';
 
@@ -50,7 +50,7 @@ export default {
   },
   computed: {
     adapterContext() {
-      return makeTheTreeAdapterContext({
+      return makeMinervaAdapterContext({
         storeState: this.$store.state,
         route: this.$route
       });
@@ -63,7 +63,8 @@ export default {
         dir: config.dir || config['wiki.dir'] || 'ltr',
         namespace: pageContract.namespaceId,
         action: pageContract.actionKind,
-        theme: this.$store.state.currentTheme
+        theme: this.$store.state.currentTheme,
+        pageContract
       });
     },
     rootClassList() {

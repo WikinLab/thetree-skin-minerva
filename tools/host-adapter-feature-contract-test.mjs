@@ -3,7 +3,12 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { SEARCH_SUGGEST_CONTAINER_ID, normalizeTheTreeSuggestions } from '../lib/adapters/thetree-search-suggest.js';
+import {
+  SEARCH_SUGGEST_CONTAINER_ID,
+  SEARCH_SUGGEST_LISTBOX_ID,
+  SEARCH_SUGGESTION_LIMIT,
+  normalizeTheTreeSuggestions
+} from '../lib/adapters/thetree-search-suggest.js';
 import { MINERVA_THEME_TOGGLE_ATTRIBUTE } from '../lib/adapters/minerva-theme.js';
 import { applyMinervaDocumentEnvironment, makeMinervaDocumentEnvironment } from '../lib/minervaDocumentEnvironment.js';
 
@@ -11,7 +16,10 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (pathname) => fs.readFileSync(path.join(root, pathname), 'utf8');
 
 assert.equal(SEARCH_SUGGEST_CONTAINER_ID, 'tt-minerva-search-suggestions');
+assert.equal(SEARCH_SUGGEST_LISTBOX_ID, 'tt-minerva-search-suggestions-listbox');
+assert.equal(SEARCH_SUGGESTION_LIMIT, 3);
 assert.deepEqual(normalizeTheTreeSuggestions([' 문서 ', '', '문서', '분류:테스트']), ['문서', '분류:테스트']);
+assert.deepEqual(normalizeTheTreeSuggestions(['가', '나', '다', '라']), ['가', '나', '다']);
 assert.equal(MINERVA_THEME_TOGGLE_ATTRIBUTE, 'data-tt-minerva-theme-toggle');
 
 const dataAdapter = read('lib/minervaSkinData.js');
@@ -27,6 +35,13 @@ assert.match(dataAdapter, /makeMinervaPersonalMenuItems/);
 assert.match(dataAdapter, /linkBuilders\?\.href/);
 assert.match(dataAdapter, /minerva-user-menu-list toggle-list__list--drop-down/);
 assert.match(minervaAdapter, /name: 'page-actions-watch'/);
+
+const searchAdapter = read('lib/adapters/thetree-search-suggest.js');
+assert.match(searchAdapter, /cdx-menu cdx-menu--has-footer cdx-typeahead-search__menu/);
+assert.match(searchAdapter, /cdx-menu-item--bold-label/);
+assert.match(searchAdapter, /cdx-thumbnail__placeholder/);
+assert.match(searchAdapter, /cdx-typeahead-search__search-footer/);
+assert.doesNotMatch(searchAdapter, /className = 'suggestions-result'/);
 
 const wrapper = read('components/SkinMinerva.vue');
 assert.match(wrapper, /this\.\$vfm\.show\(\{ component: MinervaSettingModal \}\)/);

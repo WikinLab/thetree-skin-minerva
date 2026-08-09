@@ -36,6 +36,7 @@
     <template #html-body-content>
       <div
         id="mw-content-text"
+        class="mw-body-content"
         key="mw-content-text"
         data-tt-host-content="1"
         :data-tt-host-content-name="adapterContext.pageContract.hostContentName || null"

@@ -1,9 +1,6 @@
 /* Host mount and interaction adapters around the upstream Minerva DOM. */
 .tt-minerva {
   display: contents;
-  font-family: sans-serif;
-  font-size: 1rem;
-  line-height: normal;
 }
 
 .minerva-search-form .search-box {
@@ -11,40 +8,23 @@
 }
 
 .minerva-search-form .tt-minerva-search-suggestions {
-  background: var(--background-color-base, #fff);
-  border: 1px solid var(--border-color-base, #a2a9b1);
-  box-sizing: border-box;
-  color: var(--color-base, #202122);
-  left: 0;
-  position: absolute;
-  right: 0;
   top: 100%;
-  z-index: 100;
 }
 
 .minerva-search-form .tt-minerva-search-suggestions[hidden] {
   display: none;
 }
 
-.minerva-search-form .suggestions-result,
-.minerva-search-form .suggestions-special-item {
-  cursor: pointer;
-  line-height: 1.5;
-  overflow: hidden;
-  padding: 0.5rem 0.75rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.minerva-search-form .tt-minerva-search-suggestions .cdx-menu__listbox {
+  margin-bottom: 38px;
 }
 
-.minerva-search-form .suggestions-result:hover,
-.minerva-search-form .suggestions-result-current,
-.minerva-search-form .suggestions-special-item:hover {
+.minerva-search-form .tt-minerva-search-suggestions .cdx-menu-item--enabled:hover {
   background: var(--background-color-interactive-subtle, #eaecf0);
 }
 
-.minerva-search-form .suggestions-special {
-  border-top: 1px solid var(--border-color-subtle, #c8ccd1);
-  color: var(--color-progressive, #36c);
+.banner-container .sitenotice {
+  margin-block: 1em;
 }
 
 .usermessage .tt-usermessage-close {

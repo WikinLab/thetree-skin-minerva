@@ -5,6 +5,7 @@
     :lang="minervaDocumentEnvironment.htmlAttributes.lang"
     :dir="minervaDocumentEnvironment.htmlAttributes.dir"
     :data-tt-skin-variant="skinVariantId"
+    :data-tt-minerva-mobilefrontend="adapterContext.pageContract.hasMobileFrontend ? 'enabled' : 'disabled'"
   >
     <SkinMinerva>
       <nuxt />

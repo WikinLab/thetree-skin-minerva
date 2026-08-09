@@ -88,12 +88,8 @@ assert.equal(articleData['data-minerva-secondary-actions'].talk.label, '토론')
 assert.match(attributes(articleData['data-minerva-secondary-actions'].talk).href, /discuss\/FrontPage/);
 assert.deepEqual(
   articleData['data-minerva-page-actions'].toolbar.map((item) => item.name),
-  ['language-selector', 'page-actions-history']
+  ['page-actions-history']
 );
-const languageButton = articleData['data-minerva-page-actions'].toolbar[0].components[0];
-assert.match(languageButton.classes, /language-selector disabled/);
-assert.equal(attributes(languageButton).href, '');
-assert.equal(languageButton['data-icon'].icon, 'language');
 
 const renderedActions = Mustache.render(
   template('PageActionsMenu/PageActionsMenu'),
@@ -105,7 +101,7 @@ const renderedActions = Mustache.render(
     'ToggleList/ToggleListItem': template('ToggleList/ToggleListItem')
   }
 );
-assert.match(renderedActions, /<li id="language-selector"/);
+assert.doesNotMatch(renderedActions, /<li id="language-selector"/);
 assert.doesNotMatch(renderedActions, /<li id="page-actions-watch"/);
 
 const personalMenu = articleData['html-minerva-user-menu'];
@@ -204,6 +200,49 @@ assert.ok(anonymousWatch);
 assert.equal(attributes(anonymousWatch.components[0])['data-tt-minerva-watchstar'], undefined);
 assert.match(attributes(anonymousWatch.components[0]).href, /member\/login/);
 
+const mobileFrontendContext = context({
+  loggedIn: false,
+  extraData: {
+    thetreeMobileFrontend: { schema: 'thetree-mobilefrontend/v1', mode: 'mobile' }
+  }
+});
+const mobileFrontendData = makeMinervaSkinData(mobileFrontendContext);
+assert.equal(mobileFrontendContext.pageContract.hasMobileFrontend, true);
+assert.equal(mobileFrontendContext.pageContract.mobileFrontendMode, 'mobile');
+assert.equal(mobileFrontendData['data-minerva-tabs'], null);
+assert.equal(mobileFrontendData['html-categories'], '');
+assert.deepEqual(
+  mobileFrontendData['data-minerva-page-actions'].toolbar.map((item) => item.name),
+  ['page-actions-watch', 'page-actions-edit']
+);
+assert.ok(!mobileFrontendData['data-minerva-page-actions'].overflowMenu);
+assert.equal(mobileFrontendData['html-minerva-user-menu'], null);
+assert.deepEqual(
+  mobileFrontendData['data-minerva-main-menu'].groups.map((group) => group.id),
+  ['p-navigation', 'p-personal', 'pt-preferences']
+);
+assert.ok(!mobileFrontendData['data-minerva-page-actions'].toolbar.some(
+  (item) => item.name === 'language-selector'
+));
+const mobilePersonalGroup = mobileFrontendData['data-minerva-main-menu'].groups.find(
+  (group) => group.id === 'p-personal'
+);
+assert.deepEqual(menuNodeIds({ items: mobilePersonalGroup.entries }), ['pt-login']);
+const mobileFrontendEnvironment = makeMinervaDocumentEnvironment({
+  pageContract: mobileFrontendContext.pageContract
+});
+assert.ok(mobileFrontendEnvironment.bodyClasses.includes('mf-collapsible-sections'));
+assert.ok(mobileFrontendEnvironment.bodyClasses.includes('tt-minerva-mobilefrontend'));
+
+const invalidMobileFrontendContext = context({
+  loggedIn: false,
+  extraData: {
+    thetreeMobileFrontend: { schema: 'thetree-mobilefrontend/v0', mode: 'mobile' }
+  }
+});
+assert.equal(invalidMobileFrontendContext.pageContract.hasMobileFrontend, false);
+assert.ok(makeMinervaSkinData(invalidMobileFrontendContext)['data-minerva-tabs']);
+
 const userTalkContext = context({
   contentName: 'document/discuss',
   viewName: 'thread_list',
@@ -220,7 +259,8 @@ assert.ok(userTalkEnvironment.bodyClasses.includes('ns-talk'));
 
 const languageData = makeMinervaSkinData(context({
   title: 'FrontPage',
-  extraData: { languages: [{ id: 'lang-en', lang: 'en', label: 'English', href: '/w/Document?lang=en' }] }
+  extraData: { languages: [{ id: 'lang-en', lang: 'en', label: 'English', href: '/w/Document?lang=en' }] },
+  config: { 'skin.minerva.hide_interlanguage_links': false }
 }));
 assert.equal(languageData['has-minerva-languages'], true);
 assert.match(languageData['data-portlets']['data-languages']['html-items'], /hreflang="en"/);
@@ -236,7 +276,10 @@ assert.ok(!hiddenMainLanguageData['data-minerva-page-actions'].toolbar.some(
   (item) => item.name === 'language-selector'
 ));
 const forcedLanguageData = makeMinervaSkinData(context({
-  config: { 'skin.minerva.always_show_language_button': true }
+  config: {
+    'skin.minerva.hide_interlanguage_links': false,
+    'skin.minerva.always_show_language_button': true
+  }
 }));
 const forcedLanguageButton = forcedLanguageData['data-minerva-page-actions'].toolbar[0].components[0];
 assert.match(forcedLanguageButton.classes, /language-selector disabled/);

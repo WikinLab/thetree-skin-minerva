@@ -23,6 +23,79 @@
   background: var(--background-color-interactive-subtle, #eaecf0);
 }
 
+.tt-minerva-search-dialog__back {
+  display: none;
+}
+
+@media (max-width: 639px) {
+  body.tt-minerva-search-dialog-open {
+    overflow: hidden;
+  }
+
+  .tt-minerva-mobilefrontend .minerva-search-form.tt-minerva-search-dialog {
+    align-items: flex-start;
+    background: var(--background-color-base, #fff);
+    display: flex;
+    height: 100vh;
+    height: 100dvh;
+    inset: 0;
+    margin: 0;
+    max-width: none;
+    padding: 8px 12px;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+  }
+
+  .tt-minerva-mobilefrontend .tt-minerva-search-dialog #searchIcon {
+    display: none;
+  }
+
+  .tt-minerva-mobilefrontend .tt-minerva-search-dialog .tt-minerva-search-dialog__back {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    display: flex;
+    height: 44px;
+    justify-content: center;
+    margin: -2px 8px -2px -8px;
+    padding: 0;
+    width: 44px;
+  }
+
+  .tt-minerva-search-dialog__back > span {
+    border-bottom: 2px solid currentColor;
+    border-left: 2px solid currentColor;
+    height: 12px;
+    transform: rotate(45deg);
+    width: 12px;
+  }
+
+  .tt-minerva-mobilefrontend .tt-minerva-search-dialog .search-box {
+    display: block;
+    flex: 1 1 auto;
+    max-width: none;
+    width: auto;
+  }
+
+  .tt-minerva-mobilefrontend .tt-minerva-search-dialog .cdx-typeahead-search,
+  .tt-minerva-mobilefrontend .tt-minerva-search-dialog .cdx-search-input,
+  .tt-minerva-mobilefrontend .tt-minerva-search-dialog .cdx-search-input__input-wrapper {
+    width: 100%;
+  }
+
+  .tt-minerva-mobilefrontend .tt-minerva-search-dialog .tt-minerva-search-suggestions {
+    background: var(--background-color-base, #fff);
+    bottom: 0;
+    left: 0;
+    overflow-y: auto;
+    position: fixed;
+    right: 0;
+    top: 55px;
+    z-index: 999;
+  }
+}
+
 .banner-container .sitenotice {
   margin-block: 1em;
 }

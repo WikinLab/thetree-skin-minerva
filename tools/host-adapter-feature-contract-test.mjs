@@ -9,6 +9,8 @@ import {
   SEARCH_SUGGESTION_LIMIT,
   normalizeTheTreeSuggestions
 } from '../lib/adapters/thetree-search-suggest.js';
+import { MINERVA_SEARCH_DIALOG_MEDIA } from '../lib/adapters/minerva-search-dialog.js';
+import { MINERVA_COLLAPSIBLE_SECTION_MEDIA } from '../lib/adapters/minerva-mobile-sections.js';
 import {
   FEATURE_EQUIVALENCE,
   MINERVA_MAIN_MENU_GROUP_ORDER,
@@ -23,6 +25,13 @@ import {
 } from '../lib/minervaHostAdapterPolicy.js';
 import { applyMinervaDocumentEnvironment, makeMinervaDocumentEnvironment } from '../lib/minervaDocumentEnvironment.js';
 import { getTheTreeHostFeature } from '../lib/thetreeHostFeatureCatalog.js';
+import {
+  MINERVA_MOBILE_FRONTEND_MODE,
+  MINERVA_MOBILE_FRONTEND_DATA_KEY,
+  MINERVA_MOBILE_FRONTEND_SCHEMA,
+  MINERVA_STANDALONE_MODE,
+  resolveMinervaMobileFrontendMode
+} from '../lib/minervaMobileFrontend.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (pathname) => fs.readFileSync(path.join(root, pathname), 'utf8');
@@ -30,9 +39,23 @@ const read = (pathname) => fs.readFileSync(path.join(root, pathname), 'utf8');
 assert.equal(SEARCH_SUGGEST_CONTAINER_ID, 'tt-minerva-search-suggestions');
 assert.equal(SEARCH_SUGGEST_LISTBOX_ID, 'tt-minerva-search-suggestions-listbox');
 assert.equal(SEARCH_SUGGESTION_LIMIT, 3);
+assert.equal(MINERVA_SEARCH_DIALOG_MEDIA, '(max-width: 639px)');
+assert.equal(MINERVA_COLLAPSIBLE_SECTION_MEDIA, '(max-width: 639px)');
+const mobileFrontendContract = JSON.parse(read('contracts/mobilefrontend-data-contract.json'));
+assert.equal(MINERVA_MOBILE_FRONTEND_DATA_KEY, mobileFrontendContract.publicDataKey);
+assert.equal(MINERVA_MOBILE_FRONTEND_SCHEMA, mobileFrontendContract.dataSchema);
+assert.equal(MINERVA_MOBILE_FRONTEND_MODE, mobileFrontendContract.mobileMode);
+assert.equal(MINERVA_STANDALONE_MODE, mobileFrontendContract.desktopMode);
+assert.equal(resolveMinervaMobileFrontendMode({}), MINERVA_STANDALONE_MODE);
+assert.equal(resolveMinervaMobileFrontendMode({
+  thetreeMobileFrontend: { schema: 'thetree-mobilefrontend/v1', mode: 'mobile' }
+}), MINERVA_MOBILE_FRONTEND_MODE);
+assert.equal(resolveMinervaMobileFrontendMode({
+  thetreeMobileFrontend: { schema: 'unknown', mode: 'mobile' }
+}), MINERVA_STANDALONE_MODE);
 assert.deepEqual(normalizeTheTreeSuggestions([' 문서 ', '', '문서', '분류:테스트']), ['문서', '분류:테스트']);
 assert.deepEqual(normalizeTheTreeSuggestions(['가', '나', '다', '라']), ['가', '나', '다']);
-assert.deepEqual(MINERVA_MAIN_MENU_GROUP_ORDER, ['p-navigation', 'p-interaction', 'pt-preferences']);
+assert.deepEqual(MINERVA_MAIN_MENU_GROUP_ORDER, ['p-navigation', 'p-interaction', 'p-personal', 'pt-preferences']);
 const projectionRows = [
   ...MINERVA_MAIN_MENU_POLICY,
   ...MINERVA_SETTINGS_POLICY,
@@ -101,10 +124,24 @@ assert.match(searchAdapter, /cdx-menu-item--bold-label/);
 assert.match(searchAdapter, /cdx-thumbnail__placeholder/);
 assert.match(searchAdapter, /cdx-typeahead-search__search-footer/);
 assert.doesNotMatch(searchAdapter, /className = 'suggestions-result'/);
+const searchDialogAdapter = read('lib/adapters/minerva-search-dialog.js');
+assert.match(searchDialogAdapter, /getElementById\?\.\('searchIcon'\)/);
+assert.match(searchDialogAdapter, /tt-minerva-search-dialog-open/);
+assert.match(searchDialogAdapter, /aria-haspopup/);
+const mobileSectionsAdapter = read('lib/adapters/minerva-mobile-sections.js');
+assert.match(mobileSectionsAdapter, /section-heading/);
+assert.match(mobileSectionsAdapter, /collapsible-block-js/);
+assert.match(mobileSectionsAdapter, /aria-expanded/);
+assert.match(mobileSectionsAdapter, /until-found/);
+assert.match(mobileSectionsAdapter, /Math\.min\(\.\.\.ranks\)/);
+assert.match(mobileSectionsAdapter, /MutationObserver/);
 
 const wrapper = read('components/SkinMinerva.vue');
 assert.match(wrapper, /this\.\$vfm\.show\(\{ component: MinervaSettingModal \}\)/);
 assert.match(wrapper, /createTheTreeSearchSuggestRuntime/);
+assert.match(wrapper, /createMinervaSearchDialogRuntime/);
+assert.match(wrapper, /createMinervaMobileSectionsRuntime/);
+assert.match(wrapper, /pageContract\.hasMobileFrontend/);
 assert.match(wrapper, /`\/Complete\?q=\$\{encodeURIComponent\(query\)\}`/);
 assert.match(wrapper, /wiki\.hide_user_document_discuss/);
 assert.match(wrapper, /event\?\.defaultPrevented/);
@@ -117,6 +154,8 @@ assert.match(runtime, /aria-expanded/);
 assert.match(runtime, /mw-mf-page-center__mask/);
 assert.match(runtime, /minerva-animations-ready/);
 assert.match(runtime, /data-tt-minerva-watchstar/);
+assert.match(runtime, /createSearchDialogRuntime/);
+assert.match(runtime, /createMobileSectionsRuntime/);
 
 const generatedMinervaStyles = read('css/vendor/resource-loader/skins.minerva.styles.css');
 assert.match(

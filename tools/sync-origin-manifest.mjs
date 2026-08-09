@@ -68,6 +68,10 @@ for (const absolute of templateFiles) {
 const minervaSeeds = [
   'skin.json',
   'includes/Skins/SkinMinerva.php',
+  'includes/Menu/Main/AdvancedMainMenuBuilder.php',
+  'includes/Menu/Main/DefaultMainMenuBuilder.php',
+  'includes/Menu/Main/MainMenuDirector.php',
+  'includes/Menu/User/DefaultUserMenuBuilder.php',
   'resources/mediawiki.less/mediawiki.skin.variables.less',
   'minerva.less/minerva.variables.less',
   'resources/skins.minerva.styles/CSSCustomProperties.less',
@@ -123,6 +127,32 @@ for (const name of [
     upstreamPath: `resources/src/mediawiki.skinning/${name}`
   });
 }
+for (const upstreamPath of [
+  'resources/src/mediawiki.page.ready/enableSearchDialog.js',
+  'resources/src/mediawiki.skinning.typeaheadSearch/App.vue',
+  'resources/src/mediawiki.skinning.typeaheadSearch/TypeaheadSearchWrapper.vue'
+]) {
+  addVendor({
+    path: `vendor/mediawiki-core/${upstreamPath}`,
+    status: 'mirrored',
+    repository: 'mediawiki',
+    upstreamPath
+  });
+}
+for (const upstreamPath of [
+  'extension.json',
+  'includes/Transforms/MakeSectionsTransform.php',
+  'resources/mobile.init.styles/main.less',
+  'src/mobile.init/isCollapsedByDefault.js',
+  'src/mobile.init/Toggler.js'
+]) {
+  addVendor({
+    path: `vendor/mediawiki-mobilefrontend/${upstreamPath}`,
+    status: 'mirrored',
+    repository: 'mediawiki-extensions-MobileFrontend',
+    upstreamPath
+  });
+}
 addVendor({
   path: 'vendor/mediawiki-core/resources/lib/codex/modules/manifest.json',
   status: 'mirrored', repository: 'mediawiki', upstreamPath: 'resources/lib/codex/modules/manifest.json'
@@ -164,8 +194,55 @@ const resourceOutputs = [
 ].map((pathname) => ({ path: toPosix(pathname), originNode: 'resource-loader-css' }));
 
 const generatedPaths = new Set([...mustacheOutputs, ...resourceOutputs].map((entry) => entry.path));
+const portedFiles = [
+  {
+    path: 'lib/adapters/minerva-search-dialog.js',
+    repository: 'mediawiki',
+    upstreamPaths: [
+      'resources/src/mediawiki.page.ready/enableSearchDialog.js',
+      'resources/src/mediawiki.skinning.typeaheadSearch/App.vue',
+      'resources/src/mediawiki.skinning.typeaheadSearch/TypeaheadSearchWrapper.vue'
+    ],
+    kind: 'source-port',
+    relation: 'many-upstream-files-to-one-local-adapter',
+    hostDependency: 'thetree-router-and-dom',
+    automationStatus: 'adapter-required',
+    license: 'GPL-2.0-or-later',
+    modifiedDates: ['2026-08-10'],
+    differenceClasses: ['mediawiki-router-to-thetree-runtime', 'spa-lifecycle', 'mobile-dialog-shell'],
+    originInputs: [
+      'vendor/mediawiki-core/resources/src/mediawiki.page.ready/enableSearchDialog.js',
+      'vendor/mediawiki-core/resources/src/mediawiki.skinning.typeaheadSearch/App.vue',
+      'vendor/mediawiki-core/resources/src/mediawiki.skinning.typeaheadSearch/TypeaheadSearchWrapper.vue'
+    ]
+  },
+  {
+    path: 'lib/adapters/minerva-mobile-sections.js',
+    repository: 'mediawiki-extensions-MobileFrontend',
+    upstreamPaths: [
+      'includes/Transforms/MakeSectionsTransform.php',
+      'resources/mobile.init.styles/main.less',
+      'src/mobile.init/isCollapsedByDefault.js',
+      'src/mobile.init/Toggler.js'
+    ],
+    kind: 'source-port',
+    relation: 'many-upstream-files-to-one-local-adapter',
+    hostDependency: 'thetree-namumark-dom',
+    automationStatus: 'adapter-required',
+    license: 'GPL-2.0-or-later',
+    modifiedDates: ['2026-08-10'],
+    differenceClasses: ['php-transform-to-dom-adapter', 'host-heading-contract', 'spa-lifecycle'],
+    originInputs: [
+      'vendor/mediawiki-mobilefrontend/includes/Transforms/MakeSectionsTransform.php',
+      'vendor/mediawiki-mobilefrontend/resources/mobile.init.styles/main.less',
+      'vendor/mediawiki-mobilefrontend/src/mobile.init/isCollapsedByDefault.js',
+      'vendor/mediawiki-mobilefrontend/src/mobile.init/Toggler.js'
+    ]
+  }
+];
+const portedPaths = new Set(portedFiles.map((entry) => entry.path));
 const localFiles = visibleSourceFiles()
-  .filter((pathname) => !generatedPaths.has(pathname))
+  .filter((pathname) => !generatedPaths.has(pathname) && !portedPaths.has(pathname))
   .map((pathname) => ({
     path: pathname,
     kind: role(pathname),
@@ -181,7 +258,7 @@ const manifest = {
   hostLock: previous.hostLock,
   distribution: {
     mode: 'bootstrap-source-only',
-    snapshotDate: '2026-08-01',
+    snapshotDate: '2026-08-10',
     releaseLine: 'REL1_46',
     vendorIncluded: false,
     generatedOutputsIncluded: false,
@@ -224,7 +301,7 @@ const manifest = {
       materialization: 'one-upstream-file-to-one-vendor-file'
     },
     vendorFiles: [...vendorByPath.values()].sort((a, b) => a.path.localeCompare(b.path, 'en')),
-    portedFiles: [],
+    portedFiles,
     localFiles,
     generatedFiles: [...mustacheOutputs, ...resourceOutputs].sort((a, b) => a.path.localeCompare(b.path, 'en')),
     materializedRuntimeAssets: []
@@ -261,7 +338,7 @@ const manifest = {
       schema: 1,
       contract: 'contracts/skin-variant-contract.json',
       runtimeModule: 'lib/skinVariant.js',
-      consumer: 'layout.vue',
+      consumer: 'components/MinervaVariantLayout.vue',
       activationAttribute: 'data-tt-skin-variant'
     },
     moduleGraph: {

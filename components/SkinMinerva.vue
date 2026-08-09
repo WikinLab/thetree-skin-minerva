@@ -67,6 +67,8 @@ import { makeMinervaAdapterContext } from '../lib/minervaTheTreeAdapter';
 import { makeMinervaSkinData } from '../lib/minervaSkinData';
 import { makeMinervaHostState } from '../lib/minervaHostState';
 import { createTheTreeSearchSuggestRuntime } from '../lib/adapters/thetree-search-suggest';
+import { createMinervaSearchDialogRuntime } from '../lib/adapters/minerva-search-dialog';
+import { createMinervaMobileSectionsRuntime } from '../lib/adapters/minerva-mobile-sections';
 import { isSettingsToggleTarget } from '../lib/adapters/thetree-settings';
 import { createMinervaRuntimeController } from '../lib/runtime/createMinervaRuntimeController';
 
@@ -202,13 +204,25 @@ export default {
     ensureMinervaRuntimeController() {
       if (this.minervaRuntimeController) return this.minervaRuntimeController;
       this.minervaRuntimeController = createMinervaRuntimeController({
-        createSearchRuntime: () => createTheTreeSearchSuggestRuntime({
+        createSearchDialogRuntime: () => createMinervaSearchDialogRuntime({
+          enabled: this.adapterContext.pageContract.hasMobileFrontend
+        }),
+        createSearchRuntime: ({ closeMobileSearch } = {}) => createTheTreeSearchSuggestRuntime({
           requestSuggestions: (query, signal) => this.internalRequest(
             `/Complete?q=${encodeURIComponent(query)}`,
             { signal, noProgress: true }
           ),
-          navigateDocument: (title) => this.$router.push(this.doc_action_link(title, 'w')),
-          navigateSearch: (query) => this.$router.push({ path: '/Search', query: { q: query } })
+          navigateDocument: (title) => {
+            closeMobileSearch?.();
+            return this.$router.push(this.doc_action_link(title, 'w'));
+          },
+          navigateSearch: (query) => {
+            closeMobileSearch?.();
+            return this.$router.push({ path: '/Search', query: { q: query } });
+          }
+        }),
+        createMobileSectionsRuntime: () => createMinervaMobileSectionsRuntime({
+          enabled: this.adapterContext.pageContract.hasMobileFrontend
         }),
         toggleWatchstar: (href, watched) => this.toggleWatchstar(href, watched),
         schedule: (callback) => this.$nextTick(callback)

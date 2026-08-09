@@ -1,6 +1,6 @@
 {
   "schema": 6,
-  "snapshotDate": "2026-07-14",
+  "snapshotDate": "2026-08-10",
   "mediaWikiRelease": "1.46",
   "releaseLine": "REL1_46",
   "policy": "The default bootstrap reproduces an exact MediaWiki 1.46 and MinervaNeue snapshot. Every upstream input is obtained from an exact Git commit. Codex styles, design tokens, mixins, and icon-path variables use a separately declared exact version contract. Upstream movement occurs only through an explicit bootstrap refresh or release option. The final stylesheet cascade is generated from Minerva skin options and PHP style-queue declarations rather than a hand-authored upstream CSS import list.",
@@ -25,6 +25,18 @@
       "license": "GPL-2.0-or-later",
       "licenseFile": "COPYING",
       "scope": "MediaWiki core skinning LESS, ResourceLoader SkinModule and core module registry sources, default variables, and core Codex module CSS sources"
+    },
+    {
+      "name": "mediawiki-extensions-MobileFrontend",
+      "repository": "wikimedia/mediawiki-extensions-MobileFrontend",
+      "ref": "REL1_46",
+      "commit": "e00881d4d6f2e91f57026e8fa81a7dd8ad71cda4",
+      "license": "GPL-2.0-or-later",
+      "licenseFile": "COPYING",
+      "scope": "MobileFrontend section transform, collapsible section behavior, and mobile-mode structural reference",
+      "bootstrapPaths": [
+        "extension.json"
+      ]
     },
     {
       "name": "design-codex",

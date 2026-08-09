@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "pluginName": "thetree-plugin-mobilefrontend",
+  "publicDataKey": "thetreeMobileFrontend",
+  "dataSchema": "thetree-mobilefrontend/v1",
+  "modeField": "mode",
+  "desktopMode": "desktop",
+  "mobileMode": "mobile"
+}

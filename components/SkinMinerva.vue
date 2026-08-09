@@ -66,7 +66,6 @@ import MinervaSettingModal from './MinervaSettingModal';
 import { makeMinervaAdapterContext } from '../lib/minervaTheTreeAdapter';
 import { makeMinervaSkinData } from '../lib/minervaSkinData';
 import { makeMinervaHostState } from '../lib/minervaHostState';
-import { isMinervaThemeToggleTarget, toggleTheTreeMinervaTheme } from '../lib/adapters/minerva-theme';
 import { createTheTreeSearchSuggestRuntime } from '../lib/adapters/thetree-search-suggest';
 import { isSettingsToggleTarget } from '../lib/adapters/thetree-settings';
 import { createMinervaRuntimeController } from '../lib/runtime/createMinervaRuntimeController';
@@ -168,13 +167,6 @@ export default {
       }
     },
     onSkinClick(event) {
-      const themeToggle = isMinervaThemeToggleTarget(event?.target);
-      if (themeToggle) {
-        event.preventDefault();
-        event.stopPropagation();
-        toggleTheTreeMinervaTheme(this.$store.state);
-        return;
-      }
       const settingsToggle = isSettingsToggleTarget(event?.target);
       if (settingsToggle) {
         event.preventDefault();

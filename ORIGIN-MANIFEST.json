@@ -829,11 +829,6 @@
         "hostDependency": "thetree"
       },
       {
-        "path": "lib/adapters/minerva-theme.js",
-        "kind": "host-adapter",
-        "hostDependency": "thetree"
-      },
-      {
         "path": "lib/adapters/thetree-search-suggest.js",
         "kind": "host-adapter",
         "hostDependency": "thetree"
@@ -909,6 +904,11 @@
         "hostDependency": "thetree"
       },
       {
+        "path": "lib/minervaHostAdapterPolicy.js",
+        "kind": "host-adapter",
+        "hostDependency": "thetree"
+      },
+      {
         "path": "lib/minervaHostState.js",
         "kind": "host-adapter",
         "hostDependency": "thetree"
@@ -930,6 +930,16 @@
       },
       {
         "path": "lib/minervaTheTreeAdapter.js",
+        "kind": "host-adapter",
+        "hostDependency": "thetree"
+      },
+      {
+        "path": "lib/thetreeHostFeatureCatalog.js",
+        "kind": "host-adapter",
+        "hostDependency": "thetree"
+      },
+      {
+        "path": "lib/thetreeHostPageContract.js",
         "kind": "host-adapter",
         "hostDependency": "thetree"
       },

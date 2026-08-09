@@ -88,15 +88,12 @@ assert.equal(articleData['data-minerva-secondary-actions'].talk.label, '토론')
 assert.match(attributes(articleData['data-minerva-secondary-actions'].talk).href, /discuss\/FrontPage/);
 assert.deepEqual(
   articleData['data-minerva-page-actions'].toolbar.map((item) => item.name),
-  ['language-selector', 'page-actions-watch', 'page-actions-history', 'page-actions-edit']
+  ['language-selector', 'page-actions-history']
 );
 const languageButton = articleData['data-minerva-page-actions'].toolbar[0].components[0];
 assert.match(languageButton.classes, /language-selector disabled/);
 assert.equal(attributes(languageButton).href, '');
-const watchButton = articleData['data-minerva-page-actions'].toolbar.find((item) => item.name === 'page-actions-watch').components[0];
-assert.equal(attributes(watchButton).id, 'ca-watch');
-assert.equal(attributes(watchButton)['data-tt-minerva-watchstar'], '1');
-assert.match(watchButton.classes, /mw-watchlink/);
+assert.equal(languageButton['data-icon'].icon, 'language');
 
 const renderedActions = Mustache.render(
   template('PageActionsMenu/PageActionsMenu'),
@@ -108,10 +105,8 @@ const renderedActions = Mustache.render(
     'ToggleList/ToggleListItem': template('ToggleList/ToggleListItem')
   }
 );
-assert.match(renderedActions, /<li id="page-actions-watch"/);
 assert.match(renderedActions, /<li id="language-selector"/);
-assert.match(renderedActions, /id="ca-watch"/);
-assert.doesNotMatch(renderedActions, /<li id="ca-watch"/);
+assert.doesNotMatch(renderedActions, /<li id="page-actions-watch"/);
 
 const personalMenu = articleData['html-minerva-user-menu'];
 assert.equal(personalMenu.listID, 'p-personal');
@@ -126,10 +121,19 @@ const mainMenuIds = articleData['data-minerva-main-menu'].groups.flatMap((group)
 ]);
 assert.equal(new Set(mainMenuIds).size, mainMenuIds.length, 'main-menu IDs must be unique');
 assert.ok(mainMenuIds.includes('pt-host-extra'));
-assert.ok(mainMenuIds.includes('p-minerva-tools'));
 assert.ok(mainMenuIds.includes('t-upload'));
+assert.deepEqual(
+  articleData['data-minerva-main-menu'].groups.map((group) => group.id),
+  ['p-navigation', 'p-interaction', 'pt-preferences']
+);
+assert.ok(!mainMenuIds.includes('p-minerva-tools'));
+assert.ok(!mainMenuIds.includes('p-host'));
 assert.equal(mainMenuIds.filter((id) => id === 'pt-notifications').length, 0);
 assert.equal(mainMenuIds.filter((id) => id === 'n-mainpage').length, 1);
+assert.deepEqual(
+  articleData['data-minerva-main-menu'].sitelinks.map((entry) => attributes(entry.components[0]).id),
+  ['t-license']
+);
 assert.deepEqual(
   articleData['data-minerva-notifications']['array-buttons'].map((item) => attributes(item).id),
   ['pt-notifications']
@@ -140,6 +144,28 @@ assert.ok(standardArticleData['data-minerva-tabs']);
 assert.equal(standardArticleData['html-minerva-tagline'], '<div class="tagline"></div>');
 assert.equal(standardArticleData['data-minerva-search-box']['html-input-attributes'].includes('aria-label="the tree 검색"'), true);
 assert.ok(!menuNodeIds(standardArticleData['data-minerva-page-actions'].overflowMenu).includes('t-upload'));
+assert.deepEqual(
+  standardArticleData['data-minerva-page-actions'].toolbar.map((item) => item.name),
+  ['page-actions-watch', 'page-actions-history', 'page-actions-edit']
+);
+const watchButton = standardArticleData['data-minerva-page-actions'].toolbar
+  .find((item) => item.name === 'page-actions-watch').components[0];
+assert.equal(attributes(watchButton).id, 'ca-watch');
+assert.equal(attributes(watchButton)['data-tt-minerva-watchstar'], '1');
+assert.match(watchButton.classes, /mw-watchlink/);
+const renderedStandardActions = Mustache.render(
+  template('PageActionsMenu/PageActionsMenu'),
+  standardArticleData['data-minerva-page-actions'],
+  {
+    Button: template('Button'),
+    Icon: template('Icon'),
+    'ToggleList/ToggleList': template('ToggleList/ToggleList'),
+    'ToggleList/ToggleListItem': template('ToggleList/ToggleListItem')
+  }
+);
+assert.match(renderedStandardActions, /<li id="page-actions-watch"/);
+assert.match(renderedStandardActions, /id="ca-watch"/);
+assert.doesNotMatch(renderedStandardActions, /<li id="ca-watch"/);
 
 const historyContext = context({ contentName: 'document/history', viewName: 'history' });
 const historyData = makeMinervaSkinData(historyContext);
@@ -161,7 +187,7 @@ assert.equal(missingContext.pageContract.exists, false);
 assert.ok(missingContext.pageContract.bodyClasses.includes('mw-article-new'));
 assert.deepEqual(
   missingData['data-minerva-page-actions'].toolbar.map((item) => item.name),
-  ['language-selector', 'page-actions-history', 'page-actions-edit']
+  ['page-actions-edit']
 );
 assert.ok(!menuNodeIds(missingData['data-minerva-page-actions'].overflowMenu).includes('ca-raw'));
 
@@ -200,7 +226,21 @@ assert.equal(languageData['has-minerva-languages'], true);
 assert.match(languageData['data-portlets']['data-languages']['html-items'], /hreflang="en"/);
 assert.equal(languageData['data-minerva-page-actions'].toolbar[0].name, 'language-selector');
 assert.doesNotMatch(languageData['data-minerva-page-actions'].toolbar[0].components[0].classes, /disabled/);
+assert.equal(languageData['data-minerva-page-actions'].toolbar[0].components[0]['data-icon'].icon, 'language');
 assert.equal(languageData['data-minerva-secondary-actions'].language.label, '언어');
+const hiddenMainLanguageData = makeMinervaSkinData(context({
+  title: 'FrontPage',
+  config: { 'skin.minerva.hide_interlanguage_links': true }
+}));
+assert.ok(!hiddenMainLanguageData['data-minerva-page-actions'].toolbar.some(
+  (item) => item.name === 'language-selector'
+));
+const forcedLanguageData = makeMinervaSkinData(context({
+  config: { 'skin.minerva.always_show_language_button': true }
+}));
+const forcedLanguageButton = forcedLanguageData['data-minerva-page-actions'].toolbar[0].components[0];
+assert.match(forcedLanguageButton.classes, /language-selector disabled/);
+assert.equal(forcedLanguageButton['data-icon'].icon, 'language');
 assert.equal(languageData['data-minerva-history-link'].arrowIcon.icon, 'expand');
 assert.deepEqual(articleData['array-minerva-banners'], ['<div id="siteNotice"></div>']);
 const noticeData = makeMinervaSkinData(context({ config: { 'wiki.sitenotice': '테스트' } }));
@@ -222,7 +262,8 @@ assert.equal(specialContext.pageContract.namespaceKind, 'special');
 const specialEnvironment = makeMinervaDocumentEnvironment({ pageContract: specialContext.pageContract });
 assert.ok(specialEnvironment.bodyClasses.includes('ns--1'));
 assert.ok(specialEnvironment.bodyClasses.includes('ns-special'));
-assert.ok(articleContext.pageContract.bodyClasses.includes('mw-editable'));
+assert.ok(!articleContext.pageContract.bodyClasses.includes('mw-editable'));
+assert.ok(context().pageContract.bodyClasses.includes('mw-editable'));
 assert.ok(makeMinervaDocumentEnvironment({ pageContract: articleContext.pageContract }).htmlClasses.includes('client-js'));
 
 function classList(initial = []) {

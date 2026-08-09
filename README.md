@@ -37,6 +37,17 @@ npm run bootstrap -- --refresh
 
 이 저장소는 Minerva 단독 배포 단위입니다. 이후 레거시/Vector와 합칠 때도 생성된 Minerva DOM과 CSS는 그대로 유지하고, 어느 스킨을 활성화할지 결정하는 선택 계층만 상위에 추가하는 것을 원칙으로 합니다.
 
+호스트 연결은 세 경계로 나뉩니다.
+
+- `lib/thetreeHostFeatureCatalog.js`, `lib/thetreeHostPageContract.js`: 스킨과 무관한 the tree 기능·페이지 사실
+- `lib/minervaHostAdapterPolicy.js`: 그 기능을 잠긴 Minerva 메뉴와 페이지 동작에 투영하는 선언적 정책
+- `lib/minervaTheTreeAdapter.js`, `lib/minervaSkinData.js`: 정책을 원본 Minerva 템플릿 데이터로 직렬화하는 어댑터
+
+문서별 언어 링크는 호스트 데이터가 제공할 때만 활성화됩니다. 일반 문서에서 링크가 없을 때 버튼을 항상 남기는 원본 옵션은 기본적으로 끄며, 다음 설정으로 원본 Minerva 동작을 선택할 수 있습니다.
+
+- `skin.minerva.always_show_language_button`: 일반 문서에 비활성 언어 버튼을 항상 표시
+- `skin.minerva.hide_interlanguage_links`: 언어 버튼을 전역에서 숨김
+
 ## 라이선스
 
 GPL-2.0-or-later. 자세한 원본 및 제3자 고지는 `NOTICE`, `THIRD_PARTY_NOTICES.md`, `ORIGIN-MANIFEST.json`을 참고하세요.

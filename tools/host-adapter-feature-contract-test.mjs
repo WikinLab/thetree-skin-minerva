@@ -9,8 +9,20 @@ import {
   SEARCH_SUGGESTION_LIMIT,
   normalizeTheTreeSuggestions
 } from '../lib/adapters/thetree-search-suggest.js';
-import { MINERVA_THEME_TOGGLE_ATTRIBUTE } from '../lib/adapters/minerva-theme.js';
+import {
+  FEATURE_EQUIVALENCE,
+  MINERVA_MAIN_MENU_GROUP_ORDER,
+  MINERVA_MAIN_MENU_POLICY,
+  MINERVA_NAMESPACE_POLICY,
+  MINERVA_NOTIFICATION_POLICY,
+  MINERVA_PAGE_ACTION_POLICY,
+  MINERVA_PERSONAL_TOOL_POLICY,
+  MINERVA_SESSION_MENU_POLICY,
+  MINERVA_SETTINGS_POLICY,
+  resolveMinervaSessionIcon
+} from '../lib/minervaHostAdapterPolicy.js';
 import { applyMinervaDocumentEnvironment, makeMinervaDocumentEnvironment } from '../lib/minervaDocumentEnvironment.js';
+import { getTheTreeHostFeature } from '../lib/thetreeHostFeatureCatalog.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (pathname) => fs.readFileSync(path.join(root, pathname), 'utf8');
@@ -20,21 +32,68 @@ assert.equal(SEARCH_SUGGEST_LISTBOX_ID, 'tt-minerva-search-suggestions-listbox')
 assert.equal(SEARCH_SUGGESTION_LIMIT, 3);
 assert.deepEqual(normalizeTheTreeSuggestions([' 문서 ', '', '문서', '분류:테스트']), ['문서', '분류:테스트']);
 assert.deepEqual(normalizeTheTreeSuggestions(['가', '나', '다', '라']), ['가', '나', '다']);
-assert.equal(MINERVA_THEME_TOGGLE_ATTRIBUTE, 'data-tt-minerva-theme-toggle');
+assert.deepEqual(MINERVA_MAIN_MENU_GROUP_ORDER, ['p-navigation', 'p-interaction', 'pt-preferences']);
+const projectionRows = [
+  ...MINERVA_MAIN_MENU_POLICY,
+  ...MINERVA_SETTINGS_POLICY,
+  ...MINERVA_PERSONAL_TOOL_POLICY,
+  MINERVA_NOTIFICATION_POLICY,
+  MINERVA_SESSION_MENU_POLICY,
+  ...MINERVA_NAMESPACE_POLICY,
+  ...MINERVA_PAGE_ACTION_POLICY
+];
+assert.ok(projectionRows.every((row) => row.source === getTheTreeHostFeature(row.sourceId)));
+assert.ok(projectionRows.every((row) => row.source.system === 'thetree'));
+assert.ok(projectionRows.every((row) => row.target.system === 'mediawiki-minerva'));
+assert.ok(projectionRows.every((row) => Array.isArray(row.loss)));
+assert.ok(MINERVA_MAIN_MENU_POLICY.some((row) => row.equivalence === FEATURE_EQUIVALENCE.ANALOG));
+assert.equal(new Set(MINERVA_MAIN_MENU_POLICY.map((row) => row.target.id)).size, MINERVA_MAIN_MENU_POLICY.length);
+assert.equal(
+  MINERVA_PAGE_ACTION_POLICY.find((row) => row.sourceId === 'document.action.language').target.icon,
+  'language'
+);
+assert.equal(resolveMinervaSessionIcon({ l: '/admin/grant' }), 'lock');
+assert.equal(resolveMinervaSessionIcon({ l: '/unknown', icon: 'not-a-minerva-icon' }), 'specialPages');
+const generatedIconCss = fs.readdirSync(path.join(root, 'css', 'vendor', 'resource-loader'))
+  .filter((name) => name.endsWith('.css'))
+  .map((name) => read(`css/vendor/resource-loader/${name}`))
+  .join('\n');
+const projectedIcons = new Set([
+  ...MINERVA_MAIN_MENU_POLICY.map((row) => row.target.icon),
+  ...MINERVA_SETTINGS_POLICY.map((row) => row.target.icon),
+  ...MINERVA_PERSONAL_TOOL_POLICY.map((row) => row.target.icon),
+  MINERVA_NOTIFICATION_POLICY.target.icon,
+  ...MINERVA_PAGE_ACTION_POLICY.map((row) => row.target.icon),
+  'settings',
+  'specialPages',
+  'unStar'
+].filter(Boolean));
+for (const icon of projectedIcons) {
+  assert.match(
+    generatedIconCss,
+    new RegExp(`minerva-icon(?:\\.minerva-icon)?--${icon}\\b`),
+    `Projected icon ${icon} must exist in the locked generated Minerva glyph modules`
+  );
+}
 
 const dataAdapter = read('lib/minervaSkinData.js');
 const minervaAdapter = read('lib/minervaTheTreeAdapter.js');
 assert.match(dataAdapter, /data-minerva-main-menu/);
 assert.match(dataAdapter, /data-minerva-page-actions/);
 assert.match(dataAdapter, /data-minerva-notifications/);
-assert.match(minervaAdapter, /id: 'pt-notifications'/);
-assert.match(minervaAdapter, /icon: 'bellOutline'/);
-assert.match(minervaAdapter, /id: 'pt-watchlist'/);
+assert.match(dataAdapter, /MINERVA_MAIN_MENU_GROUP_ORDER/);
+assert.doesNotMatch(dataAdapter, /p-minerva-tools|p-host|MINERVA_THEME_TOGGLE_ATTRIBUTE/);
+assert.equal(MINERVA_NOTIFICATION_POLICY.target.id, 'pt-notifications');
+assert.equal(MINERVA_NOTIFICATION_POLICY.target.icon, 'bellOutline');
+assert.equal(
+  MINERVA_PERSONAL_TOOL_POLICY.find((row) => row.sourceId === 'personal.watchlist').target.id,
+  'pt-watchlist'
+);
 assert.match(dataAdapter, /placeholder=\"\$\{escapeHtml\(siteName\)\} 검색\"/);
 assert.match(dataAdapter, /makeMinervaPersonalMenuItems/);
 assert.match(dataAdapter, /linkBuilders\?\.href/);
 assert.match(dataAdapter, /minerva-user-menu-list toggle-list__list--drop-down/);
-assert.match(minervaAdapter, /name: 'page-actions-watch'/);
+assert.match(minervaAdapter, /document\.action\.watchstar/);
 
 const searchAdapter = read('lib/adapters/thetree-search-suggest.js');
 assert.match(searchAdapter, /cdx-menu cdx-menu--has-footer cdx-typeahead-search__menu/);
@@ -50,6 +109,7 @@ assert.match(wrapper, /`\/Complete\?q=\$\{encodeURIComponent\(query\)\}`/);
 assert.match(wrapper, /wiki\.hide_user_document_discuss/);
 assert.match(wrapper, /event\?\.defaultPrevented/);
 assert.match(wrapper, /pageContract\.canUseUserHeading/);
+assert.doesNotMatch(wrapper, /minerva-theme|isMinervaThemeToggleTarget/);
 
 const runtime = read('lib/runtime/createMinervaRuntimeController.js');
 assert.match(runtime, /toggle-list__checkbox/);

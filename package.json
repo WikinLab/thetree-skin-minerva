@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "thetree-skin-minerva",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "MediaWiki MinervaNeue skin for the tree with locked, deterministic ResourceLoader generation",
   "type": "module",
   "packageManager": "npm@10.8.2",
@@ -13,6 +13,7 @@
     "preflight": "node tools/generate-origin.mjs --preflight",
     "bootstrap": "node tools/bootstrap-upstream.mjs",
     "generate": "node tools/generate-origin.mjs",
+    "sync:origin-manifest": "node tools/sync-origin-manifest.mjs",
     "generate:check": "node tools/generate-origin.mjs --check",
     "check:mustache": "node tools/mustache-origin-contract-test.mjs",
     "check:distribution": "node tools/distribution-contract-test.mjs",

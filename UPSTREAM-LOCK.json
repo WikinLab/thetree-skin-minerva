@@ -27,18 +27,6 @@
       "scope": "MediaWiki core skinning LESS, ResourceLoader SkinModule and core module registry sources, default variables, and core Codex module CSS sources"
     },
     {
-      "name": "mediawiki-extensions-MobileFrontend",
-      "repository": "wikimedia/mediawiki-extensions-MobileFrontend",
-      "ref": "REL1_46",
-      "commit": "e00881d4d6f2e91f57026e8fa81a7dd8ad71cda4",
-      "license": "GPL-2.0-or-later",
-      "licenseFile": "COPYING",
-      "scope": "MobileFrontend section transform, collapsible section behavior, and mobile-mode structural reference",
-      "bootstrapPaths": [
-        "extension.json"
-      ]
-    },
-    {
       "name": "design-codex",
       "repository": "wikimedia/design-codex",
       "ref": "v2.3.1",

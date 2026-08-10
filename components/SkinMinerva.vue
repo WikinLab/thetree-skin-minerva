@@ -51,6 +51,15 @@
 
     <template #html-after-content>
       <slot name="after-content" />
+      <MinervaSearchDialog
+        :open="mobileSearchOpen"
+        :site-name="siteName"
+        :initial-query="adapterContext.route.query.q || ''"
+        :request-suggestions="requestSearchSuggestions"
+        @close="closeMobileSearch"
+        @navigate-document="navigateSearchDocument"
+        @navigate-search="navigateSearchResults"
+      />
     </template>
   </SkinOrigin>
 </template>
@@ -63,12 +72,12 @@ import SkinOrigin from './skin.vue';
 import ToggleListOrigin from './ToggleList/ToggleList.vue';
 import RawHtmlFragment from '../lib/legacyRawHtmlFragment';
 import MinervaSettingModal from './MinervaSettingModal';
+import MinervaSearchDialog from './MinervaSearchDialog';
 import { makeMinervaAdapterContext } from '../lib/minervaTheTreeAdapter';
 import { makeMinervaSkinData } from '../lib/minervaSkinData';
 import { makeMinervaHostState } from '../lib/minervaHostState';
 import { createTheTreeSearchSuggestRuntime } from '../lib/adapters/thetree-search-suggest';
-import { createMinervaSearchDialogRuntime } from '../lib/adapters/minerva-search-dialog';
-import { createMinervaMobileSectionsRuntime } from '../lib/adapters/minerva-mobile-sections';
+import { getMinervaConfiguredString } from '../lib/minervaHostConfig';
 import { isSettingsToggleTarget } from '../lib/adapters/thetree-settings';
 import { createMinervaRuntimeController } from '../lib/runtime/createMinervaRuntimeController';
 
@@ -77,6 +86,7 @@ export default {
   mixins: [Common],
   components: {
     Alert,
+    MinervaSearchDialog,
     RawHtmlFragment,
     SkinOrigin,
     ToggleListOrigin
@@ -84,7 +94,8 @@ export default {
   data() {
     return {
       isShowACLMessage: true,
-      minervaRuntimeController: null
+      minervaRuntimeController: null,
+      mobileSearchOpen: false
     };
   },
   computed: {
@@ -125,6 +136,9 @@ export default {
     skinAdapter() {
       return makeMinervaHostState(this.adapterContext);
     },
+    siteName() {
+      return getMinervaConfiguredString(this.adapterContext.config, 'siteName', 'the tree');
+    },
     hasUnreadUserDiscussion() {
       return this.skinAdapter.hasUnreadUserDiscussion;
     },
@@ -144,6 +158,7 @@ export default {
   watch: {
     $route() {
       this.isShowACLMessage = true;
+      this.mobileSearchOpen = false;
       this.resetMinervaRuntime();
     },
     skinData() {
@@ -169,6 +184,15 @@ export default {
       }
     },
     onSkinClick(event) {
+      if (
+        this.adapterContext.pageContract.hasMobileFrontend &&
+        event?.target?.closest?.('#searchIcon')
+      ) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.mobileSearchOpen = true;
+        return;
+      }
       const settingsToggle = isSettingsToggleTarget(event?.target);
       if (settingsToggle) {
         event.preventDefault();
@@ -204,25 +228,14 @@ export default {
     ensureMinervaRuntimeController() {
       if (this.minervaRuntimeController) return this.minervaRuntimeController;
       this.minervaRuntimeController = createMinervaRuntimeController({
-        createSearchDialogRuntime: () => createMinervaSearchDialogRuntime({
-          enabled: this.adapterContext.pageContract.hasMobileFrontend
-        }),
-        createSearchRuntime: ({ closeMobileSearch } = {}) => createTheTreeSearchSuggestRuntime({
-          requestSuggestions: (query, signal) => this.internalRequest(
-            `/Complete?q=${encodeURIComponent(query)}`,
-            { signal, noProgress: true }
-          ),
+        createSearchRuntime: () => createTheTreeSearchSuggestRuntime({
+          requestSuggestions: this.requestSearchSuggestions,
           navigateDocument: (title) => {
-            closeMobileSearch?.();
             return this.$router.push(this.doc_action_link(title, 'w'));
           },
           navigateSearch: (query) => {
-            closeMobileSearch?.();
             return this.$router.push({ path: '/Search', query: { q: query } });
           }
-        }),
-        createMobileSectionsRuntime: () => createMinervaMobileSectionsRuntime({
-          enabled: this.adapterContext.pageContract.hasMobileFrontend
         }),
         toggleWatchstar: (href, watched) => this.toggleWatchstar(href, watched),
         schedule: (callback) => this.$nextTick(callback)
@@ -238,6 +251,21 @@ export default {
     },
     resetMinervaRuntime() {
       this.ensureMinervaRuntimeController().reset();
+    },
+    requestSearchSuggestions(query, signal) {
+      return this.internalRequest(`/Complete?q=${encodeURIComponent(query)}`, { signal, noProgress: true });
+    },
+    closeMobileSearch() {
+      this.mobileSearchOpen = false;
+      this.$nextTick(() => document.getElementById('searchIcon')?.focus?.());
+    },
+    navigateSearchDocument(title) {
+      this.mobileSearchOpen = false;
+      return this.$router.push(this.doc_action_link(title, 'w'));
+    },
+    navigateSearchResults(query) {
+      this.mobileSearchOpen = false;
+      return this.$router.push({ path: '/Search', query: { q: query } });
     },
     async toggleWatchstar(href, watched) {
       const response = await fetch(href, {

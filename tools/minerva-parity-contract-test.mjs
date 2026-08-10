@@ -137,6 +137,12 @@ assert.deepEqual(
 
 const standardArticleData = makeMinervaSkinData(context());
 assert.ok(standardArticleData['data-minerva-tabs']);
+assert.equal(context().pageContract.features.talkAtTop, true);
+assert.equal(context().pageContract.features.historyInPageActions, true);
+assert.equal(context().pageContract.features.overflowSubmenu, true);
+assert.equal(context().pageContract.features.personalMenu, true);
+assert.equal(context().pageContract.features.advancedMainMenu, true);
+assert.equal(context().pageContract.features.categories, false);
 assert.equal(standardArticleData['html-minerva-tagline'], '<div class="tagline"></div>');
 assert.equal(standardArticleData['data-minerva-search-box']['html-input-attributes'].includes('aria-label="the tree 검색"'), true);
 assert.ok(!menuNodeIds(standardArticleData['data-minerva-page-actions'].overflowMenu).includes('t-upload'));
@@ -231,8 +237,26 @@ assert.deepEqual(menuNodeIds({ items: mobilePersonalGroup.entries }), ['pt-login
 const mobileFrontendEnvironment = makeMinervaDocumentEnvironment({
   pageContract: mobileFrontendContext.pageContract
 });
-assert.ok(mobileFrontendEnvironment.bodyClasses.includes('mf-collapsible-sections'));
 assert.ok(mobileFrontendEnvironment.bodyClasses.includes('tt-minerva-mobilefrontend'));
+assert.ok(!mobileFrontendEnvironment.bodyClasses.includes('mf-collapsible-sections'));
+assert.deepEqual(mobileFrontendContext.pageContract.features, {
+  talkAtTop: false,
+  historyInPageActions: false,
+  overflowSubmenu: false,
+  tabsOnSpecials: true,
+  personalMenu: false,
+  advancedMainMenu: false,
+  categories: false
+});
+
+const loggedInMobileContext = context({
+  extraData: { thetreeMobileFrontend: { schema: 'thetree-mobilefrontend/v1', mode: 'mobile' } }
+});
+assert.equal(loggedInMobileContext.pageContract.features.talkAtTop, true);
+assert.equal(loggedInMobileContext.pageContract.features.historyInPageActions, true);
+assert.equal(loggedInMobileContext.pageContract.features.overflowSubmenu, true);
+assert.equal(loggedInMobileContext.pageContract.features.personalMenu, true);
+assert.equal(loggedInMobileContext.pageContract.features.advancedMainMenu, false);
 
 const invalidMobileFrontendContext = context({
   loggedIn: false,
@@ -256,6 +280,18 @@ assert.equal(userTalkContext.pageContract.canUseUserHeading, true);
 const userTalkEnvironment = makeMinervaDocumentEnvironment({ pageContract: userTalkContext.pageContract });
 assert.ok(userTalkEnvironment.bodyClasses.includes('ns-3'));
 assert.ok(userTalkEnvironment.bodyClasses.includes('ns-talk'));
+
+const anonymousMobileUserContext = context({
+  loggedIn: false,
+  namespace: '사용자',
+  extraData: {
+    user: { uuid: 'account-1' },
+    thetreeMobileFrontend: { schema: 'thetree-mobilefrontend/v1', mode: 'mobile' }
+  }
+});
+assert.equal(anonymousMobileUserContext.pageContract.features.talkAtTop, true);
+assert.equal(anonymousMobileUserContext.pageContract.features.historyInPageActions, true);
+assert.equal(anonymousMobileUserContext.pageContract.features.overflowSubmenu, true);
 
 const languageData = makeMinervaSkinData(context({
   title: 'FrontPage',
@@ -284,6 +320,14 @@ const forcedLanguageData = makeMinervaSkinData(context({
 const forcedLanguageButton = forcedLanguageData['data-minerva-page-actions'].toolbar[0].components[0];
 assert.match(forcedLanguageButton.classes, /language-selector disabled/);
 assert.equal(forcedLanguageButton['data-icon'].icon, 'language');
+assert.deepEqual(
+  hiddenMainLanguageData['data-minerva-page-actions'].toolbar.map((item) => item.name),
+  ['page-actions-history']
+);
+assert.deepEqual(
+  forcedLanguageData['data-minerva-page-actions'].toolbar.slice(0, 2).map((item) => item.name),
+  ['language-selector', 'page-actions-watch']
+);
 assert.equal(languageData['data-minerva-history-link'].arrowIcon.icon, 'expand');
 assert.deepEqual(articleData['array-minerva-banners'], ['<div id="siteNotice"></div>']);
 const noticeData = makeMinervaSkinData(context({ config: { 'wiki.sitenotice': '테스트' } }));

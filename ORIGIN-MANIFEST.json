@@ -459,10 +459,28 @@
         "upstreamPath": "includes/Menu/Main/MainMenuDirector.php"
       },
       {
+        "path": "vendor/mediawiki-minerva/includes/Menu/PageActions/ToolbarBuilder.php",
+        "status": "mirrored",
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "includes/Menu/PageActions/ToolbarBuilder.php"
+      },
+      {
         "path": "vendor/mediawiki-minerva/includes/Menu/User/DefaultUserMenuBuilder.php",
         "status": "mirrored",
         "repository": "mediawiki-skins-MinervaNeue",
         "upstreamPath": "includes/Menu/User/DefaultUserMenuBuilder.php"
+      },
+      {
+        "path": "vendor/mediawiki-minerva/includes/Permissions/MinervaPagePermissions.php",
+        "status": "mirrored",
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "includes/Permissions/MinervaPagePermissions.php"
+      },
+      {
+        "path": "vendor/mediawiki-minerva/includes/SkinOptions.php",
+        "status": "mirrored",
+        "repository": "mediawiki-skins-MinervaNeue",
+        "upstreamPath": "includes/SkinOptions.php"
       },
       {
         "path": "vendor/mediawiki-minerva/includes/Skins/banners.mustache",
@@ -699,36 +717,6 @@
         "upstreamPath": "skinStyles/mediawiki.hlist/minerva.less"
       },
       {
-        "path": "vendor/mediawiki-mobilefrontend/extension.json",
-        "status": "mirrored",
-        "repository": "mediawiki-extensions-MobileFrontend",
-        "upstreamPath": "extension.json"
-      },
-      {
-        "path": "vendor/mediawiki-mobilefrontend/includes/Transforms/MakeSectionsTransform.php",
-        "status": "mirrored",
-        "repository": "mediawiki-extensions-MobileFrontend",
-        "upstreamPath": "includes/Transforms/MakeSectionsTransform.php"
-      },
-      {
-        "path": "vendor/mediawiki-mobilefrontend/resources/mobile.init.styles/main.less",
-        "status": "mirrored",
-        "repository": "mediawiki-extensions-MobileFrontend",
-        "upstreamPath": "resources/mobile.init.styles/main.less"
-      },
-      {
-        "path": "vendor/mediawiki-mobilefrontend/src/mobile.init/isCollapsedByDefault.js",
-        "status": "mirrored",
-        "repository": "mediawiki-extensions-MobileFrontend",
-        "upstreamPath": "src/mobile.init/isCollapsedByDefault.js"
-      },
-      {
-        "path": "vendor/mediawiki-mobilefrontend/src/mobile.init/Toggler.js",
-        "status": "mirrored",
-        "repository": "mediawiki-extensions-MobileFrontend",
-        "upstreamPath": "src/mobile.init/Toggler.js"
-      },
-      {
         "path": "vendor/wikimedia-codex/packages/codex-design-tokens/dist/theme-wikimedia-ui-mixin-dark.less",
         "status": "built",
         "repository": "design-codex",
@@ -785,7 +773,7 @@
     ],
     "portedFiles": [
       {
-        "path": "lib/adapters/minerva-search-dialog.js",
+        "path": "components/MinervaSearchDialog.vue",
         "repository": "mediawiki",
         "upstreamPaths": [
           "resources/src/mediawiki.page.ready/enableSearchDialog.js",
@@ -793,51 +781,22 @@
           "resources/src/mediawiki.skinning.typeaheadSearch/TypeaheadSearchWrapper.vue"
         ],
         "kind": "source-port",
-        "relation": "many-upstream-files-to-one-local-adapter",
-        "hostDependency": "thetree-router-and-dom",
+        "relation": "three-upstream-files-to-one-host-adapted-component",
+        "hostDependency": "thetree-search-api-and-router",
         "automationStatus": "adapter-required",
         "license": "GPL-2.0-or-later",
         "modifiedDates": [
           "2026-08-10"
         ],
         "differenceClasses": [
-          "mediawiki-router-to-thetree-runtime",
-          "spa-lifecycle",
-          "mobile-dialog-shell"
+          "mediawiki-router-to-thetree-router",
+          "mediawiki-api-to-thetree-complete",
+          "codex-vue-runtime-to-compatible-dom"
         ],
         "originInputs": [
           "vendor/mediawiki-core/resources/src/mediawiki.page.ready/enableSearchDialog.js",
           "vendor/mediawiki-core/resources/src/mediawiki.skinning.typeaheadSearch/App.vue",
           "vendor/mediawiki-core/resources/src/mediawiki.skinning.typeaheadSearch/TypeaheadSearchWrapper.vue"
-        ]
-      },
-      {
-        "path": "lib/adapters/minerva-mobile-sections.js",
-        "repository": "mediawiki-extensions-MobileFrontend",
-        "upstreamPaths": [
-          "includes/Transforms/MakeSectionsTransform.php",
-          "resources/mobile.init.styles/main.less",
-          "src/mobile.init/isCollapsedByDefault.js",
-          "src/mobile.init/Toggler.js"
-        ],
-        "kind": "source-port",
-        "relation": "many-upstream-files-to-one-local-adapter",
-        "hostDependency": "thetree-namumark-dom",
-        "automationStatus": "adapter-required",
-        "license": "GPL-2.0-or-later",
-        "modifiedDates": [
-          "2026-08-10"
-        ],
-        "differenceClasses": [
-          "php-transform-to-dom-adapter",
-          "host-heading-contract",
-          "spa-lifecycle"
-        ],
-        "originInputs": [
-          "vendor/mediawiki-mobilefrontend/includes/Transforms/MakeSectionsTransform.php",
-          "vendor/mediawiki-mobilefrontend/resources/mobile.init.styles/main.less",
-          "vendor/mediawiki-mobilefrontend/src/mobile.init/isCollapsedByDefault.js",
-          "vendor/mediawiki-mobilefrontend/src/mobile.init/Toggler.js"
         ]
       }
     ],
@@ -854,6 +813,11 @@
       },
       {
         "path": ".gitignore",
+        "kind": "package-metadata",
+        "hostDependency": "none"
+      },
+      {
+        "path": "COMPOSABLE-SKIN.json",
         "kind": "package-metadata",
         "hostDependency": "none"
       },
@@ -903,6 +867,11 @@
         "hostDependency": "thetree"
       },
       {
+        "path": "contracts/minerva-feature-profile-contract.json",
+        "kind": "generation-contract",
+        "hostDependency": "none"
+      },
+      {
         "path": "contracts/mobilefrontend-data-contract.json",
         "kind": "generation-contract",
         "hostDependency": "none"
@@ -939,11 +908,6 @@
       },
       {
         "path": "css/host-content/links.css",
-        "kind": "skin-integration",
-        "hostDependency": "thetree"
-      },
-      {
-        "path": "css/host-content/mobilefrontend.css",
         "kind": "skin-integration",
         "hostDependency": "thetree"
       },
@@ -1029,6 +993,11 @@
       },
       {
         "path": "lib/minervaDocumentEnvironment.js",
+        "kind": "host-adapter",
+        "hostDependency": "thetree"
+      },
+      {
+        "path": "lib/minervaFeatureProfile.js",
         "kind": "host-adapter",
         "hostDependency": "thetree"
       },
@@ -1154,6 +1123,11 @@
       },
       {
         "path": "tools/javascript-port-origin-engine.mjs",
+        "kind": "generation-tool",
+        "hostDependency": "none"
+      },
+      {
+        "path": "tools/minerva-feature-profile-origin-engine.mjs",
         "kind": "generation-tool",
         "hostDependency": "none"
       },
@@ -1501,6 +1475,14 @@
       {
         "path": "lib/generated/mediawiki-less-messages.json",
         "originNode": "resource-loader-css"
+      },
+      {
+        "path": "lib/generated/minerva-feature-profile.js",
+        "originNode": "minerva-feature-profile",
+        "input": "vendor/mediawiki-minerva/skin.json",
+        "dependencies": [
+          "vendor/mediawiki-minerva/includes/SkinOptions.php"
+        ]
       }
     ],
     "materializedRuntimeAssets": []
@@ -1531,6 +1513,17 @@
         "dependsOn": [],
         "contract": "contracts/resource-loader-origin-contract.json",
         "outputInventory": "sourceInventory.generatedFiles"
+      },
+      {
+        "id": "minerva-feature-profile",
+        "kind": "minerva-feature-profile",
+        "dependsOn": [],
+        "contract": "contracts/minerva-feature-profile-contract.json",
+        "outputInventory": "sourceInventory.generatedFiles",
+        "outputRelationContract": {
+          "inputField": "input",
+          "dependenciesField": "dependencies"
+        }
       }
     ]
   },

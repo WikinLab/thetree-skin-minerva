@@ -18,26 +18,20 @@ The distribution archive excludes upstream checkouts, vendor mirrors and generat
    Commit: 94b1bc0df0d57a470404266bed914f8584ead52f
    License: GPL-2.0-or-later
 
-3. MediaWiki MobileFrontend
-   Repository: wikimedia/mediawiki-extensions-MobileFrontend
-   Ref: REL1_46
-   Commit: e00881d4d6f2e91f57026e8fa81a7dd8ad71cda4
-   License: GPL-2.0-or-later
-
-4. Wikimedia Codex
+3. Wikimedia Codex
    Repository: wikimedia/design-codex
    Tag/commit: v2.3.1 / 451588b3ed4e610a50b9b656ef528898e049bb2f
    License: GPL-2.0-or-later (Codex and design tokens); MIT (Codex Icons)
 
-5. mustache.js
+4. mustache.js
    Version: 4.2.0
    License: MIT
 
-6. parse5
+5. parse5
    Version: 8.0.0
    License: MIT
 
-7. entities
+6. entities
    Version: 6.0.1
    License: BSD-2-Clause
 

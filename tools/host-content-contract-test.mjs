@@ -27,6 +27,18 @@ assert.deepEqual(imports(read('css/screen.css')), [
 assert.match(read('components/SkinMinerva.vue'), /data-tt-host-content="1"/);
 assert.match(read('components/SkinMinerva.vue'), /SkinOrigin/);
 assert.match(read('components/SkinMinerva.vue'), /ToggleListOrigin/);
+assert.doesNotMatch(read('components/SkinMinerva.vue'), /wiki-heading|wiki-heading-content|createMinervaMobileSectionsRuntime/);
+
+const hostContentSources = [
+  read('css/host-content.css'),
+  ...fs.readdirSync(path.join(root, 'css', 'host-content'))
+    .filter((name) => name.endsWith('.css'))
+    .map((name) => read(`css/host-content/${name}`)),
+  ...fs.readdirSync(path.join(root, 'lib', 'adapters'))
+    .filter((name) => name.endsWith('.js'))
+    .map((name) => read(`lib/adapters/${name}`))
+].join('\n');
+assert.doesNotMatch(hostContentSources, /wiki-heading|wiki-heading-content|collapsible-block-js|mf-collapsible-sections/);
 
 for (const rule of rules('css/host-content/foundation.css')) {
   assert.match(rule.selector, /\[data-tt-host-content="1"\]/);

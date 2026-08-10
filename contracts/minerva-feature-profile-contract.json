@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "mobileInput": "vendor/mediawiki-minerva/skin.json",
+  "desktopInput": "vendor/mediawiki-minerva/includes/SkinOptions.php",
+  "output": "lib/generated/minerva-feature-profile.js",
+  "features": {
+    "talkAtTop": {
+      "desktopConstant": "TALK_AT_TOP",
+      "mobileConfig": "MinervaTalkAtTop",
+      "forceTrueWhen": ["accessible-user-page"]
+    },
+    "historyInPageActions": {
+      "desktopConstant": "HISTORY_IN_PAGE_ACTIONS",
+      "mobileConfig": "MinervaHistoryInPageActions",
+      "forceTrueWhen": ["accessible-user-page", "diff"]
+    },
+    "overflowSubmenu": {
+      "desktopConstant": "TOOLBAR_SUBMENU",
+      "mobileConfig": "MinervaOverflowInPageActions",
+      "forceTrueWhen": ["accessible-user-page"]
+    },
+    "tabsOnSpecials": {
+      "desktopConstant": "TABS_ON_SPECIALS",
+      "mobileFixed": true
+    },
+    "personalMenu": {
+      "desktopConstant": "PERSONAL_MENU",
+      "mobileConfig": "MinervaPersonalMenu"
+    },
+    "advancedMainMenu": {
+      "desktopConstant": "MAIN_MENU_EXPANDED",
+      "mobileConfig": "MinervaAdvancedMainMenu"
+    },
+    "categories": {
+      "desktopConstant": "CATEGORIES",
+      "mobileConfig": "MinervaShowCategories"
+    }
+  }
+}

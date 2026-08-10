@@ -67,7 +67,10 @@ for (const absolute of templateFiles) {
 
 const minervaSeeds = [
   'skin.json',
+  'includes/SkinOptions.php',
   'includes/Skins/SkinMinerva.php',
+  'includes/Permissions/MinervaPagePermissions.php',
+  'includes/Menu/PageActions/ToolbarBuilder.php',
   'includes/Menu/Main/AdvancedMainMenuBuilder.php',
   'includes/Menu/Main/DefaultMainMenuBuilder.php',
   'includes/Menu/Main/MainMenuDirector.php',
@@ -139,20 +142,6 @@ for (const upstreamPath of [
     upstreamPath
   });
 }
-for (const upstreamPath of [
-  'extension.json',
-  'includes/Transforms/MakeSectionsTransform.php',
-  'resources/mobile.init.styles/main.less',
-  'src/mobile.init/isCollapsedByDefault.js',
-  'src/mobile.init/Toggler.js'
-]) {
-  addVendor({
-    path: `vendor/mediawiki-mobilefrontend/${upstreamPath}`,
-    status: 'mirrored',
-    repository: 'mediawiki-extensions-MobileFrontend',
-    upstreamPath
-  });
-}
 addVendor({
   path: 'vendor/mediawiki-core/resources/lib/codex/modules/manifest.json',
   status: 'mirrored', repository: 'mediawiki', upstreamPath: 'resources/lib/codex/modules/manifest.json'
@@ -193,10 +182,17 @@ const resourceOutputs = [
   resourceContract.pageStyleQueue.output
 ].map((pathname) => ({ path: toPosix(pathname), originNode: 'resource-loader-css' }));
 
-const generatedPaths = new Set([...mustacheOutputs, ...resourceOutputs].map((entry) => entry.path));
+const featureProfileOutput = {
+  path: 'lib/generated/minerva-feature-profile.js',
+  originNode: 'minerva-feature-profile',
+  input: 'vendor/mediawiki-minerva/skin.json',
+  dependencies: ['vendor/mediawiki-minerva/includes/SkinOptions.php']
+};
+
+const generatedPaths = new Set([...mustacheOutputs, ...resourceOutputs, featureProfileOutput].map((entry) => entry.path));
 const portedFiles = [
   {
-    path: 'lib/adapters/minerva-search-dialog.js',
+    path: 'components/MinervaSearchDialog.vue',
     repository: 'mediawiki',
     upstreamPaths: [
       'resources/src/mediawiki.page.ready/enableSearchDialog.js',
@@ -204,39 +200,16 @@ const portedFiles = [
       'resources/src/mediawiki.skinning.typeaheadSearch/TypeaheadSearchWrapper.vue'
     ],
     kind: 'source-port',
-    relation: 'many-upstream-files-to-one-local-adapter',
-    hostDependency: 'thetree-router-and-dom',
+    relation: 'three-upstream-files-to-one-host-adapted-component',
+    hostDependency: 'thetree-search-api-and-router',
     automationStatus: 'adapter-required',
     license: 'GPL-2.0-or-later',
     modifiedDates: ['2026-08-10'],
-    differenceClasses: ['mediawiki-router-to-thetree-runtime', 'spa-lifecycle', 'mobile-dialog-shell'],
+    differenceClasses: ['mediawiki-router-to-thetree-router', 'mediawiki-api-to-thetree-complete', 'codex-vue-runtime-to-compatible-dom'],
     originInputs: [
       'vendor/mediawiki-core/resources/src/mediawiki.page.ready/enableSearchDialog.js',
       'vendor/mediawiki-core/resources/src/mediawiki.skinning.typeaheadSearch/App.vue',
       'vendor/mediawiki-core/resources/src/mediawiki.skinning.typeaheadSearch/TypeaheadSearchWrapper.vue'
-    ]
-  },
-  {
-    path: 'lib/adapters/minerva-mobile-sections.js',
-    repository: 'mediawiki-extensions-MobileFrontend',
-    upstreamPaths: [
-      'includes/Transforms/MakeSectionsTransform.php',
-      'resources/mobile.init.styles/main.less',
-      'src/mobile.init/isCollapsedByDefault.js',
-      'src/mobile.init/Toggler.js'
-    ],
-    kind: 'source-port',
-    relation: 'many-upstream-files-to-one-local-adapter',
-    hostDependency: 'thetree-namumark-dom',
-    automationStatus: 'adapter-required',
-    license: 'GPL-2.0-or-later',
-    modifiedDates: ['2026-08-10'],
-    differenceClasses: ['php-transform-to-dom-adapter', 'host-heading-contract', 'spa-lifecycle'],
-    originInputs: [
-      'vendor/mediawiki-mobilefrontend/includes/Transforms/MakeSectionsTransform.php',
-      'vendor/mediawiki-mobilefrontend/resources/mobile.init.styles/main.less',
-      'vendor/mediawiki-mobilefrontend/src/mobile.init/isCollapsedByDefault.js',
-      'vendor/mediawiki-mobilefrontend/src/mobile.init/Toggler.js'
     ]
   }
 ];
@@ -303,7 +276,7 @@ const manifest = {
     vendorFiles: [...vendorByPath.values()].sort((a, b) => a.path.localeCompare(b.path, 'en')),
     portedFiles,
     localFiles,
-    generatedFiles: [...mustacheOutputs, ...resourceOutputs].sort((a, b) => a.path.localeCompare(b.path, 'en')),
+    generatedFiles: [...mustacheOutputs, ...resourceOutputs, featureProfileOutput].sort((a, b) => a.path.localeCompare(b.path, 'en')),
     materializedRuntimeAssets: []
   },
   generation: {
@@ -329,6 +302,14 @@ const manifest = {
         dependsOn: [],
         contract: 'contracts/resource-loader-origin-contract.json',
         outputInventory: 'sourceInventory.generatedFiles'
+      },
+      {
+        id: 'minerva-feature-profile',
+        kind: 'minerva-feature-profile',
+        dependsOn: [],
+        contract: 'contracts/minerva-feature-profile-contract.json',
+        outputInventory: 'sourceInventory.generatedFiles',
+        outputRelationContract: { inputField: 'input', dependenciesField: 'dependencies' }
       }
     ]
   },

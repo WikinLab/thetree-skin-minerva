@@ -594,6 +594,14 @@ const engines = Object.freeze({
       contractPath: node.contract,
       check
     });
+  },
+  'minerva-feature-profile': async ({ node }) => {
+    const { generateMinervaFeatureProfile } = await import('./minerva-feature-profile-origin-engine.mjs');
+    return generateMinervaFeatureProfile({
+      root,
+      contractPath: node.contract,
+      check
+    });
   }
 });
 

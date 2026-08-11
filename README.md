@@ -16,7 +16,7 @@
 
 - 신호가 없으면 MobileFrontend 확장 기능이 없는 데스크톱 Minerva의 `SkinOptions` 기본값을 사용합니다.
 - `mode: "mobile"`이면 잠긴 `skin.json`의 base/loggedin 프로필과 `SkinOptions.php`의 사용자 문서·diff 예외를 사용합니다.
-- 모바일 검색은 잠긴 MediaWiki `TypeaheadSearchWrapper.vue`·`App.vue` 구조를 the tree 검색 API와 라우터에 연결합니다.
+- 데스크톱과 모바일 검색은 동일하게 잠긴 MediaWiki `TypeaheadSearchWrapper.vue`·`App.vue`와 그 Codex 의존 그래프를 사용합니다. 어댑터는 `/Complete` 결과·URL·라우터와 원본의 지연 마운트 수명주기만 공급하며, 검색 행·아이콘·메뉴 DOM은 만들지 않습니다.
 - 플러그인은 신호만 공급하며 Minerva DOM이나 메뉴를 만들지 않습니다.
 
 언어 기능은 원본 옵션 의미를 그대로 따릅니다. `skin.minerva.hide_interlanguage_links=true`이면 원본과 같이 언어 항목 자체가 없어져 별이 첫 항목으로 이동합니다. 언어 링크가 없을 때 비활성 언어 버튼을 남기려면 숨김을 해제하고 `skin.minerva.always_show_language_button=true`를 사용합니다.
@@ -28,7 +28,7 @@ npm ci
 npm run bootstrap
 ```
 
-`UPSTREAM-LOCK.json`은 정확한 Git 커밋을 고정합니다. 부트스트랩은 잠긴 객체에서 `vendor/`를 물질화하고 Mustache Vue 컴포넌트, ResourceLoader CSS, Minerva 기능 프로필을 재생성한 뒤 계약 검사를 실행합니다. `vendor/`, `.upstream/`, `css/vendor/`, `lib/generated/`, `node_modules/`는 배포 소스에 포함하지 않습니다.
+`UPSTREAM-LOCK.json`은 정확한 Git 커밋을 고정합니다. 부트스트랩은 잠긴 객체에서 `vendor/`를 물질화하고 Mustache Vue 컴포넌트, ResourceLoader CSS, MediaWiki Vue SFC와 CommonJS 의존 그래프, Minerva 기능 프로필을 재생성한 뒤 계약 검사를 실행합니다. 같은 잠금·계약·도구 버전에서는 같은 바이트 결과를 내며, `vendor/`, `.upstream/`, `css/vendor/`, `lib/generated/`, `node_modules/`는 배포 소스에 포함하지 않습니다.
 
 ## 설정 키
 

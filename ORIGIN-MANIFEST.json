@@ -1,5 +1,5 @@
 {
-  "schema": 31,
+  "schema": 35,
   "title": "thetree MinervaNeue standalone bootstrap source manifest",
   "upstreamLockFile": "UPSTREAM-LOCK.json",
   "hostLock": {
@@ -44,7 +44,7 @@
     "upstreamBuildOutputsIncluded": false
   },
   "sourceInventory": {
-    "schema": 21,
+    "schema": 22,
     "sourceCoverage": {
       "schema": 1,
       "root": ".",
@@ -165,6 +165,18 @@
         "upstreamPath": "languages/i18n/ko.json"
       },
       {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/_plugin-vue_export-helper.js",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/_plugin-vue_export-helper.js"
+      },
+      {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/CdxButton.cjs",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/CdxButton.cjs"
+      },
+      {
         "path": "vendor/mediawiki-core/resources/lib/codex/modules/CdxButton.css",
         "status": "mirrored",
         "repository": "mediawiki",
@@ -177,10 +189,34 @@
         "upstreamPath": "resources/lib/codex/modules/CdxCheckbox.css"
       },
       {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/CdxDialog.cjs",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/CdxDialog.cjs"
+      },
+      {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/CdxDialog.css",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/CdxDialog.css"
+      },
+      {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/CdxIcon.cjs",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/CdxIcon.cjs"
+      },
+      {
         "path": "vendor/mediawiki-core/resources/lib/codex/modules/CdxLabel.css",
         "status": "mirrored",
         "repository": "mediawiki",
         "upstreamPath": "resources/lib/codex/modules/CdxLabel.css"
+      },
+      {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/CdxMenu.cjs",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/CdxMenu.cjs"
       },
       {
         "path": "vendor/mediawiki-core/resources/lib/codex/modules/CdxMenu.css",
@@ -189,10 +225,22 @@
         "upstreamPath": "resources/lib/codex/modules/CdxMenu.css"
       },
       {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/CdxMenuItem.cjs",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/CdxMenuItem.cjs"
+      },
+      {
         "path": "vendor/mediawiki-core/resources/lib/codex/modules/CdxMenuItem.css",
         "status": "mirrored",
         "repository": "mediawiki",
         "upstreamPath": "resources/lib/codex/modules/CdxMenuItem.css"
+      },
+      {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/CdxProgressBar.cjs",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/CdxProgressBar.cjs"
       },
       {
         "path": "vendor/mediawiki-core/resources/lib/codex/modules/CdxProgressBar.css",
@@ -201,10 +249,22 @@
         "upstreamPath": "resources/lib/codex/modules/CdxProgressBar.css"
       },
       {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/CdxSearchInput.cjs",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/CdxSearchInput.cjs"
+      },
+      {
         "path": "vendor/mediawiki-core/resources/lib/codex/modules/CdxSearchInput.css",
         "status": "mirrored",
         "repository": "mediawiki",
         "upstreamPath": "resources/lib/codex/modules/CdxSearchInput.css"
+      },
+      {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/CdxSearchResultTitle.cjs",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/CdxSearchResultTitle.cjs"
       },
       {
         "path": "vendor/mediawiki-core/resources/lib/codex/modules/CdxSearchResultTitle.css",
@@ -213,10 +273,22 @@
         "upstreamPath": "resources/lib/codex/modules/CdxSearchResultTitle.css"
       },
       {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/CdxTextInput.cjs",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/CdxTextInput.cjs"
+      },
+      {
         "path": "vendor/mediawiki-core/resources/lib/codex/modules/CdxTextInput.css",
         "status": "mirrored",
         "repository": "mediawiki",
         "upstreamPath": "resources/lib/codex/modules/CdxTextInput.css"
+      },
+      {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/CdxThumbnail.cjs",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/CdxThumbnail.cjs"
       },
       {
         "path": "vendor/mediawiki-core/resources/lib/codex/modules/CdxThumbnail.css",
@@ -225,10 +297,22 @@
         "upstreamPath": "resources/lib/codex/modules/CdxThumbnail.css"
       },
       {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/CdxTypeaheadSearch.cjs",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/CdxTypeaheadSearch.cjs"
+      },
+      {
         "path": "vendor/mediawiki-core/resources/lib/codex/modules/CdxTypeaheadSearch.css",
         "status": "mirrored",
         "repository": "mediawiki",
         "upstreamPath": "resources/lib/codex/modules/CdxTypeaheadSearch.css"
+      },
+      {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/constants.js",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/constants.js"
       },
       {
         "path": "vendor/mediawiki-core/resources/lib/codex/modules/Icon.css",
@@ -237,10 +321,106 @@
         "upstreamPath": "resources/lib/codex/modules/Icon.css"
       },
       {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/Icon.js",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/Icon.js"
+      },
+      {
         "path": "vendor/mediawiki-core/resources/lib/codex/modules/manifest.json",
         "status": "mirrored",
         "repository": "mediawiki",
         "upstreamPath": "resources/lib/codex/modules/manifest.json"
+      },
+      {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/unwrapElement.js",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/unwrapElement.js"
+      },
+      {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/useComputedDirection.cjs",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/useComputedDirection.cjs"
+      },
+      {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/useComputedDisabled.cjs",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/useComputedDisabled.cjs"
+      },
+      {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/useComputedLanguage.cjs",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/useComputedLanguage.cjs"
+      },
+      {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/useFieldData.cjs",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/useFieldData.cjs"
+      },
+      {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/useI18n.cjs",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/useI18n.cjs"
+      },
+      {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/useI18nWithOverride.js",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/useI18nWithOverride.js"
+      },
+      {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/useIconOnlyButton.js",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/useIconOnlyButton.js"
+      },
+      {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/useIntersectionObserver.cjs",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/useIntersectionObserver.cjs"
+      },
+      {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/useModelWrapper.cjs",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/useModelWrapper.cjs"
+      },
+      {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/useResizeObserver.cjs",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/useResizeObserver.cjs"
+      },
+      {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/useScrollLock.js",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/useScrollLock.js"
+      },
+      {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/useSlotContents.js",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/useSlotContents.js"
+      },
+      {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/useSplitAttributes.cjs",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/useSplitAttributes.cjs"
+      },
+      {
+        "path": "vendor/mediawiki-core/resources/lib/codex/modules/useWarnOnce.cjs",
+        "status": "mirrored",
+        "repository": "mediawiki",
+        "upstreamPath": "resources/lib/codex/modules/useWarnOnce.cjs"
       },
       {
         "path": "vendor/mediawiki-core/resources/Resources.php",
@@ -753,6 +933,12 @@
         "buildPath": "packages/codex-icons/dist/codex-icon-paths.less"
       },
       {
+        "path": "vendor/wikimedia-codex/packages/codex-icons/dist/codex-icons.js",
+        "status": "built",
+        "repository": "design-codex",
+        "buildPath": "packages/codex-icons/dist/codex-icons.js"
+      },
+      {
         "path": "vendor/wikimedia-codex/packages/codex-icons/src/images/reference.svg",
         "status": "mirrored",
         "repository": "design-codex",
@@ -771,35 +957,7 @@
         "upstreamPath": "packages/codex/package.json"
       }
     ],
-    "portedFiles": [
-      {
-        "path": "components/MinervaSearchDialog.vue",
-        "repository": "mediawiki",
-        "upstreamPaths": [
-          "resources/src/mediawiki.page.ready/enableSearchDialog.js",
-          "resources/src/mediawiki.skinning.typeaheadSearch/App.vue",
-          "resources/src/mediawiki.skinning.typeaheadSearch/TypeaheadSearchWrapper.vue"
-        ],
-        "kind": "source-port",
-        "relation": "three-upstream-files-to-one-host-adapted-component",
-        "hostDependency": "thetree-search-api-and-router",
-        "automationStatus": "adapter-required",
-        "license": "GPL-2.0-or-later",
-        "modifiedDates": [
-          "2026-08-10"
-        ],
-        "differenceClasses": [
-          "mediawiki-router-to-thetree-router",
-          "mediawiki-api-to-thetree-complete",
-          "codex-vue-runtime-to-compatible-dom"
-        ],
-        "originInputs": [
-          "vendor/mediawiki-core/resources/src/mediawiki.page.ready/enableSearchDialog.js",
-          "vendor/mediawiki-core/resources/src/mediawiki.skinning.typeaheadSearch/App.vue",
-          "vendor/mediawiki-core/resources/src/mediawiki.skinning.typeaheadSearch/TypeaheadSearchWrapper.vue"
-        ]
-      }
-    ],
+    "portedFiles": [],
     "localFiles": [
       {
         "path": ".gitattributes",
@@ -852,6 +1010,11 @@
         "hostDependency": "none"
       },
       {
+        "path": "components/MinervaSearchDialog.vue",
+        "kind": "host-adapter",
+        "hostDependency": "thetree"
+      },
+      {
         "path": "components/MinervaSettingModal.vue",
         "kind": "host-adapter",
         "hostDependency": "thetree"
@@ -865,6 +1028,16 @@
         "path": "components/SkinMinerva.vue",
         "kind": "host-adapter",
         "hostDependency": "thetree"
+      },
+      {
+        "path": "contracts/commonjs-esm-origin-contract.json",
+        "kind": "generation-contract",
+        "hostDependency": "none"
+      },
+      {
+        "path": "contracts/mediawiki-typeahead-search-contract.json",
+        "kind": "generation-contract",
+        "hostDependency": "none"
       },
       {
         "path": "contracts/minerva-feature-profile-contract.json",
@@ -929,6 +1102,26 @@
       {
         "path": "layout.vue",
         "kind": "skin-integration",
+        "hostDependency": "thetree"
+      },
+      {
+        "path": "lib/adapters/mediawiki-page-ready.js",
+        "kind": "host-adapter",
+        "hostDependency": "thetree"
+      },
+      {
+        "path": "lib/adapters/mediawiki-runtime.js",
+        "kind": "host-adapter",
+        "hostDependency": "thetree"
+      },
+      {
+        "path": "lib/adapters/mediawiki-typeahead-instrumentation.js",
+        "kind": "host-adapter",
+        "hostDependency": "thetree"
+      },
+      {
+        "path": "lib/adapters/mediawiki-vue-component-environment.js",
+        "kind": "host-adapter",
         "hostDependency": "thetree"
       },
       {
@@ -1097,6 +1290,11 @@
         "hostDependency": "none"
       },
       {
+        "path": "tools/commonjs-esm-origin-engine.mjs",
+        "kind": "generation-tool",
+        "hostDependency": "none"
+      },
+      {
         "path": "tools/distribution-contract-test.mjs",
         "kind": "generation-tool",
         "hostDependency": "none"
@@ -1208,6 +1406,11 @@
       },
       {
         "path": "tools/sync-origin-manifest.mjs",
+        "kind": "generation-tool",
+        "hostDependency": "none"
+      },
+      {
+        "path": "tools/vue-sfc-origin-engine.mjs",
         "kind": "generation-tool",
         "hostDependency": "none"
       }
@@ -1413,7 +1616,15 @@
         "originNode": "resource-loader-css"
       },
       {
+        "path": "css/vendor/resource-loader/mediawiki.codex.typeaheadSearch.css",
+        "originNode": "resource-loader-css"
+      },
+      {
         "path": "css/vendor/resource-loader/mediawiki.hlist.css",
+        "originNode": "resource-loader-css"
+      },
+      {
+        "path": "css/vendor/resource-loader/mediawiki.skinning.typeaheadSearch.css",
         "originNode": "resource-loader-css"
       },
       {
@@ -1477,6 +1688,64 @@
         "originNode": "resource-loader-css"
       },
       {
+        "path": "lib/generated/mediawiki.codex.typeaheadSearch.js",
+        "originNode": "mediawiki-codex-esm",
+        "input": "vendor/mediawiki-core/resources/lib/codex/modules/CdxButton.cjs",
+        "dependencies": [
+          "vendor/mediawiki-core/resources/lib/codex/modules/CdxDialog.cjs",
+          "vendor/mediawiki-core/resources/lib/codex/modules/CdxIcon.cjs",
+          "vendor/mediawiki-core/resources/lib/codex/modules/CdxMenu.cjs",
+          "vendor/mediawiki-core/resources/lib/codex/modules/CdxMenuItem.cjs",
+          "vendor/mediawiki-core/resources/lib/codex/modules/CdxProgressBar.cjs",
+          "vendor/mediawiki-core/resources/lib/codex/modules/CdxSearchInput.cjs",
+          "vendor/mediawiki-core/resources/lib/codex/modules/CdxSearchResultTitle.cjs",
+          "vendor/mediawiki-core/resources/lib/codex/modules/CdxTextInput.cjs",
+          "vendor/mediawiki-core/resources/lib/codex/modules/CdxThumbnail.cjs",
+          "vendor/mediawiki-core/resources/lib/codex/modules/CdxTypeaheadSearch.cjs",
+          "vendor/mediawiki-core/resources/lib/codex/modules/Icon.js",
+          "vendor/mediawiki-core/resources/lib/codex/modules/_plugin-vue_export-helper.js",
+          "vendor/mediawiki-core/resources/lib/codex/modules/constants.js",
+          "vendor/mediawiki-core/resources/lib/codex/modules/unwrapElement.js",
+          "vendor/mediawiki-core/resources/lib/codex/modules/useComputedDirection.cjs",
+          "vendor/mediawiki-core/resources/lib/codex/modules/useComputedDisabled.cjs",
+          "vendor/mediawiki-core/resources/lib/codex/modules/useComputedLanguage.cjs",
+          "vendor/mediawiki-core/resources/lib/codex/modules/useFieldData.cjs",
+          "vendor/mediawiki-core/resources/lib/codex/modules/useI18n.cjs",
+          "vendor/mediawiki-core/resources/lib/codex/modules/useI18nWithOverride.js",
+          "vendor/mediawiki-core/resources/lib/codex/modules/useIconOnlyButton.js",
+          "vendor/mediawiki-core/resources/lib/codex/modules/useIntersectionObserver.cjs",
+          "vendor/mediawiki-core/resources/lib/codex/modules/useModelWrapper.cjs",
+          "vendor/mediawiki-core/resources/lib/codex/modules/useResizeObserver.cjs",
+          "vendor/mediawiki-core/resources/lib/codex/modules/useScrollLock.js",
+          "vendor/mediawiki-core/resources/lib/codex/modules/useSlotContents.js",
+          "vendor/mediawiki-core/resources/lib/codex/modules/useSplitAttributes.cjs",
+          "vendor/mediawiki-core/resources/lib/codex/modules/useWarnOnce.cjs"
+        ]
+      },
+      {
+        "path": "lib/generated/mediawiki.skinning.typeaheadSearch/App.vue",
+        "originNode": "mediawiki-typeahead-search",
+        "input": "vendor/mediawiki-core/resources/src/mediawiki.skinning.typeaheadSearch/App.vue",
+        "dependencies": [
+          "lib/adapters/mediawiki-page-ready.js",
+          "lib/adapters/mediawiki-runtime.js",
+          "lib/adapters/mediawiki-typeahead-instrumentation.js",
+          "lib/adapters/mediawiki-vue-component-environment.js",
+          "lib/generated/mediawiki.codex.typeaheadSearch.js",
+          "lib/generated/mediawiki.skinning.typeaheadSearch/TypeaheadSearchWrapper.vue"
+        ]
+      },
+      {
+        "path": "lib/generated/mediawiki.skinning.typeaheadSearch/TypeaheadSearchWrapper.vue",
+        "originNode": "mediawiki-typeahead-search",
+        "input": "vendor/mediawiki-core/resources/src/mediawiki.skinning.typeaheadSearch/TypeaheadSearchWrapper.vue",
+        "dependencies": [
+          "lib/adapters/mediawiki-vue-component-environment.js",
+          "lib/generated/mediawiki.codex.typeaheadSearch.js",
+          "vendor/wikimedia-codex/packages/codex-icons/dist/codex-icons.js"
+        ]
+      },
+      {
         "path": "lib/generated/minerva-feature-profile.js",
         "originNode": "minerva-feature-profile",
         "input": "vendor/mediawiki-minerva/skin.json",
@@ -1519,6 +1788,30 @@
         "kind": "minerva-feature-profile",
         "dependsOn": [],
         "contract": "contracts/minerva-feature-profile-contract.json",
+        "outputInventory": "sourceInventory.generatedFiles",
+        "outputRelationContract": {
+          "inputField": "input",
+          "dependenciesField": "dependencies"
+        }
+      },
+      {
+        "id": "mediawiki-codex-esm",
+        "kind": "commonjs-esm-origin",
+        "dependsOn": [],
+        "contract": "contracts/commonjs-esm-origin-contract.json",
+        "outputInventory": "sourceInventory.generatedFiles",
+        "outputRelationContract": {
+          "inputField": "input",
+          "dependenciesField": "dependencies"
+        }
+      },
+      {
+        "id": "mediawiki-typeahead-search",
+        "kind": "vue-sfc-origin",
+        "dependsOn": [
+          "mediawiki-codex-esm"
+        ],
+        "contract": "contracts/mediawiki-typeahead-search-contract.json",
         "outputInventory": "sourceInventory.generatedFiles",
         "outputRelationContract": {
           "inputField": "input",

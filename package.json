@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "thetree-skin-minerva",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "MediaWiki MinervaNeue skin for the tree with locked, deterministic ResourceLoader generation",
   "type": "module",
   "packageManager": "npm@10.8.2",
@@ -30,6 +30,7 @@
     "parse5": "8.0.0"
   },
   "devDependencies": {
+    "esbuild": "0.25.12",
     "less": "4.6.7",
     "postcss": "8.5.19",
     "postcss-selector-parser": "7.1.4",

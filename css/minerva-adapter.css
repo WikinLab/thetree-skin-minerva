@@ -3,30 +3,6 @@
   display: contents;
 }
 
-.minerva-search-form .search-box {
-  position: relative;
-}
-
-.minerva-search-form .tt-minerva-search-suggestions {
-  top: 100%;
-}
-
-.minerva-search-form .tt-minerva-search-suggestions[hidden] {
-  display: none;
-}
-
-.minerva-search-form .tt-minerva-search-suggestions .cdx-menu__listbox {
-  margin-bottom: 38px;
-}
-
-.minerva-search-form .tt-minerva-search-suggestions .cdx-menu-item--enabled:hover {
-  background: var(--background-color-interactive-subtle, #eaecf0);
-}
-
-body.tt-minerva-search-dialog-open {
-  overflow: hidden;
-}
-
 .banner-container .sitenotice {
   margin-block: 1em;
 }

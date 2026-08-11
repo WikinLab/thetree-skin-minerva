@@ -53,11 +53,26 @@ assert.equal(variant.id, 'minerva-standalone');
 assert.equal(contract.pageStyleQueue.profile, 'minerva');
 assert.ok(contract.modules.some((module) => module.name === 'skins.minerva.styles'));
 assert.ok(contract.modules.some((module) => module.name === 'skins.minerva.icons'));
+assert.ok(contract.modules.some((module) => module.name === 'mediawiki.codex.typeaheadSearch'));
+assert.ok(contract.modules.some((module) => module.name === 'mediawiki.skinning.typeaheadSearch'));
+assert.deepEqual(contract.customPropertyClosure.runtimeCustomPropertyProviderRoots, [
+  'vendor/mediawiki-core/resources/lib/codex/modules'
+]);
 assert.ok(contract.pageStyleQueue.phases.some((phase) => (
   phase.sources.some((source) => source.kind === 'php-array-append-modules')
+)));
+assert.ok(contract.pageStyleQueue.batches.some((batch) => (
+  batch.ordering === 'dependency-topological' && batch.phases.includes('host-enhancement-styles')
 )));
 
 const generated = read('css/vendor/resource-loader/skins.minerva.styles.css');
 assert.match(generated, /#mw-content-text\[data-tt-host-content="1"\]/);
 assert.doesNotMatch(generated, /\.tt-vector/);
+assert.match(read('css/vendor/resource-loader/mediawiki.codex.typeaheadSearch.css'), /var\(--17e0a1f0\)/);
+assert.doesNotMatch(read('css/vendor/resource-loader/mediawiki-variable-shim.css'), /--17e0a1f0\s*:/);
+const generatedResourceLoaderCss = fs.readdirSync(path.join(root, 'css', 'vendor', 'resource-loader'))
+  .filter((name) => name.endsWith('.css'))
+  .map((name) => read(`css/vendor/resource-loader/${name}`))
+  .join('\n');
+assert.doesNotMatch(generatedResourceLoaderCss, /:(?:not|where)\(\s+/);
 console.log('Minerva host-content ownership contract passed.');

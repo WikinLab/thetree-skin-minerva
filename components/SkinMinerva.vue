@@ -56,9 +56,10 @@
         :site-name="siteName"
         :initial-query="adapterContext.route.query.q || ''"
         :request-suggestions="requestSearchSuggestions"
+        :document-url="searchDocumentUrl"
+        :search-url="searchResultsUrl"
+        :navigate-search="navigateSearchResults"
         @close="closeMobileSearch"
-        @navigate-document="navigateSearchDocument"
-        @navigate-search="navigateSearchResults"
       />
     </template>
   </SkinOrigin>
@@ -67,16 +68,21 @@
 <script>
 import Common from '~/mixins/common';
 import Alert from '~/components/alert';
+import { createApp } from 'vue';
 
 import SkinOrigin from './skin.vue';
 import ToggleListOrigin from './ToggleList/ToggleList.vue';
 import RawHtmlFragment from '../lib/legacyRawHtmlFragment';
 import MinervaSettingModal from './MinervaSettingModal';
 import MinervaSearchDialog from './MinervaSearchDialog';
+import MediaWikiTypeaheadSearchOrigin from '../lib/generated/mediawiki.skinning.typeaheadSearch/App.vue';
 import { makeMinervaAdapterContext } from '../lib/minervaTheTreeAdapter';
 import { makeMinervaSkinData } from '../lib/minervaSkinData';
 import { makeMinervaHostState } from '../lib/minervaHostState';
-import { createTheTreeSearchSuggestRuntime } from '../lib/adapters/thetree-search-suggest';
+import {
+  createTheTreeSearchSuggestRuntime,
+  isMinervaSearchDialogViewport
+} from '../lib/adapters/thetree-search-suggest';
 import { getMinervaConfiguredString } from '../lib/minervaHostConfig';
 import { isSettingsToggleTarget } from '../lib/adapters/thetree-settings';
 import { createMinervaRuntimeController } from '../lib/runtime/createMinervaRuntimeController';
@@ -185,8 +191,8 @@ export default {
     },
     onSkinClick(event) {
       if (
-        this.adapterContext.pageContract.hasMobileFrontend &&
-        event?.target?.closest?.('#searchIcon')
+        event?.target?.closest?.('#searchIcon') &&
+        isMinervaSearchDialogViewport(event?.target?.ownerDocument?.defaultView)
       ) {
         event.preventDefault();
         event.stopPropagation();
@@ -230,11 +236,12 @@ export default {
       this.minervaRuntimeController = createMinervaRuntimeController({
         createSearchRuntime: () => createTheTreeSearchSuggestRuntime({
           requestSuggestions: this.requestSearchSuggestions,
-          navigateDocument: (title) => {
-            return this.$router.push(this.doc_action_link(title, 'w'));
-          },
-          navigateSearch: (query) => {
-            return this.$router.push({ path: '/Search', query: { q: query } });
+          documentUrl: this.searchDocumentUrl,
+          searchUrl: this.searchResultsUrl,
+          mountSearchApp: (target, props) => {
+            const app = createApp(MediaWikiTypeaheadSearchOrigin, props);
+            app.mount(target);
+            return () => app.unmount();
           }
         }),
         toggleWatchstar: (href, watched) => this.toggleWatchstar(href, watched),
@@ -259,13 +266,17 @@ export default {
       this.mobileSearchOpen = false;
       this.$nextTick(() => document.getElementById('searchIcon')?.focus?.());
     },
-    navigateSearchDocument(title) {
-      this.mobileSearchOpen = false;
-      return this.$router.push(this.doc_action_link(title, 'w'));
+    searchDocumentUrl(title) {
+      return this.resolveHref(this.doc_action_link(title, 'w'));
+    },
+    searchResultsUrl(query) {
+      const value = String(query || '').trim();
+      return value
+        ? this.resolveHref({ path: '/Search', query: { q: value } })
+        : '/Search';
     },
     navigateSearchResults(query) {
-      this.mobileSearchOpen = false;
-      return this.$router.push({ path: '/Search', query: { q: query } });
+      return this.$router.push({ path: '/Search', query: { q: String(query || '').trim() } });
     },
     async toggleWatchstar(href, watched) {
       const response = await fetch(href, {

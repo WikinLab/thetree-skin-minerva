@@ -602,6 +602,22 @@ const engines = Object.freeze({
       contractPath: node.contract,
       check
     });
+  },
+  'commonjs-esm-origin': async ({ node }) => {
+    const { generateCommonJsEsmOrigins } = await import('./commonjs-esm-origin-engine.mjs');
+    return generateCommonJsEsmOrigins({
+      root,
+      contractPath: node.contract,
+      check
+    });
+  },
+  'vue-sfc-origin': async ({ node }) => {
+    const { generateVueSfcOrigins } = await import('./vue-sfc-origin-engine.mjs');
+    return generateVueSfcOrigins({
+      root,
+      contractPath: node.contract,
+      check
+    });
   }
 });
 

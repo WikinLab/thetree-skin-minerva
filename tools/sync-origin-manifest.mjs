@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { parseFirstPhpArrayAfter } from './php-array-literal.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const manifestPath = path.join(root, 'ORIGIN-MANIFEST.json');
@@ -107,12 +108,12 @@ for (const name of ['theme-wikimedia-ui-mixin-dark.less', 'theme-wikimedia-ui-mi
     buildPath: `packages/codex-design-tokens/dist/${name}`
   });
 }
-
-const codexCss = [
-  'CdxButton.css', 'CdxMenu.css', 'CdxMenuItem.css', 'CdxProgressBar.css',
-  'CdxSearchInput.css', 'CdxSearchResultTitle.css', 'CdxTextInput.css',
-  'CdxThumbnail.css', 'CdxTypeaheadSearch.css', 'Icon.css'
-];
+addVendor({
+  path: 'vendor/wikimedia-codex/packages/codex-icons/dist/codex-icons.js',
+  status: 'built',
+  repository: 'design-codex',
+  buildPath: 'packages/codex-icons/dist/codex-icons.js'
+});
 for (const name of [
   'accessibility.less',
   'normalize.less',
@@ -146,7 +147,39 @@ addVendor({
   path: 'vendor/mediawiki-core/resources/lib/codex/modules/manifest.json',
   status: 'mirrored', repository: 'mediawiki', upstreamPath: 'resources/lib/codex/modules/manifest.json'
 });
-for (const name of codexCss) {
+
+const mediawikiCheckout = path.join(root, '.upstream', 'mediawiki');
+const resourcesSource = fs.readFileSync(path.join(mediawikiCheckout, 'resources', 'Resources.php'), 'utf8');
+const typeaheadCodexModule = parseFirstPhpArrayAfter(
+  resourcesSource,
+  "'mediawiki.codex.typeaheadSearch' =>"
+);
+const codexManifest = JSON.parse(fs.readFileSync(
+  path.join(mediawikiCheckout, 'resources', 'lib', 'codex', 'modules', 'manifest.json'),
+  'utf8'
+));
+const codexEntryByComponent = new Map(
+  Object.entries(codexManifest)
+    .filter(([, entry]) => entry?.isEntry && typeof entry.name === 'string')
+    .map(([key, entry]) => [entry.name, key])
+);
+const codexClosureFiles = new Set();
+const visitedCodexEntries = new Set();
+function visitCodexEntry(key) {
+  if (visitedCodexEntries.has(key)) return;
+  const entry = codexManifest[key];
+  if (!entry) throw new Error(`Codex manifest dependency is missing: ${key}`);
+  visitedCodexEntries.add(key);
+  if (typeof entry.file === 'string') codexClosureFiles.add(entry.file);
+  for (const css of entry.css || []) codexClosureFiles.add(css);
+  for (const dependency of entry.imports || []) visitCodexEntry(dependency);
+}
+for (const component of typeaheadCodexModule.codexComponents || []) {
+  const key = codexEntryByComponent.get(component);
+  if (!key) throw new Error(`Codex typeahead component is missing from the locked manifest: ${component}`);
+  visitCodexEntry(key);
+}
+for (const name of [...codexClosureFiles].sort()) {
   addVendor({
     path: `vendor/mediawiki-core/resources/lib/codex/modules/${name}`,
     status: 'mirrored', repository: 'mediawiki', upstreamPath: `resources/lib/codex/modules/${name}`
@@ -189,30 +222,52 @@ const featureProfileOutput = {
   dependencies: ['vendor/mediawiki-minerva/includes/SkinOptions.php']
 };
 
-const generatedPaths = new Set([...mustacheOutputs, ...resourceOutputs, featureProfileOutput].map((entry) => entry.path));
-const portedFiles = [
-  {
-    path: 'components/MinervaSearchDialog.vue',
-    repository: 'mediawiki',
-    upstreamPaths: [
-      'resources/src/mediawiki.page.ready/enableSearchDialog.js',
-      'resources/src/mediawiki.skinning.typeaheadSearch/App.vue',
-      'resources/src/mediawiki.skinning.typeaheadSearch/TypeaheadSearchWrapper.vue'
-    ],
-    kind: 'source-port',
-    relation: 'three-upstream-files-to-one-host-adapted-component',
-    hostDependency: 'thetree-search-api-and-router',
-    automationStatus: 'adapter-required',
-    license: 'GPL-2.0-or-later',
-    modifiedDates: ['2026-08-10'],
-    differenceClasses: ['mediawiki-router-to-thetree-router', 'mediawiki-api-to-thetree-complete', 'codex-vue-runtime-to-compatible-dom'],
-    originInputs: [
-      'vendor/mediawiki-core/resources/src/mediawiki.page.ready/enableSearchDialog.js',
-      'vendor/mediawiki-core/resources/src/mediawiki.skinning.typeaheadSearch/App.vue',
-      'vendor/mediawiki-core/resources/src/mediawiki.skinning.typeaheadSearch/TypeaheadSearchWrapper.vue'
-    ]
-  }
-];
+const codexScriptInputs = [...codexClosureFiles]
+  .filter((name) => /\.(?:c?js)$/.test(name))
+  .map((name) => `vendor/mediawiki-core/resources/lib/codex/modules/${name}`)
+  .sort();
+const codexBundleContract = JSON.parse(fs.readFileSync(
+  path.join(root, 'contracts', 'commonjs-esm-origin-contract.json'),
+  'utf8'
+));
+const codexBundleOutputs = codexBundleContract.bundles.map((definition) => {
+  const primaryInput = Object.values(definition.exports)[0];
+  return {
+    path: definition.output,
+    originNode: 'mediawiki-codex-esm',
+    input: primaryInput,
+    dependencies: codexScriptInputs.filter((input) => input !== primaryInput)
+  };
+});
+
+const typeaheadContract = JSON.parse(fs.readFileSync(
+  path.join(root, 'contracts', 'mediawiki-typeahead-search-contract.json'),
+  'utf8'
+));
+const typeaheadOutputs = typeaheadContract.components.map((definition) => ({
+  path: definition.output,
+  originNode: 'mediawiki-typeahead-search',
+  input: definition.input,
+  dependencies: [...new Set([
+    ...Object.values(definition.modules || {}).flatMap((mapping) => {
+      if (typeof mapping.source === 'string') return [mapping.source];
+      return Object.values(mapping.exports || {}).filter((source) => typeof source === 'string');
+    }),
+    ...Object.values(definition.globals || {}).flatMap((mapping) => (
+      typeof mapping.source === 'string' ? [mapping.source] : []
+    )),
+    ...(definition.mixins || [])
+  ])].sort()
+}));
+
+const generatedPaths = new Set([
+  ...mustacheOutputs,
+  ...resourceOutputs,
+  featureProfileOutput,
+  ...codexBundleOutputs,
+  ...typeaheadOutputs
+].map((entry) => entry.path));
+const portedFiles = [];
 const portedPaths = new Set(portedFiles.map((entry) => entry.path));
 const localFiles = visibleSourceFiles()
   .filter((pathname) => !generatedPaths.has(pathname) && !portedPaths.has(pathname))
@@ -225,7 +280,7 @@ const localFiles = visibleSourceFiles()
   }));
 
 const manifest = {
-  schema: 31,
+  schema: 35,
   title: 'thetree MinervaNeue standalone bootstrap source manifest',
   upstreamLockFile: 'UPSTREAM-LOCK.json',
   hostLock: previous.hostLock,
@@ -242,7 +297,7 @@ const manifest = {
     upstreamBuildOutputsIncluded: false
   },
   sourceInventory: {
-    schema: 21,
+    schema: 22,
     sourceCoverage: {
       schema: 1,
       root: '.',
@@ -276,7 +331,13 @@ const manifest = {
     vendorFiles: [...vendorByPath.values()].sort((a, b) => a.path.localeCompare(b.path, 'en')),
     portedFiles,
     localFiles,
-    generatedFiles: [...mustacheOutputs, ...resourceOutputs, featureProfileOutput].sort((a, b) => a.path.localeCompare(b.path, 'en')),
+    generatedFiles: [
+      ...mustacheOutputs,
+      ...resourceOutputs,
+      featureProfileOutput,
+      ...codexBundleOutputs,
+      ...typeaheadOutputs
+    ].sort((a, b) => a.path.localeCompare(b.path, 'en')),
     materializedRuntimeAssets: []
   },
   generation: {
@@ -308,6 +369,22 @@ const manifest = {
         kind: 'minerva-feature-profile',
         dependsOn: [],
         contract: 'contracts/minerva-feature-profile-contract.json',
+        outputInventory: 'sourceInventory.generatedFiles',
+        outputRelationContract: { inputField: 'input', dependenciesField: 'dependencies' }
+      },
+      {
+        id: 'mediawiki-codex-esm',
+        kind: 'commonjs-esm-origin',
+        dependsOn: [],
+        contract: 'contracts/commonjs-esm-origin-contract.json',
+        outputInventory: 'sourceInventory.generatedFiles',
+        outputRelationContract: { inputField: 'input', dependenciesField: 'dependencies' }
+      },
+      {
+        id: 'mediawiki-typeahead-search',
+        kind: 'vue-sfc-origin',
+        dependsOn: ['mediawiki-codex-esm'],
+        contract: 'contracts/mediawiki-typeahead-search-contract.json',
         outputInventory: 'sourceInventory.generatedFiles',
         outputRelationContract: { inputField: 'input', dependenciesField: 'dependencies' }
       }

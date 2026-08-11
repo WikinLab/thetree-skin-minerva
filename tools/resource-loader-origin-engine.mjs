@@ -2,12 +2,16 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { assertResourceLoaderOriginContractSchema } from './resource-loader-origin-schema.mjs';
 import { resolveResourceLoaderOriginContract } from './resource-loader-contract.mjs';
-import { compileResourceLoaderStyleModuleCss } from './resource-loader-less.mjs';
+import {
+  compileResourceLoaderStyleModuleCss,
+  compileResourceLoaderStyleSourceCss
+} from './resource-loader-less.mjs';
 import { compileCustomPropertyClosure } from './resource-loader-custom-properties.mjs';
 import { parseFirstPhpArrayAfter, parsePhpFeatureCompatibilityAfter, parsePhpFeatureLessMessageBindingsAfter } from './php-array-literal.mjs';
 import {
   adaptResourceLoaderOutputCss,
   makeCssAssetUrlRewrites,
+  normalizeCssSelectors,
   isolateResourceLoaderOutputCssFromHostContent,
   scopeResourceLoaderOutputCss,
   withGeneratedCssBanner,
@@ -325,10 +329,51 @@ async function compileEntry(root, contract, moduleName, output, entry, lessMessa
   return { css };
 }
 
+function vueStyleBlocks(source, filename) {
+  const blocks = [];
+  const pattern = /<style\b([^>]*)>([\s\S]*?)<\/style>/gi;
+  for (const match of source.matchAll(pattern)) {
+    const attributes = match[1] || '';
+    if (/\bscoped(?:\s|=|$)/i.test(attributes)) {
+      throw new Error(`ResourceLoader Vue style scoping is not supported without the upstream Vue compiler: ${filename}`);
+    }
+    const language = /\blang\s*=\s*(["'])([^"']+)\1/i.exec(attributes)?.[2]?.toLowerCase() || 'css';
+    if (!['css', 'less'].includes(language)) {
+      throw new Error(`Unsupported ResourceLoader Vue style language ${language}: ${filename}`);
+    }
+    blocks.push({ language, source: match[2] });
+  }
+  return blocks;
+}
+
+async function compileVueStyleEntry(root, contract, moduleName, output, entry) {
+  const source = fs.readFileSync(path.join(root, entry.path), 'utf8');
+  const blocks = vueStyleBlocks(source, entry.path);
+  const parts = [];
+  for (const [index, block] of blocks.entries()) {
+    const raw = await compileResourceLoaderStyleSourceCss({
+      root,
+      source: block.source,
+      filename: entry.path,
+      importPaths: [path.posix.dirname(entry.path), ...(contract.shared.importPaths || [])],
+      importAliases: contract.shared.importAliases
+    });
+    const assetDirectory = relativeRuntimeAssetDirectory(
+      root,
+      output,
+      contract.shared.runtimeAssetDirectory || 'images'
+    );
+    let css = adaptResourceLoaderOutputCss(raw, {
+      assetUrlRewrites: makeCssAssetUrlRewrites(assetDirectory, { includeLegacyThreeLevelParent: true })
+    });
+    css = adaptOwnership(css, entry.ownership, contract.shared);
+    parts.push(`/* Vue SFC style block ${index + 1}: ${entry.path} */\n${css}`);
+  }
+  return { css: parts.join('\n\n') };
+}
+
 async function compileModule(root, contract, record) {
-  const metadata = readJson(root, record.metadata);
-  const modules = moduleMap(metadata, record.metadataRoot);
-  const module = normalizeModuleDefinition(modules[record.name] || (metadata.module === record.name ? metadata : null));
+  const module = moduleDefinition(root, record);
   if (!module) throw new Error(`ResourceLoader module ${record.name} is absent from ${record.metadata}`);
 
   const entries = [];
@@ -349,6 +394,17 @@ async function compileModule(root, contract, record) {
       order: 1000
     });
   }
+  for (const packageFile of asArray(module.packageFiles)) {
+    const packagePath = typeof packageFile === 'string' ? packageFile : packageFile?.name;
+    if (typeof packagePath !== 'string' || !packagePath.endsWith('.vue')) continue;
+    entries.push({
+      path: sourcePath(record.sourceBase, module, packagePath),
+      media: 'all',
+      ownership: record.ownership,
+      order: 2000,
+      kind: 'vue-sfc-style'
+    });
+  }
 
   const lessMessages = [...new Set([...asArray(module.lessMessages), ...skinLessMessages])]
     .filter((key) => typeof key === 'string')
@@ -363,15 +419,18 @@ async function compileModule(root, contract, record) {
     parts.push(compileImageModule(root, record, module));
   }
   for (const entry of uniqueEntries(entries)) {
-    const compiled = await compileEntry(root, contract, record.name, record.output, entry, lessMessages);
+    const compiled = entry.kind === 'vue-sfc-style'
+      ? await compileVueStyleEntry(root, contract, record.name, record.output, entry)
+      : await compileEntry(root, contract, record.name, record.output, entry, lessMessages);
     parts.push(compiled.css);
   }
   return {
-    css: withGeneratedCssBanner(parts.filter(Boolean).join('\n\n'), {
+    css: withGeneratedCssBanner(normalizeCssSelectors(parts.filter(Boolean).join('\n\n')), {
       banner: `/* Generated mechanically from ResourceLoader module ${record.name}. Metadata: ${record.metadata}. */`,
       moduleName: record.name
     }),
-    lessMessages
+    lessMessages,
+    messages: asArray(module.messages).filter((key) => typeof key === 'string').sort()
   };
 }
 
@@ -584,6 +643,13 @@ function valueAtSegments(value, segments, description) {
 
 function moduleDefinition(root, record) {
   if (!record?.metadata || !record?.name) return null;
+  if (record.metadataKind === 'php-resource-modules') {
+    const source = fs.readFileSync(path.join(root, record.metadata), 'utf8');
+    return normalizeModuleDefinition(parseFirstPhpArrayAfter(source, `'${record.name}' =>`));
+  }
+  if (record.metadataKind && record.metadataKind !== 'json') {
+    throw new Error(`Unknown ResourceLoader metadata kind ${record.metadataKind}: ${record.name}`);
+  }
   const metadata = readJson(root, record.metadata);
   const modules = moduleMap(metadata, record.metadataRoot);
   return normalizeModuleDefinition(modules[record.name] || (metadata.module === record.name ? metadata : null));
@@ -837,7 +903,7 @@ export function compilePageStyleQueue(root, contract) {
 
 function compileBundle(root, bundle) {
   const content = bundle.sources.map((source) => fs.readFileSync(path.join(root, source), 'utf8').trim()).join('\n\n');
-  return withGeneratedCssBanner(content, {
+  return withGeneratedCssBanner(normalizeCssSelectors(content), {
     banner: `/* Generated mechanically from CSS bundle ${bundle.name}. */`,
     moduleName: bundle.name
   });
@@ -910,6 +976,8 @@ export async function generateResourceLoaderOrigins({ root, contractPath, check 
   const expected = new Set();
   const generatedCss = [];
   const lessMessages = new Set();
+  const moduleMessages = new Set();
+  const messageModuleNames = new Set(contract.messageCatalog?.moduleNames || []);
   const pending = [];
 
   for (const module of contract.modules || []) {
@@ -918,6 +986,9 @@ export async function generateResourceLoaderOrigins({ root, contractPath, check 
     const compiled = await compileModule(root, contract, module);
     generatedCss.push(compiled.css);
     for (const key of compiled.lessMessages) lessMessages.add(key);
+    if (messageModuleNames.has(module.name)) {
+      for (const key of compiled.messages) moduleMessages.add(key);
+    }
     pending.push({ output: module.output, content: compiled.css });
     materializeAssets(root, module.assets, check);
   }
@@ -937,7 +1008,11 @@ export async function generateResourceLoaderOrigins({ root, contractPath, check 
     expected.add(posix(contract.messageCatalog.output));
     pending.push({
       output: contract.messageCatalog.output,
-      content: compileMessageCatalog(root, contract, [...lessMessages].sort())
+      content: compileMessageCatalog(
+        root,
+        contract,
+        [...new Set([...lessMessages, ...moduleMessages])].sort()
+      )
     });
   }
   const pageStyleQueue = compilePageStyleQueue(root, contract);

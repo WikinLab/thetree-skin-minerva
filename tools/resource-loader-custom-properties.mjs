@@ -135,8 +135,35 @@ function unresolvedCustomPropertyNames(root, contract, cssSources) {
     root,
     contract.customPropertyClosure?.domCompositions || []
   );
-  return findUnresolvedCssCustomPropertyReferences(cssSources, { domClassDescendants })
+  const unresolved = findUnresolvedCssCustomPropertyReferences(cssSources, { domClassDescendants });
+  const runtimeProvided = runtimeProvidedCustomPropertyNames(root, contract, unresolved);
+  return unresolved
+    .filter((name) => !runtimeProvided.has(name))
     .filter((name) => !hostPrefixes.some((prefix) => name.startsWith(prefix)));
+}
+
+function runtimeProvidedCustomPropertyNames(root, contract, candidates) {
+  const roots = contract.customPropertyClosure?.runtimeCustomPropertyProviderRoots || [];
+  if (!roots.length || !candidates.length) return new Set();
+  const sources = [];
+  for (const relRoot of roots) {
+    const absolute = path.join(root, relRoot);
+    if (!fs.existsSync(absolute)) continue;
+    const stat = fs.statSync(absolute);
+    const files = stat.isDirectory() ? walkFiles(absolute) : [absolute];
+    for (const file of files) {
+      if (!/\.(?:c?js|mjs)$/.test(file)) continue;
+      const source = fs.readFileSync(file, 'utf8');
+      if (source.includes('useCssVars')) sources.push(source);
+    }
+  }
+  const provided = new Set();
+  for (const candidate of candidates) {
+    const key = escapeRegExp(candidate.slice(2));
+    const propertyPattern = new RegExp(`['"]${key}['"]\\s*:`);
+    if (sources.some((source) => propertyPattern.test(source))) provided.add(candidate);
+  }
+  return provided;
 }
 
 function combinedCustomPropertyClosureRequirements(root, contract, generatedCss) {

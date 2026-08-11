@@ -1,5 +1,5 @@
 {
-  "schema": 12,
+  "schema": 16,
   "skinVariantContract": "contracts/skin-variant-contract.json",
   "shared": {
     "importPaths": [
@@ -149,6 +149,22 @@
       "ownership": "skin"
     },
     {
+      "name": "mediawiki.codex.typeaheadSearch",
+      "metadata": "vendor/mediawiki-core/resources/Resources.php",
+      "metadataKind": "php-resource-modules",
+      "sourceBase": "vendor/mediawiki-core",
+      "output": "css/vendor/resource-loader/mediawiki.codex.typeaheadSearch.css",
+      "ownership": "skin"
+    },
+    {
+      "name": "mediawiki.skinning.typeaheadSearch",
+      "metadata": "vendor/mediawiki-core/resources/Resources.php",
+      "metadataKind": "php-resource-modules",
+      "sourceBase": "vendor/mediawiki-core",
+      "output": "css/vendor/resource-loader/mediawiki.skinning.typeaheadSearch.css",
+      "ownership": "skin"
+    },
+    {
       "name": "skins.minerva.search",
       "metadata": "vendor/mediawiki-minerva/skin.json",
       "metadataRoot": "ResourceModules",
@@ -220,7 +236,12 @@
       {
         "id": "minerva-head-styles",
         "ordering": "mediawiki-clienthtml-make-load",
-        "phases": ["skin-output-module-styles", "page-specific-module-styles", "host-enhancement-styles"]
+        "phases": ["skin-output-module-styles", "page-specific-module-styles"]
+      },
+      {
+        "id": "host-enhancement-styles",
+        "ordering": "dependency-topological",
+        "phases": ["host-enhancement-styles"]
       }
     ]
   },
@@ -229,6 +250,9 @@
     "output": "css/vendor/resource-loader/mediawiki-variable-shim.css",
     "localConsumerRoots": ["css"],
     "hostProvidedPrefixes": ["--mw-msg-", "--tt-"],
+    "runtimeCustomPropertyProviderRoots": [
+      "vendor/mediawiki-core/resources/lib/codex/modules"
+    ],
     "domCompositions": [],
     "localPublishedLessTokenEntrypoints": [
       "vendor/wikimedia-codex/packages/codex-design-tokens/dist/theme-wikimedia-ui.less"
@@ -236,6 +260,7 @@
   },
   "messageCatalog": {
     "output": "lib/generated/mediawiki-less-messages.json",
+    "moduleNames": ["mediawiki.skinning.typeaheadSearch"],
     "languages": {
       "en": { "source": "vendor/mediawiki-core/languages/i18n/en.json" },
       "ko": { "source": "vendor/mediawiki-core/languages/i18n/ko.json", "fallback": "en" }

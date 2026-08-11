@@ -82,6 +82,7 @@
           "packages/codex-design-tokens/dist/theme-wikimedia-ui-mixin-dark.less",
           "packages/codex-design-tokens/dist/theme-wikimedia-ui-mixin-light.less",
           "packages/codex-icons/dist/codex-icon-paths.less",
+          "packages/codex-icons/dist/codex-icons.js",
           "packages/codex/dist/codex.style.css"
         ],
         "toolchain": {

@@ -241,6 +241,47 @@ function makeModuleSource({ root, prelude, preludeEntries, entrypoints, append =
   return chunks.join('\n');
 }
 
+async function renderResourceLoaderLessSource({
+  root,
+  source,
+  filename,
+  importPaths = [],
+  importAliases = {}
+}) {
+  const less = await loadLess();
+  const plugin = createResourceLoaderFileManagerPlugin(less, {
+    root,
+    importPaths,
+    importAliases
+  });
+  const result = await less.render(String(source), {
+    filename: path.isAbsolute(filename) ? filename : path.resolve(root, filename),
+    plugins: [plugin],
+    math: 'always',
+    javascriptEnabled: false,
+    strictImports: true,
+    compress: false
+  });
+  return result.css.trim();
+}
+
+export async function compileResourceLoaderStyleSourceCss({
+  root,
+  source,
+  filename,
+  importPaths = [],
+  importAliases = {}
+}) {
+  if (!filename) throw new Error('ResourceLoader LESS source requires a filename for import resolution.');
+  return renderResourceLoaderLessSource({
+    root,
+    source,
+    filename,
+    importPaths,
+    importAliases
+  });
+}
+
 export async function compileResourceLoaderStyleModuleCss({
   root,
   entrypoint,
@@ -258,7 +299,6 @@ export async function compileResourceLoaderStyleModuleCss({
 
   for (const rel of [...relPreludeEntries, ...relEntrypoints]) readFile(root, rel);
 
-  const less = await loadLess();
   const source = makeModuleSource({
     root,
     prelude,
@@ -267,20 +307,13 @@ export async function compileResourceLoaderStyleModuleCss({
     append
   });
   const virtualFilename = path.join(path.resolve(root), '.resource-loader', `${moduleName}.less`);
-  const plugin = createResourceLoaderFileManagerPlugin(less, {
+  return renderResourceLoaderLessSource({
     root,
+    source,
+    filename: virtualFilename,
     importPaths,
     importAliases
   });
-  const result = await less.render(source, {
-    filename: virtualFilename,
-    plugins: [plugin],
-    math: 'always',
-    javascriptEnabled: false,
-    strictImports: true,
-    compress: false
-  });
-  return result.css.trim();
 }
 
 

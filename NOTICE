@@ -35,4 +35,8 @@ The distribution archive excludes upstream checkouts, vendor mirrors and generat
    Version: 6.0.1
    License: BSD-2-Clause
 
+7. esbuild
+   Version: 0.25.12
+   License: MIT
+
 The source-role, generated-output and exact origin inventories are declared in ORIGIN-MANIFEST.json.

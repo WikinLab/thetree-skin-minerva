@@ -6,5 +6,5 @@
   "configNamespaces": ["skin.minerva"],
   "sharedConfigKeys": ["wiki.logo_url", "wiki.footer_text", "wiki.lang", "wiki.dir"],
   "license": "GPL-2.0-or-later",
-  "bootstrap": "npm run bootstrap"
+  "prepare": ["npm", "run", "bootstrap"]
 }

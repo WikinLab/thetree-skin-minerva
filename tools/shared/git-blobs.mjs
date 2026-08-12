@@ -18,6 +18,7 @@ export function readGitBlobs(checkout, objectSpecs) {
     '-c', `safe.directory=${path.resolve(checkout).replaceAll('\\', '/')}`,
     '-C', checkout, 'cat-file', '--batch'
   ], {
+    env: { ...process.env, GIT_NO_LAZY_FETCH: '1' },
     input: `${specs.join('\n')}\n`,
     stdio: ['pipe', 'pipe', 'pipe'],
     encoding: null,

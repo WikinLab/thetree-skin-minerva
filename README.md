@@ -28,7 +28,7 @@ npm ci
 npm run bootstrap
 ```
 
-`UPSTREAM-LOCK.json`은 정확한 Git 커밋을 고정합니다. 부트스트랩은 잠긴 객체에서 `vendor/`를 물질화하고 Mustache Vue 컴포넌트, ResourceLoader CSS, MediaWiki Vue SFC와 CommonJS 의존 그래프, Minerva 기능 프로필을 재생성한 뒤 계약 검사를 실행합니다. 같은 잠금·계약·도구 버전에서는 같은 바이트 결과를 내며, `vendor/`, `.upstream/`, `css/vendor/`, `lib/generated/`, `node_modules/`는 배포 소스에 포함하지 않습니다.
+`UPSTREAM-LOCK.json`은 정확한 Git 커밋을 고정합니다. 기본 부트스트랩은 잠긴 객체에서 `vendor/`를 물질화하고 Mustache Vue 컴포넌트, ResourceLoader CSS, MediaWiki Vue SFC와 CommonJS 의존 그래프, Minerva 기능 프로필을 재생성합니다. 개발·CI의 전체 계약 검증은 `npm run bootstrap:verify` 또는 `npm run check`로 실행합니다. 같은 잠금·계약·도구 버전에서는 같은 바이트 결과를 내며, `vendor/`, `.upstream/`, `css/vendor/`, `lib/generated/`, `node_modules/`는 배포 소스에 포함하지 않습니다.
 
 ## 설정 키
 
@@ -36,13 +36,16 @@ npm run bootstrap
 - `skin.minerva.footer_html`
 - `skin.minerva.theme_color`
 - `skin.minerva.tagline`
+- `skin.minerva.logo_wordmark` — 원본 `data-logos.wordmark.src`에 대응하는 이미지 URL
+- `skin.minerva.logo_wordmark_width`
+- `skin.minerva.logo_wordmark_height`
 - `skin.minerva.hide_interlanguage_links`
 - `skin.minerva.always_show_language_button`
 
-`wiki.lang`, `wiki.dir`, `wiki.footer_text`, `wiki.site_name`, `wiki.front_page` 같은 호스트 공용 키도 사용합니다. 다른 스킨의 네임스페이스는 폴백으로 읽지 않습니다.
+`wiki.lang`, `wiki.dir`, `wiki.footer_text`, `wiki.site_name`, `wiki.front_page`, `wiki.logo_url` 같은 호스트 공용 키도 사용합니다. `wiki.logo_url`은 Minerva wordmark의 공용 폴백이며, 위 width·height 키가 있으면 MediaWiki의 `SkinModule::getRelativeSizedLogo()`와 같이 16px 기준 `em` 크기 style도 생성합니다. 다른 스킨의 네임스페이스는 폴백으로 읽지 않습니다.
 
 ## 컴포저
 
-`COMPOSABLE-SKIN.json`은 범용 `thetree-skin-composer`가 읽는 진입점·설정 네임스페이스·본문 소유권·라이선스 계약입니다. 독립 설치와 컴포저 자식 설치는 같은 `components/MinervaVariantLayout.vue`를 사용합니다.
+`COMPOSABLE-SKIN.json`은 범용 `thetree-skin-composer`가 선택적으로 읽는 진입점·설정 네임스페이스·본문 소유권·라이선스 metadata입니다. 스킨 런타임이나 단독 빌드는 이 파일을 import하지 않으므로 독립 설치에 영향이 없습니다. 독립 설치와 컴포저 자식 설치는 같은 `components/MinervaVariantLayout.vue`를 사용합니다.
 
 라이선스는 GPL-2.0-or-later이며 정확한 원본과 제3자 고지는 `NOTICE`, `THIRD_PARTY_NOTICES.md`, `ORIGIN-MANIFEST.json`에 기록됩니다.

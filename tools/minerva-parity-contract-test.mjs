@@ -136,6 +136,28 @@ assert.deepEqual(
 );
 
 const standardArticleData = makeMinervaSkinData(context());
+assert.deepEqual(standardArticleData['data-logos'], { 'msg-sitetitle': 'the tree', wordmark: null });
+const logoArticleData = makeMinervaSkinData(context({ config: {
+  'wiki.site_name': 'Logo Wiki',
+  'skin.minerva.logo_wordmark': '/img/minerva-wordmark.svg',
+  'skin.minerva.logo_wordmark_width': 120,
+  'skin.minerva.logo_wordmark_height': '24'
+} }));
+assert.deepEqual(logoArticleData['data-logos'], {
+  'msg-sitetitle': 'Logo Wiki',
+  wordmark: {
+    src: '/img/minerva-wordmark.svg',
+    width: 120,
+    height: 24,
+    style: 'width: 7.5em; height: 1.5em;'
+  }
+});
+assert.deepEqual(logoArticleData['data-footer']['data-logos'], logoArticleData['data-logos']);
+assert.match(
+  Mustache.render(template('Logo'), logoArticleData['data-logos']),
+  /<img src="&#x2F;img&#x2F;minerva-wordmark\.svg"/,
+  'The port must preserve upstream Mustache escaping in Logo.mustache.'
+);
 assert.ok(standardArticleData['data-minerva-tabs']);
 assert.equal(context().pageContract.features.talkAtTop, true);
 assert.equal(context().pageContract.features.historyInPageActions, true);

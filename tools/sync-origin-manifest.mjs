@@ -8,6 +8,7 @@ import { parseFirstPhpArrayAfter } from './php-array-literal.mjs';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const manifestPath = path.join(root, 'ORIGIN-MANIFEST.json');
 const previous = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+const upstreamLock = JSON.parse(fs.readFileSync(path.join(root, 'UPSTREAM-LOCK.json'), 'utf8'));
 const minervaCheckout = path.join(root, '.upstream', 'mediawiki-skins-MinervaNeue');
 const toPosix = (value) => String(value).replaceAll('\\', '/');
 
@@ -286,8 +287,9 @@ const manifest = {
   hostLock: previous.hostLock,
   distribution: {
     mode: 'bootstrap-source-only',
-    snapshotDate: '2026-08-10',
-    releaseLine: 'REL1_46',
+    snapshotDate: upstreamLock.snapshotDate,
+    releaseLine: upstreamLock.releaseLine,
+    officialDistribution: upstreamLock.officialDistribution,
     vendorIncluded: false,
     generatedOutputsIncluded: false,
     runtimeAssetsIncluded: false,

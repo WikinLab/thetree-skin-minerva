@@ -115,12 +115,14 @@ function parseArgs(argv) {
   const parsed = {
     refresh: false,
     release: null,
-    clean: false
+    clean: false,
+    verify: false
   };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === '--refresh') parsed.refresh = true;
     else if (arg === '--clean') parsed.clean = true;
+    else if (arg === '--verify') parsed.verify = true;
     else if (arg === '--release') {
       parsed.release = argv[index + 1] || '';
       index += 1;
@@ -228,9 +230,9 @@ function requiredSparsePaths(manifest, repository) {
     for (const entry of manifest.sourceInventory?.[inventoryName] || []) {
       if (entry.repository !== repository.name || !entry.upstreamPath) continue;
       paths.add(entry.upstreamPath);
-      if (lessClosure?.schema === 1 && entry.path?.endsWith('.less')) {
+      if (Number(lessClosure?.schema) >= 1 && entry.path?.endsWith('.less')) {
         const directory = path.posix.dirname(entry.upstreamPath.replaceAll('\\', '/'));
-        if (directory !== '.') paths.add(`${directory}/`);
+        if (directory !== '.') paths.add(`${directory}/**`);
       }
     }
   }
@@ -452,12 +454,21 @@ function materializedStateComplete(manifest) {
   return true;
 }
 
-function tryFastBootstrap(lock, manifest) {
+function tryFastBootstrap(lock, manifest, verify) {
   if (forceClean || !fs.existsSync(bootstrapStatePath) || !materializedStateComplete(manifest)) return false;
-  const state = readJson(bootstrapStatePath);
+  let state;
+  try {
+    state = readJson(bootstrapStatePath);
+  } catch {
+    return false;
+  }
   const fingerprint = bootstrapFingerprint(lock, manifest);
   if (state.fingerprint !== fingerprint) return false;
-  console.log('[bootstrap] inputs and materialized outputs are current; running freshness checks.');
+  if (!verify) {
+    console.log('[bootstrap] inputs and materialized outputs are current.');
+    return true;
+  }
+  console.log('[bootstrap] inputs and materialized outputs are current; running requested verification.');
   try {
     runNpm(['run', 'check']);
     return true;
@@ -619,6 +630,67 @@ function prepareBuildToolchain(repository, spec) {
   return () => removeLinkOrDirectory(checkoutNodeModules);
 }
 
+function sharedBuildCacheDirectory(fingerprint) {
+  const cacheRoot = process.env.THETREE_BOOTSTRAP_CACHE_ROOT;
+  return cacheRoot ? path.join(path.resolve(cacheRoot), 'repository-builds', fingerprint) : null;
+}
+
+function buildOutputFile(rootDirectory, relativePath) {
+  const resolvedRoot = path.resolve(rootDirectory);
+  const resolved = path.resolve(rootDirectory, relativePath);
+  if (resolved === resolvedRoot || !resolved.startsWith(`${resolvedRoot}${path.sep}`)) {
+    fail(`Repository build output escapes its owner: ${relativePath}`);
+  }
+  return resolved;
+}
+
+function restoreSharedBuildOutputs(checkout, build, fingerprint) {
+  if (forceClean) return false;
+  const cacheDirectory = sharedBuildCacheDirectory(fingerprint);
+  const statePath = cacheDirectory && path.join(cacheDirectory, 'state.json');
+  if (!statePath || !fs.existsSync(statePath)) return false;
+  try {
+    const state = readJson(statePath);
+    if (state.schema !== 1 || state.fingerprint !== fingerprint) return false;
+    for (const output of build.outputs || []) {
+      const cached = buildOutputFile(cacheDirectory, output);
+      if (!fs.existsSync(cached) || sha256File(cached) !== state.outputs?.[output]) return false;
+    }
+    for (const output of build.outputs || []) {
+      copyFile(buildOutputFile(cacheDirectory, output), buildOutputFile(checkout, output));
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function publishSharedBuildOutputs(checkout, build, fingerprint) {
+  const cacheDirectory = sharedBuildCacheDirectory(fingerprint);
+  if (!cacheDirectory || fs.existsSync(cacheDirectory)) return;
+  const staging = `${cacheDirectory}.${process.pid}.tmp`;
+  fs.rmSync(staging, { recursive: true, force: true });
+  try {
+    const outputs = {};
+    for (const output of build.outputs || []) {
+      const source = buildOutputFile(checkout, output);
+      copyFile(source, buildOutputFile(staging, output));
+      outputs[output] = sha256File(source);
+    }
+    writeJson(path.join(staging, 'state.json'), { schema: 1, fingerprint, outputs });
+    fs.mkdirSync(path.dirname(cacheDirectory), { recursive: true });
+    if (!fs.existsSync(cacheDirectory)) {
+      try {
+        fs.renameSync(staging, cacheDirectory);
+      } catch (error) {
+        if (!fs.existsSync(cacheDirectory)) throw error;
+      }
+    }
+  } finally {
+    fs.rmSync(staging, { recursive: true, force: true });
+  }
+}
+
 function buildRepository(repository) {
   const build = repository.build;
   if (!build) return;
@@ -633,12 +705,19 @@ function buildRepository(repository) {
   })));
   const outputsExist = (build.outputs || []).every((output) => fs.existsSync(path.join(checkout, output)));
   if (!forceClean && outputsExist && fs.existsSync(statePath) && readJson(statePath).fingerprint === fingerprint) {
+    publishSharedBuildOutputs(checkout, build, fingerprint);
     console.log(`[build] ${repository.name} outputs are current.`);
     return;
   }
   for (const output of build.outputs || []) fs.rmSync(path.join(checkout, output), { recursive: true, force: true });
+  if (restoreSharedBuildOutputs(checkout, build, fingerprint)) {
+    writeJson(statePath, { fingerprint });
+    console.log(`[build] ${repository.name} restored from the shared content cache.`);
+    return;
+  }
 
   let detachToolchain = () => {};
+  const startedAt = Date.now();
   try {
     if (build.toolchain) detachToolchain = prepareBuildToolchain(repository, build.toolchain);
     else if (build.install) installWithLockInvariant(checkout, build.install);
@@ -651,6 +730,8 @@ function buildRepository(repository) {
       fail(`Upstream repository build did not produce its declared outputs for ${repository.name}:\n${missing.map((item) => `- ${item}`).join('\n')}`);
     }
     writeJson(statePath, { fingerprint });
+    publishSharedBuildOutputs(checkout, build, fingerprint);
+    console.log(`[build] ${repository.name} completed in ${((Date.now() - startedAt) / 1000).toFixed(1)}s.`);
   } finally {
     detachToolchain();
   }
@@ -813,6 +894,7 @@ function readRepositoryBlob(repository, upstreamPath) {
     'cat-file', 'blob', spec
   ], {
     cwd: root,
+    env: { ...process.env, GIT_NO_LAZY_FETCH: '1' },
     stdio: ['ignore', 'pipe', 'pipe'],
     encoding: null,
     maxBuffer: 64 * 1024 * 1024,
@@ -936,9 +1018,11 @@ function updateManifestForLock(manifest, lock) {
   return updated;
 }
 
-function runPipeline() {
+function runPipeline(verify) {
+  const startedAt = Date.now();
   runNpm(['run', 'generate']);
-  runNpm(['run', 'check:contracts']);
+  if (verify) runNpm(['run', 'check:contracts']);
+  console.log(`[pipeline] generation${verify ? ' and verification' : ''} completed in ${((Date.now() - startedAt) / 1000).toFixed(1)}s.`);
 }
 
 function removeEmptyParents(start, stop) {
@@ -972,10 +1056,8 @@ function cleanMaterializedState(manifest) {
 
 async function main() {
   const options = parseArgs(process.argv.slice(2));
+  const verify = options.verify || options.refresh || Boolean(options.release);
   forceClean = options.clean;
-  ensureCommand(gitExecutable);
-  runNpm(['--version'], { capture: true });
-  runNpm(['run', 'preflight']);
 
   const originalLockText = fs.readFileSync(lockPath, 'utf8');
   const originalManifestText = fs.readFileSync(manifestPath, 'utf8');
@@ -983,13 +1065,22 @@ async function main() {
   let lock = originalLock;
   let resolvedManifest = readJson(manifestPath);
 
+  if (!verify && !options.refresh && !options.release && tryFastBootstrap(lock, resolvedManifest, false)) {
+    console.log(`Bootstrap complete from cache: ${lock.mediaWikiRelease} / ${lock.releaseLine} / snapshot ${lock.snapshotDate}.`);
+    return;
+  }
+
+  ensureCommand(gitExecutable);
+  runNpm(['--version'], { capture: true });
+
   try {
     if (options.clean) cleanMaterializedState(resolvedManifest);
     cleanUndeclaredUpstreamState(originalLock, resolvedManifest);
     installRootDependencies();
     await loadInstalledGenerationTools();
+    runNpm(['run', 'preflight']);
 
-    if (!options.refresh && !options.release && tryFastBootstrap(lock, resolvedManifest)) {
+    if (!options.refresh && !options.release && tryFastBootstrap(lock, resolvedManifest, verify)) {
       console.log(`Bootstrap complete from cache: ${lock.mediaWikiRelease} / ${lock.releaseLine} / snapshot ${lock.snapshotDate}.`);
       return;
     }
@@ -1009,7 +1100,7 @@ async function main() {
     buildRepositories(lock);
     await materializeVendor(lock, resolvedManifest);
     cleanRepositoryWorktrees(lock, resolvedManifest);
-    runPipeline();
+    runPipeline(verify);
     fs.mkdirSync(buildToolRoot, { recursive: true });
     writeJson(bootstrapStatePath, { fingerprint: bootstrapFingerprint(lock, resolvedManifest) });
 

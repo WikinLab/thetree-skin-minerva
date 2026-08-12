@@ -33,7 +33,7 @@
   },
   "distribution": {
     "mode": "bootstrap-source-only",
-    "snapshotDate": "2026-08-10",
+    "snapshotDate": "2026-08-13",
     "releaseLine": "REL1_46",
     "vendorIncluded": false,
     "generatedOutputsIncluded": false,
@@ -1060,12 +1060,12 @@
         "hostDependency": "none"
       },
       {
-        "path": "contracts/upstream-build-toolchains/design-codex-2.3.1/package-lock.json",
+        "path": "contracts/upstream-build-toolchains/design-codex-2.5.1/package-lock.json",
         "kind": "upstream-build-contract",
         "hostDependency": "none"
       },
       {
-        "path": "contracts/upstream-build-toolchains/design-codex-2.3.1/package.json",
+        "path": "contracts/upstream-build-toolchains/design-codex-2.5.1/package.json",
         "kind": "upstream-build-contract",
         "hostDependency": "none"
       },

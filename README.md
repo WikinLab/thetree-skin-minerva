@@ -37,12 +37,12 @@ npm run bootstrap
 - `skin.minerva.theme_color`
 - `skin.minerva.tagline`
 - `skin.minerva.logo_wordmark` — 원본 `data-logos.wordmark.src`에 대응하는 이미지 URL
-- `skin.minerva.logo_wordmark_width`
-- `skin.minerva.logo_wordmark_height`
+- `skin.minerva.logo_wordmark_width` — 원본 wordmark의 필수 픽셀 너비
+- `skin.minerva.logo_wordmark_height` — 원본 wordmark의 필수 픽셀 높이
 - `skin.minerva.hide_interlanguage_links`
 - `skin.minerva.always_show_language_button`
 
-`wiki.lang`, `wiki.dir`, `wiki.footer_text`, `wiki.site_name`, `wiki.front_page`, `wiki.logo_url` 같은 호스트 공용 키도 사용합니다. `wiki.logo_url`은 Minerva wordmark의 공용 폴백이며, 위 width·height 키가 있으면 MediaWiki의 `SkinModule::getRelativeSizedLogo()`와 같이 16px 기준 `em` 크기 style도 생성합니다. 다른 스킨의 네임스페이스는 폴백으로 읽지 않습니다.
+`wiki.lang`, `wiki.dir`, `wiki.footer_text`, `wiki.site_name`, `wiki.front_page`, `wiki.logo_url` 같은 호스트 공용 키도 사용합니다. `wiki.logo_url`은 MediaWiki의 레거시 `$wgLogo`와 같은 `data-logos["1x"]`에 대응하며 Minerva 헤더 wordmark로 승격하지 않습니다. 헤더 이미지는 전용 wordmark URL·width·height 세 키가 모두 있을 때만 원본 `Logo.mustache`에 공급하고, 크기는 MediaWiki의 `SkinModule::getRelativeSizedLogo()`와 같이 16px 기준 `em`으로 생성합니다. 다른 스킨의 네임스페이스는 폴백으로 읽지 않습니다.
 
 ## 컴포저
 

@@ -137,6 +137,30 @@ assert.deepEqual(
 
 const standardArticleData = makeMinervaSkinData(context());
 assert.deepEqual(standardArticleData['data-logos'], { 'msg-sitetitle': 'the tree', wordmark: null });
+const legacyLogoArticleData = makeMinervaSkinData(context({ config: {
+  'wiki.site_name': 'Legacy Logo Wiki',
+  'wiki.logo_url': '/img/legacy-2000px.png'
+} }));
+assert.deepEqual(legacyLogoArticleData['data-logos'], {
+  '1x': '/img/legacy-2000px.png',
+  'msg-sitetitle': 'Legacy Logo Wiki',
+  wordmark: null
+});
+const renderedLegacyLogo = Mustache.render(template('Logo'), legacyLogoArticleData['data-logos']);
+assert.doesNotMatch(
+  renderedLegacyLogo,
+  /<img\b/,
+  'MediaWiki legacy 1x logo data must not be promoted to Minerva wordmark markup.'
+);
+assert.match(renderedLegacyLogo, /Legacy Logo Wiki/);
+const incompleteWordmarkArticleData = makeMinervaSkinData(context({ config: {
+  'skin.minerva.logo_wordmark': '/img/minerva-wordmark-without-dimensions.svg'
+} }));
+assert.equal(
+  incompleteWordmarkArticleData['data-logos'].wordmark,
+  null,
+  'Minerva wordmark requires the same explicit src, width and height contract as upstream.'
+);
 const logoArticleData = makeMinervaSkinData(context({ config: {
   'wiki.site_name': 'Logo Wiki',
   'skin.minerva.logo_wordmark': '/img/minerva-wordmark.svg',
@@ -445,6 +469,18 @@ assert.equal(searchInitialized, 1);
 listeners.get('click')({ target: { closest: () => null } });
 assert.equal(checkbox.checked, false);
 
+checkbox.checked = true;
+await listeners.get('click')({
+  target: {
+    closest: (selector) => selector.includes('#mw-mf-page-left a[href]') ? {} : null
+  }
+});
+assert.equal(checkbox.checked, false, 'Minerva navigation closes the open toggle before SPA routing.');
+
+checkbox.checked = true;
+runtime.resetForNavigation();
+assert.equal(checkbox.checked, false, 'Route lifecycle reset must not preserve a checked drawer input.');
+
 const watchAttributes = new Map([
   ['href', '/member/star/Document'],
   ['data-watched', 'false'],
@@ -473,6 +509,6 @@ assert.equal(watchLabel.textContent, '주시 해제');
 
 runtime.destroy();
 assert.ok(!bodyClasses.contains('minerva-animations-ready'));
-assert.equal(searchDestroyed, 1);
+assert.equal(searchDestroyed, 2);
 
 console.log('Minerva semantic parity contract passed.');

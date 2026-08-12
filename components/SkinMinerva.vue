@@ -165,7 +165,7 @@ export default {
     $route() {
       this.isShowACLMessage = true;
       this.mobileSearchOpen = false;
-      this.resetMinervaRuntime();
+      this.resetMinervaRuntimeForNavigation();
     },
     skinData() {
       this.resetMinervaRuntime();
@@ -258,6 +258,9 @@ export default {
     },
     resetMinervaRuntime() {
       this.ensureMinervaRuntimeController().reset();
+    },
+    resetMinervaRuntimeForNavigation() {
+      this.ensureMinervaRuntimeController().resetForNavigation();
     },
     requestSearchSuggestions(query, signal) {
       return this.internalRequest(`/Complete?q=${encodeURIComponent(query)}`, { signal, noProgress: true });

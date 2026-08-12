@@ -167,6 +167,7 @@ assert.match(wrapper, /`\/Complete\?q=\$\{encodeURIComponent\(query\)\}`/);
 assert.match(wrapper, /wiki\.hide_user_document_discuss/);
 assert.match(wrapper, /event\?\.defaultPrevented/);
 assert.match(wrapper, /pageContract\.canUseUserHeading/);
+assert.match(wrapper, /\$route\(\)[\s\S]*resetMinervaRuntimeForNavigation\(\)/);
 assert.doesNotMatch(wrapper, /minerva-theme|isMinervaThemeToggleTarget/);
 
 const mediaWikiMessages = JSON.parse(read('lib/generated/mediawiki-less-messages.json'));
@@ -179,6 +180,8 @@ assert.match(runtime, /aria-expanded/);
 assert.match(runtime, /mw-mf-page-center__mask/);
 assert.match(runtime, /minerva-animations-ready/);
 assert.match(runtime, /data-tt-minerva-watchstar/);
+assert.match(runtime, /#mw-mf-page-left a\[href\], \.toggle-list__list a\[href\]/);
+assert.match(runtime, /resetForNavigation/);
 assert.doesNotMatch(runtime, /createSearchDialogRuntime|createMobileSectionsRuntime/);
 
 const generatedMinervaStyles = read('css/vendor/resource-loader/skins.minerva.styles.css');

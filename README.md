@@ -70,6 +70,14 @@ Windows에서 `Filename too long` 오류가 나오면 관리자 권한 터미널
 git config --system core.longpaths true
 ```
 
+## 면책
+
+이 스킨을 사용하면서 발생하는 문제에 대해서는 책임지지 않습니다.
+
+## 개발 도구
+
+이 프로젝트의 개발에는 OpenAI ChatGPT가 사용되었습니다.
+
 ## 버전과 라이선스
 
 현재 버전은 `package.json`에서 확인할 수 있습니다.

@@ -1,51 +1,77 @@
 # thetree-skin-minerva
 
-잠긴 MediaWiki 1.46·MinervaNeue 원본을 the tree에 구조적으로 이식한 독립 스킨입니다. Mustache 부분 템플릿과 ResourceLoader 선언을 변환기가 해석하며, 생성 결과는 직접 수정하지 않습니다.
+the tree용 MediaWiki MinervaNeue 스킨입니다.
 
-## 소유 경계
+## 주요 기능
 
-- Minerva는 헤더, 메뉴, 페이지 액션, 제목·탭·푸터 등 스킨 크롬을 소유합니다.
-- `#mw-content-text[data-tt-host-content="1"]` 안의 `<nuxt/>` 본문은 the tree가 소유합니다.
-- 접기·펼치기, 목차, 문단 편집 등 the tree 본문 동작은 이 스킨이 변환하지 않습니다.
-- MediaWiki식 본문 투영이 필요한 배포는 별도 projection 계층을 사용해야 합니다.
-- 경로, 권한, 세션, 검색 API와 설정 모달만 `lib/adapters/` 및 명시된 호스트 어댑터가 연결합니다.
+- MediaWiki MinervaNeue 디자인
+- 데스크톱과 모바일 반응형 화면
+- 모바일 전용 검색 화면과 좌측 메뉴
+- the tree의 문서 도구, 검색과 사용자 메뉴
+- 로그인 사용자의 문서 주시 및 해제
+- MobileFrontend 플러그인과 Skin Composer 지원
 
-## MobileFrontend 계약
+## 요구 사항
 
-이 스킨은 `page.data.thetreeMobileFrontend`의 `thetree-mobilefrontend/v1` 계약을 읽습니다.
+- the tree 관리자 계정의 `developer` 권한
+- Node.js 20.19.1 이상과 npm 10.8.2 이상
+- Git이 설치되어 있고 GitHub에 접속할 수 있는 서버
+- the tree 설치 서버의 명령줄 접근 권한
 
-- 신호가 없으면 MobileFrontend 확장 기능이 없는 데스크톱 Minerva의 `SkinOptions` 기본값을 사용합니다.
-- `mode: "mobile"`이면 잠긴 `skin.json`의 base/loggedin 프로필과 `SkinOptions.php`의 사용자 문서·diff 예외를 사용합니다.
-- 데스크톱과 모바일 검색은 동일하게 잠긴 MediaWiki `TypeaheadSearchWrapper.vue`·`App.vue`와 그 Codex 의존 그래프를 사용합니다. 어댑터는 `/Complete` 결과·URL·라우터와 원본의 지연 마운트 수명주기만 공급하며, 검색 행·아이콘·메뉴 DOM은 만들지 않습니다.
-- 플러그인은 신호만 공급하며 Minerva DOM이나 메뉴를 만들지 않습니다.
+모바일 요청에 MobileFrontend 기능을 적용하려면 [`thetree-plugin-mobilefrontend`](https://github.com/WikinLab/thetree-plugin-mobilefrontend)를 함께 설치합니다.
 
-언어 기능은 원본 옵션 의미를 그대로 따릅니다. `skin.minerva.hide_interlanguage_links=true`이면 원본과 같이 언어 항목 자체가 없어져 별이 첫 항목으로 이동합니다. 언어 링크가 없을 때 비활성 언어 버튼을 남기려면 숨김을 해제하고 `skin.minerva.always_show_language_button=true`를 사용합니다.
+## 설치
 
-## 생성과 검증
+1. the tree에서 **관리자 → 개발자 설정 → 스킨**으로 이동합니다.
+2. 이름에 `minerva`, URL에 `https://github.com/WikinLab/thetree-skin-minerva`를 입력하고 **추가**를 누릅니다.
+3. the tree 설치 디렉터리에서 다음 명령을 실행합니다.
+
+   ```sh
+   cd frontend/skins/minerva
+   npm run bootstrap
+   ```
+
+4. 관리자 화면의 `minerva` 항목에서 **빌드**를 누릅니다.
+5. 관리자 설정에서 기본 스킨을 `minerva`로 지정하거나 사용자 설정에서 `minerva`를 선택합니다.
+
+## 설정
+
+| 설정 키 | 설명 | 기본값 |
+| --- | --- | --- |
+| `skin.minerva.site_notice` | 페이지 상단 공지 HTML | `wiki.sitenotice` |
+| `skin.minerva.footer_html` | 푸터에 표시할 HTML | `wiki.footer_text` |
+| `skin.minerva.theme_color` | 밝은 화면의 테마 색상 | `#ffffff` |
+| `skin.minerva.tagline` | 문서 제목 아래 문구 | 빈 값 |
+| `skin.minerva.logo_wordmark` | 헤더 wordmark 이미지 URL | 위키 이름 텍스트 |
+| `skin.minerva.logo_wordmark_width` | wordmark의 픽셀 너비 | 빈 값 |
+| `skin.minerva.logo_wordmark_height` | wordmark의 픽셀 높이 | 빈 값 |
+| `skin.minerva.hide_interlanguage_links` | 언어 메뉴 숨김 여부 | `true` |
+| `skin.minerva.always_show_language_button` | 언어 목록이 빈 경우의 언어 버튼 표시 여부 | `false` |
+
+헤더 이미지는 `skin.minerva.logo_wordmark`, `skin.minerva.logo_wordmark_width`, `skin.minerva.logo_wordmark_height` 세 값을 함께 설정하여 사용합니다.
+
+## 업데이트
+
+1. **관리자 → 개발자 설정 → 스킨 → minerva**에서 **업데이트**를 누릅니다.
+2. `frontend/skins/minerva`에서 `npm run bootstrap`을 실행합니다.
+3. 같은 화면에서 **빌드**를 누릅니다.
+
+## 문제 해결
+
+생성 파일이나 내려받은 원본 때문에 부트스트랩이 실패하면 다음 명령으로 다시 준비합니다.
 
 ```sh
-npm ci
-npm run bootstrap
+npm run bootstrap -- --clean
 ```
 
-`UPSTREAM-LOCK.json`은 정확한 Git 커밋을 고정합니다. 기본 부트스트랩은 잠긴 객체에서 `vendor/`를 물질화하고 Mustache Vue 컴포넌트, ResourceLoader CSS, MediaWiki Vue SFC와 CommonJS 의존 그래프, Minerva 기능 프로필을 재생성합니다. 개발·CI의 전체 계약 검증은 `npm run bootstrap:verify` 또는 `npm run check`로 실행합니다. 같은 잠금·계약·도구 버전에서는 같은 바이트 결과를 내며, `vendor/`, `.upstream/`, `css/vendor/`, `lib/generated/`, `node_modules/`는 배포 소스에 포함하지 않습니다.
+Windows에서 `Filename too long` 오류가 나오면 관리자 권한 터미널에서 Git의 긴 경로 지원을 활성화한 뒤 다시 실행합니다.
 
-## 설정 키
+```sh
+git config --system core.longpaths true
+```
 
-- `skin.minerva.site_notice`
-- `skin.minerva.footer_html`
-- `skin.minerva.theme_color`
-- `skin.minerva.tagline`
-- `skin.minerva.logo_wordmark` — 원본 `data-logos.wordmark.src`에 대응하는 이미지 URL
-- `skin.minerva.logo_wordmark_width` — 원본 wordmark의 필수 픽셀 너비
-- `skin.minerva.logo_wordmark_height` — 원본 wordmark의 필수 픽셀 높이
-- `skin.minerva.hide_interlanguage_links`
-- `skin.minerva.always_show_language_button`
+## 버전과 라이선스
 
-`wiki.lang`, `wiki.dir`, `wiki.footer_text`, `wiki.site_name`, `wiki.front_page`, `wiki.logo_url` 같은 호스트 공용 키도 사용합니다. `wiki.logo_url`은 MediaWiki의 레거시 `$wgLogo`와 같은 `data-logos["1x"]`에 대응하며 Minerva 헤더 wordmark로 승격하지 않습니다. 헤더 이미지는 전용 wordmark URL·width·height 세 키가 모두 있을 때만 원본 `Logo.mustache`에 공급하고, 크기는 MediaWiki의 `SkinModule::getRelativeSizedLogo()`와 같이 16px 기준 `em`으로 생성합니다. 다른 스킨의 네임스페이스는 폴백으로 읽지 않습니다.
+현재 버전은 `package.json`에서 확인할 수 있습니다.
 
-## 컴포저
-
-`COMPOSABLE-SKIN.json`은 범용 `thetree-skin-composer`가 선택적으로 읽는 진입점·설정 네임스페이스·본문 소유권·라이선스 metadata입니다. 스킨 런타임이나 단독 빌드는 이 파일을 import하지 않으므로 독립 설치에 영향이 없습니다. 독립 설치와 컴포저 자식 설치는 같은 `components/MinervaVariantLayout.vue`를 사용합니다.
-
-라이선스는 GPL-2.0-or-later이며 정확한 원본과 제3자 고지는 `NOTICE`, `THIRD_PARTY_NOTICES.md`, `ORIGIN-MANIFEST.json`에 기록됩니다.
+이 프로젝트는 GPL-2.0-or-later로 배포됩니다. 원본과 제3자 저작권 고지는 `NOTICE`와 `THIRD_PARTY_NOTICES.md`에서 확인할 수 있습니다.
